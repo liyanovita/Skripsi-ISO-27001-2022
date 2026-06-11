@@ -1,0 +1,182 @@
+{
+  "name": "ISO 27001 CAPA Reminder (Telegram)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1-5"
+            }
+          ]
+        }
+      },
+      "name": "Schedule (Every Weekday 8AM)",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:8000/api/webhook/reminders",
+        "options": {}
+      },
+      "name": "Fetch Reminders from App",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.data.total }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "name": "IF Any Tasks Exist?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data.tasks",
+        "options": {}
+      },
+      "name": "Split Each Task",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 3,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.is_overdue }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF Overdue?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "chatId": "5264646081",
+        "text": "=🚨 *[OVERDUE] ISO 27001 CAPA ALERT*\n\n📋 *Control:* {{ $json.control_code }} - {{ $json.control_title }}\n👤 *PIC:* {{ $json.pic }}\n📅 *Deadline:* {{ $json.due_date }}\n⏰ *Status:* Late by {{ $json.days_left | abs }} day(s)!\n\n⚡ Please submit the corrective evidence immediately.",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "name": "Telegram: Overdue Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [1300, 100],
+      "credentials": {
+        "telegramApi": {
+          "id": "1",
+          "name": "ISO Audit Reminder Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "5264646081",
+        "text": "=⚠️ *[UPCOMING] ISO 27001 CAPA Reminder*\n\n📋 *Control:* {{ $json.control_code }} - {{ $json.control_title }}\n👤 *PIC:* {{ $json.pic }}\n📅 *Deadline:* {{ $json.due_date }}\n⏳ *Time Left:* {{ $json.days_left }} day(s) remaining\n\n📝 Please prepare the corrective action documents.",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "name": "Telegram: Upcoming Reminder",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [1300, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "1",
+          "name": "ISO Audit Reminder Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule (Every Weekday 8AM)": {
+      "main": [
+        [
+          {
+            "node": "Fetch Reminders from App",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Reminders from App": {
+      "main": [
+        [
+          {
+            "node": "IF Any Tasks Exist?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Any Tasks Exist?": {
+      "main": [
+        [
+          {
+            "node": "Split Each Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Each Task": {
+      "main": [
+        [
+          {
+            "node": "IF Overdue?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Overdue?": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Overdue Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram: Upcoming Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-05-26T00:00:00.000Z",
+  "versionId": "1"
+}

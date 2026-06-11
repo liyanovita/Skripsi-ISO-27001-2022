@@ -1,0 +1,364 @@
+{
+  "info": {
+    "name": "ISO 27001 Audit System API",
+    "description": "Complete API collection for ISO 27001 compliance audit and assessment system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{api_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost/api",
+      "type": "string"
+    },
+    {
+      "key": "api_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('api_token', jsonData.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Assessment Sessions",
+      "item": [
+        {
+          "name": "Get All Sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sessions",
+              "host": ["{{base_url}}"],
+              "path": ["sessions"]
+            }
+          }
+        },
+        {
+          "name": "Create Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Q2 2026 Internal Audit\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/sessions",
+              "host": ["{{base_url}}"],
+              "path": ["sessions"]
+            }
+          }
+        },
+        {
+          "name": "Get Session Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sessions/1",
+              "host": ["{{base_url}}"],
+              "path": ["sessions", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Session",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Q2 2026 Internal Audit - Updated\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/sessions/1",
+              "host": ["{{base_url}}"],
+              "path": ["sessions", "1"]
+            }
+          }
+        },
+        {
+          "name": "Clone Session",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sessions/1/clone",
+              "host": ["{{base_url}}"],
+              "path": ["sessions", "1", "clone"]
+            }
+          }
+        },
+        {
+          "name": "Finalize Session",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sessions/1/finalize",
+              "host": ["{{base_url}}"],
+              "path": ["sessions", "1", "finalize"]
+            }
+          }
+        },
+        {
+          "name": "Delete Session",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sessions/1",
+              "host": ["{{base_url}}"],
+              "path": ["sessions", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Assessment Results",
+      "item": [
+        {
+          "name": "Get Session Results",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sessions/1/results",
+              "host": ["{{base_url}}"],
+              "path": ["sessions", "1", "results"]
+            }
+          }
+        },
+        {
+          "name": "Update Result",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"maturity_rating\": 3,\n  \"compliance_status\": \"compliant\",\n  \"risk_level\": \"medium\",\n  \"evidence_description\": \"Access control policy implemented with regular reviews\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/results/1",
+              "host": ["{{base_url}}"],
+              "path": ["results", "1"]
+            }
+          }
+        },
+        {
+          "name": "Generate AI Insight",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/results/1/ai-insight",
+              "host": ["{{base_url}}"],
+              "path": ["results", "1", "ai-insight"]
+            }
+          }
+        },
+        {
+          "name": "Check AI Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/results/1/ai-status",
+              "host": ["{{base_url}}"],
+              "path": ["results", "1", "ai-status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Intelligence & Analytics",
+      "item": [
+        {
+          "name": "Get Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/intelligence/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["intelligence", "dashboard"]
+            }
+          }
+        },
+        {
+          "name": "Get Tactical Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/intelligence/analytics/tactical?session_id=1",
+              "host": ["{{base_url}}"],
+              "path": ["intelligence", "analytics", "tactical"],
+              "query": [
+                {
+                  "key": "session_id",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Strategic Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/intelligence/analytics/strategic",
+              "host": ["{{base_url}}"],
+              "path": ["intelligence", "analytics", "strategic"]
+            }
+          }
+        },
+        {
+          "name": "Generate AI Summary",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/intelligence/ai-summary/1",
+              "host": ["{{base_url}}"],
+              "path": ["intelligence", "ai-summary", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
