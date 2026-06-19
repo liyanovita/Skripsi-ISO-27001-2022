@@ -11,9 +11,16 @@ class SessionController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->input('search');
+        $search       = $request->input('search');
         $statusFilter = $request->input('status');
-        $userFilter = $request->input('user_id');
+        $userFilter   = $request->input('user_id');
+        $dateFrom     = $request->input('date_from');
+        $dateTo       = $request->input('date_to');
+
+        // Stats for KPI cards
+        $totalSessions     = AssessmentSession::count();
+        $activeSessions    = AssessmentSession::where('status', 'in_progress')->count();
+        $completedSessions = AssessmentSession::where('status', 'completed')->count();
 
         $sessions = AssessmentSession::with('user')
             ->withCount('results')
@@ -23,11 +30,17 @@ class SessionController extends Controller
             })
             ->when($statusFilter, fn($q) => $q->where('status', $statusFilter))
             ->when($userFilter, fn($q) => $q->where('user_id', $userFilter))
+            ->when($dateFrom, fn($q) => $q->whereDate('created_at', '>=', $dateFrom))
+            ->when($dateTo, fn($q) => $q->whereDate('created_at', '<=', $dateTo))
             ->orderBy('updated_at', 'desc')
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.sessions.index', compact('sessions', 'search', 'statusFilter', 'userFilter'));
+        return view('admin.sessions.index', compact(
+            'sessions', 'search', 'statusFilter', 'userFilter',
+            'totalSessions', 'activeSessions', 'completedSessions',
+            'dateFrom', 'dateTo'
+        ));
     }
 
     public function show(AssessmentSession $session)

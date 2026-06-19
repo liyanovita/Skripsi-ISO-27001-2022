@@ -30,11 +30,19 @@
                 <span class="flex items-center gap-1"><i class="fa-solid fa-clock"></i> Updated {{ $session->updated_at->diffForHumans() }}</span>
             </div>
         </div>
+        @php
+            $score = $session->overall_maturity_score;
+            $label = 'Initial';
+            if ($score >= 4.5) $label = 'Optimized';
+            elseif ($score >= 3.5) $label = 'Managed';
+            elseif ($score >= 2.5) $label = 'Defined';
+            elseif ($score >= 1.5) $label = 'Limited/Repeatable';
+        @endphp
         <div class="text-center bg-slate-50 rounded-xl px-6 py-3 border border-slate-200">
             <div class="text-3xl font-black {{ $session->overall_maturity_score >= 4 ? 'text-emerald-600' : ($session->overall_maturity_score >= 2.5 ? 'text-amber-600' : 'text-red-600') }}">
                 {{ number_format($session->overall_maturity_score, 2) }}
             </div>
-            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Overall Score</div>
+            <div class="text-[9px] text-slate-400 font-black uppercase tracking-wider">Maturity: {{ $label }}</div>
         </div>
     </div>
 </div>
@@ -108,8 +116,13 @@
             <i class="fa-solid fa-robot text-indigo-500"></i> AI Summary
         </h3>
         @if($session->ai_summary)
-        <div class="text-xs text-slate-600 leading-relaxed max-h-52 overflow-y-auto prose prose-xs">
-            {!! nl2br(e(\Illuminate\Support\Str::limit($session->ai_summary, 600))) !!}
+        <div class="text-xs text-slate-600 leading-relaxed max-h-52 overflow-y-auto prose prose-xs
+                    [&::-webkit-scrollbar]:w-1.5
+                    [&::-webkit-scrollbar-track]:bg-slate-100
+                    [&::-webkit-scrollbar-track]:rounded-full
+                    [&::-webkit-scrollbar-thumb]:bg-slate-300
+                    [&::-webkit-scrollbar-thumb]:rounded-full">
+            {!! \Illuminate\Support\Str::markdown(e($session->ai_summary)) !!}
         </div>
         @else
         <div class="flex flex-col items-center justify-center h-48 text-slate-400">
@@ -181,7 +194,7 @@ document.addEventListener('turbo:load', function() {
     new Chart(canvas, {
         type: 'bar',
         data: {
-            labels: ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5'],
+            labels: ['Initial (L1)', 'Repeatable (L2)', 'Defined (L3)', 'Managed (L4)', 'Optimized (L5)'],
             datasets: [{
                 data: @json($maturityDistribution),
                 backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'],
@@ -192,8 +205,27 @@ document.addEventListener('turbo:load', function() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            plugins: { 
+                legend: { display: false }
+            },
+            scales: { 
+                y: { 
+                    beginAtZero: true, 
+                    ticks: { 
+                        stepSize: 1,
+                        color: '#94a3b8',
+                        font: { family: "'Plus Jakarta Sans', sans-serif", size: 10 }
+                    },
+                    grid: { color: '#f1f5f9' }
+                },
+                x: {
+                    ticks: {
+                        color: '#94a3b8',
+                        font: { family: "'Plus Jakarta Sans', sans-serif", size: 9, weight: 'bold' }
+                    },
+                    grid: { display: false }
+                }
+            }
         }
     });
 });

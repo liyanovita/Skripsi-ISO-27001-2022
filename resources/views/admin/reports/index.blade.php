@@ -26,18 +26,28 @@
         .page-break {
             page-break-before: always;
         }
+        /* Ensure charts print properly and do not break pages */
+        .print-chart-box {
+            break-inside: avoid;
+            page-break-inside: avoid;
+            border: 1px solid #e2e8f0 !important;
+            margin-bottom: 20px !important;
+        }
     }
 </style>
 
+{{-- Chart.js CDN --}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
     <div>
-        <h2 class="text-xl font-black text-slate-800 font-mono tracking-tight">Compliance Reports & Aggregate Analytics</h2>
+        <h2 class="text-xl font-black text-slate-800">Compliance Reports & Aggregate Analytics</h2>
         <p class="text-sm text-slate-500">View maturity statistics, sector comparisons, and export audit results.</p>
     </div>
-    <div class="flex items-center gap-3">
-        <button onclick="window.print()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-bold transition-colors flex items-center gap-2">
-            <i class="fa-solid fa-print"></i> Print Report (PDF)
-        </button>
+    <div class="flex items-center gap-3 flex-wrap">
+        <a href="{{ route('admin.reports.export_pdf') }}" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
+            <i class="fa-solid fa-file-pdf"></i> Download PDF Report
+        </a>
         <a href="{{ route('admin.reports.export_csv') }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
             <i class="fa-solid fa-file-csv"></i> Export Raw Data (CSV)
         </a>
@@ -82,6 +92,26 @@
             <div>
                 <span class="block text-xs font-bold uppercase tracking-wider text-slate-400">Average Maturity Score</span>
                 <span class="block text-2xl font-black text-slate-800 mt-0.5">{{ number_format($averageScore, 2) }} <span class="text-xs text-slate-400 font-normal">/ 5.00</span></span>
+            </div>
+        </div>
+    </div>
+
+    {{-- Interactive Charts Panel --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm print-chart-box">
+            <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-chart-bar text-blue-600 no-print"></i> ISO Clauses Compliance Levels
+            </h3>
+            <div class="h-64 relative">
+                <canvas id="clausesChart"></canvas>
+            </div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm print-chart-box">
+            <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-industry text-indigo-600 no-print"></i> Sector Performance Comparison
+            </h3>
+            <div class="h-64 relative">
+                <canvas id="sectorsChart"></canvas>
             </div>
         </div>
     </div>
@@ -203,4 +233,104 @@
         </div>
     </div>
 </div>
+
+{{-- Render Charts script --}}
+<script>
+    document.addEventListener("turbo:load", function() {
+        initCharts();
+    });
+
+    // Handle initial load before Turbo transitions
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+        initCharts();
+    }
+
+    function initCharts() {
+        const clausesCtx = document.getElementById('clausesChart');
+        const sectorsCtx = document.getElementById('sectorsChart');
+
+        if (!clausesCtx || !sectorsCtx) return;
+
+        // Destroy previous instances if they exist to prevent redraw bugs
+        if (window.myClausesChart) window.myClausesChart.destroy();
+        if (window.mySectorsChart) window.mySectorsChart.destroy();
+
+        // 1. Clauses Chart Data
+        const clauseLabels = @js(collect($clauseStats)->map(fn($c) => 'Clause ' . $c['code']));
+        const clauseData = @js(collect($clauseStats)->map(fn($c) => round($c['avg_rating'], 2)));
+
+        window.myClausesChart = new Chart(clausesCtx, {
+            type: 'bar',
+            data: {
+                labels: clauseLabels,
+                datasets: [{
+                    label: 'Avg Maturity Rating',
+                    data: clauseData,
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderColor: 'rgb(59, 130, 246)',
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 5,
+                        grid: { color: '#f1f5f9' },
+                        ticks: { stepSize: 1, color: '#64748b' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#64748b', font: { size: 10 } }
+                    }
+                }
+            }
+        });
+
+        // 2. Sectors Chart Data
+        const sectorLabels = @js(collect($sectorPerformance)->map(fn($s) => $s['business_sector']));
+        const sectorData = @js(collect($sectorPerformance)->map(fn($s) => round($s['avg_score'], 2)));
+
+        window.mySectorsChart = new Chart(sectorsCtx, {
+            type: 'bar',
+            data: {
+                labels: sectorLabels,
+                datasets: [{
+                    label: 'Avg Maturity',
+                    data: sectorData,
+                    backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                    borderColor: 'rgb(99, 102, 241)',
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        min: 0,
+                        max: 5,
+                        grid: { color: '#f1f5f9' },
+                        ticks: { stepSize: 1, color: '#64748b' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#64748b', font: { size: 10 } }
+                    }
+                }
+            }
+        });
+    }
+</script>
 @endsection

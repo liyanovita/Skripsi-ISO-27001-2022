@@ -123,7 +123,11 @@
                 <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
                     <div style="font-size: 8px; font-weight: bold; color: #1e293b; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">{{ __('Corrective Action Plan (CAP)') }}</div>
                     <div class="cap-box">
-                        {!! nl2br(e($result->corrective_action_plan)) !!}
+                        @if(is_array($result->corrective_action_plan))
+                            {!! nl2br(e($result->corrective_action_plan['action'] ?? implode("\n", $result->corrective_action_plan))) !!}
+                        @else
+                            {!! nl2br(e($result->corrective_action_plan)) !!}
+                        @endif
                     </div>
                 </div>
             </div>

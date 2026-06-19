@@ -211,14 +211,17 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('knowledge', \App\Http\Controllers\Admin\KnowledgeBaseController::class);
 
         // CAPA Plan Management
+        Route::get('capa/export', [\App\Http\Controllers\Admin\CapaController::class, 'exportCsv'])->name('capa.export');
         Route::resource('capa', \App\Http\Controllers\Admin\CapaController::class)->only(['index', 'edit', 'update']);
 
         // System Logs / Audit Trail
         Route::get('logs', [\App\Http\Controllers\Admin\AuditTrailController::class, 'index'])->name('logs.index');
+        Route::get('logs/export', [\App\Http\Controllers\Admin\AuditTrailController::class, 'exportCsv'])->name('logs.export');
 
         // Compliance Reports
         Route::get('reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
         Route::get('reports/export', [\App\Http\Controllers\Admin\ReportController::class, 'exportCsv'])->name('reports.export_csv');
+        Route::get('reports/pdf', [\App\Http\Controllers\Admin\ReportController::class, 'exportPdf'])->name('reports.export_pdf');
 
         // User Management
         Route::controller(\App\Http\Controllers\Admin\UserController::class)->prefix('users')->name('users.')->group(function () {

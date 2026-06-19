@@ -9,71 +9,23 @@ use App\Models\IsoStandard;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
     public function index()
     {
-        // 1. Core Summary Metrics
-        $totalSessions = AssessmentSession::count();
-        $completedSessions = AssessmentSession::where('status', 'completed')->count();
-        $averageScore = AssessmentSession::where('overall_maturity_score', '>', 0)
-            ->avg('overall_maturity_score') ?? 0;
+        $data = $this->getReportData();
+        return view('admin.reports.index', $data);
+    }
 
-        // 2. Average Maturity Score by Business Sector
-        $sectorPerformance = User::whereNotNull('business_sector')
-            ->where('business_sector', '!=', '')
-            ->join('assessment_sessions', 'users.id', '=', 'assessment_sessions.user_id')
-            ->select('users.business_sector', DB::raw('AVG(assessment_sessions.overall_maturity_score) as avg_score'), DB::raw('COUNT(assessment_sessions.id) as sessions_count'))
-            ->groupBy('users.business_sector')
-            ->orderByDesc('avg_score')
-            ->get();
+    public function exportPdf()
+    {
+        $data = $this->getReportData();
+        $data['date'] = now()->format('d F Y H:i');
 
-        // 3. Top 5 failing controls (lowest maturity rating across completed sessions, excluding parents)
-        $failingControls = AssessmentResult::join('iso_standards', 'assessment_results.iso_standard_id', '=', 'iso_standards.id')
-            ->join('assessment_sessions', 'assessment_results.session_id', '=', 'assessment_sessions.id')
-            ->where('assessment_sessions.status', 'completed')
-            ->where('assessment_results.maturity_rating', '>', 0)
-            ->where('assessment_results.maturity_rating', '<', 4) // Less than compliant
-            ->select('iso_standards.code', 'iso_standards.title', 'iso_standards.type', DB::raw('AVG(assessment_results.maturity_rating) as avg_rating'), DB::raw('COUNT(assessment_results.id) as occurrences'))
-            ->groupBy('iso_standards.id', 'iso_standards.code', 'iso_standards.title', 'iso_standards.type')
-            ->orderBy('avg_rating', 'asc')
-            ->take(5)
-            ->get();
-
-        // 4. Compliance Rates per main ISO Clause (Clause 4 to 10)
-        // Average compliance score per main clause
-        $mainClauses = IsoStandard::with('children.children.children')
-            ->whereNull('parent_id')
-            ->whereIn('type', ['clause', 'clausa'])
-            ->orderByRaw('LENGTH(code) ASC, code ASC')
-            ->get();
-
-        $clauseStats = [];
-        foreach ($mainClauses as $clause) {
-            // Get all sub-clause requirements IDs (children and grandchildren)
-            $childIds = $this->getRecursiveChildIds($clause);
-            
-            // Calculate average maturity score for this clause
-            $avgClauseRating = AssessmentResult::whereIn('iso_standard_id', $childIds)
-                ->where('maturity_rating', '>', 0)
-                ->avg('maturity_rating') ?? 0;
-
-            $clauseStats[] = [
-                'code' => $clause->code,
-                'title' => $clause->title,
-                'avg_rating' => $avgClauseRating,
-            ];
-        }
-
-        return view('admin.reports.index', compact(
-            'totalSessions',
-            'completedSessions',
-            'averageScore',
-            'sectorPerformance',
-            'failingControls',
-            'clauseStats'
-        ));
+        $pdf = Pdf::loadView('admin.reports.pdf_template', $data);
+        return $pdf->download("ISO27001_Global_Compliance_Report_" . date('Y-m-d') . ".pdf");
     }
 
     public function exportCsv()
@@ -140,6 +92,69 @@ class ReportController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    private function getReportData()
+    {
+        // 1. Core Summary Metrics
+        $totalSessions = AssessmentSession::count();
+        $completedSessions = AssessmentSession::where('status', 'completed')->count();
+        $averageScore = AssessmentSession::where('overall_maturity_score', '>', 0)
+            ->avg('overall_maturity_score') ?? 0;
+
+        // 2. Average Maturity Score by Business Sector
+        $sectorPerformance = User::whereNotNull('business_sector')
+            ->where('business_sector', '!=', '')
+            ->join('assessment_sessions', 'users.id', '=', 'assessment_sessions.user_id')
+            ->select('users.business_sector', DB::raw('AVG(assessment_sessions.overall_maturity_score) as avg_score'), DB::raw('COUNT(assessment_sessions.id) as sessions_count'))
+            ->groupBy('users.business_sector')
+            ->orderByDesc('avg_score')
+            ->get();
+
+        // 3. Top 5 failing controls (lowest maturity rating across completed sessions, excluding parents)
+        $failingControls = AssessmentResult::join('iso_standards', 'assessment_results.iso_standard_id', '=', 'iso_standards.id')
+            ->join('assessment_sessions', 'assessment_results.session_id', '=', 'assessment_sessions.id')
+            ->where('assessment_sessions.status', 'completed')
+            ->where('assessment_results.maturity_rating', '>', 0)
+            ->where('assessment_results.maturity_rating', '<', 4) // Less than compliant
+            ->select('iso_standards.code', 'iso_standards.title', 'iso_standards.type', DB::raw('AVG(assessment_results.maturity_rating) as avg_rating'), DB::raw('COUNT(assessment_results.id) as occurrences'))
+            ->groupBy('iso_standards.id', 'iso_standards.code', 'iso_standards.title', 'iso_standards.type')
+            ->orderBy('avg_rating', 'asc')
+            ->take(5)
+            ->get();
+
+        // 4. Compliance Rates per main ISO Clause (Clause 4 to 10)
+        $mainClauses = IsoStandard::with('children.children.children')
+            ->whereNull('parent_id')
+            ->whereIn('type', ['clause', 'clausa'])
+            ->orderByRaw('LENGTH(code) ASC, code ASC')
+            ->get();
+
+        $clauseStats = [];
+        foreach ($mainClauses as $clause) {
+            // Get all sub-clause requirements IDs (children and grandchildren)
+            $childIds = $this->getRecursiveChildIds($clause);
+            
+            // Calculate average maturity score for this clause
+            $avgClauseRating = AssessmentResult::whereIn('iso_standard_id', $childIds)
+                ->where('maturity_rating', '>', 0)
+                ->avg('maturity_rating') ?? 0;
+
+            $clauseStats[] = [
+                'code' => $clause->code,
+                'title' => $clause->title,
+                'avg_rating' => $avgClauseRating,
+            ];
+        }
+
+        return compact(
+            'totalSessions',
+            'completedSessions',
+            'averageScore',
+            'sectorPerformance',
+            'failingControls',
+            'clauseStats'
+        );
     }
 
     private function getRecursiveChildIds($standard)

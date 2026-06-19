@@ -45,11 +45,9 @@ class IsoStandard extends Model
     }
 
     /**
-     * Scope: Get only clauses
-     */
     public function scopeClauses($query)
     {
-        return $query->where('type', 'clausa');
+        return $query->whereIn('type', ['clause', 'clausa']);
     }
 
     /**

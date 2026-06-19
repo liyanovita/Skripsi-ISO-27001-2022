@@ -183,7 +183,7 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="px-2.5 py-1 bg-indigo-50 border border-indigo-100 text-indigo-700 text-[9px] font-black rounded-lg uppercase tracking-wider leading-none" x-text="activeAiDetails.code"></span>
-                            <span class="text-[8px] text-indigo-500 font-bold uppercase tracking-widest leading-none">{{ __('Gemini Compliance Synthesis') }}</span>
+                            <span class="text-[8px] text-indigo-500 font-bold uppercase tracking-widest leading-none">{{ __('AI Compliance Synthesis') }}</span>
                         </div>
                         <h3 class="text-sm font-black text-slate-900 tracking-tight mt-1 leading-snug" x-text="activeAiDetails.title"></h3>
                     </div>

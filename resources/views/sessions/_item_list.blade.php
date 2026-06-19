@@ -105,6 +105,10 @@
                 loading: false,
                 aiLoading: false,
                 aiRec: @js($result->ai_recommendation ?? ''),
+                aiPlan: @js(is_array($result->corrective_action_plan) ? implode("\n", $result->corrective_action_plan) : ($result->corrective_action_plan ?? '')),
+                aiInsight: @js(is_array($result->control_insight) ? ($result->control_insight['gap'] ?? '') : ($result->control_insight ?? '')),
+                aiPriority: @js($result->risk_priority ?? ''),
+                aiValidation: @js($result->evidence_validation ?? ''),
                 nextId: {{ $nextId ?? 'null' }},
                 
                 get ratingInfo() {
@@ -195,6 +199,10 @@
                                     if (aiResult.has_ai) {
                                         clearInterval(pollInterval);
                                         this.aiRec = aiResult.ai_recommendation;
+                                        this.aiPlan = Array.isArray(aiResult.corrective_action_plan) ? aiResult.corrective_action_plan.join('\n') : (aiResult.corrective_action_plan || '');
+                                        this.aiInsight = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null) ? (aiResult.control_insight.gap || '') : (aiResult.control_insight || '');
+                                        this.aiPriority = aiResult.risk_priority || '';
+                                        this.aiValidation = aiResult.evidence_validation || '';
                                         this.aiLoading = false;
                                         window.dispatchEvent(new CustomEvent('notify', { detail: { message: 'Analisis AI n8n berhasil diterima!', type: 'success' } }));
                                     } else if (pollCount > 24) { // Timeout after ~60 seconds (24 * 2.5s)
@@ -389,18 +397,14 @@
                                 <button type="button" 
                                     data-code="{{ $result->standard->code }}"
                                     data-title="{{ __($result->standard->title) }}"
-                                    data-plan="{{ is_array($result->corrective_action_plan) ? implode("\n", $result->corrective_action_plan) : ($result->corrective_action_plan ?? '') }}"
-                                    data-insight="{{ $result->control_insight['gap'] ?? '' }}"
-                                    data-priority="{{ $result->risk_priority ?? '' }}"
-                                    data-validation="{{ $result->evidence_validation ?? '' }}"
                                     @click="window.dispatchEvent(new CustomEvent('open-ai-details', { detail: {
                                         code: $el.dataset.code,
                                         title: $el.dataset.title,
                                         rec: aiRec,
-                                        plan: $el.dataset.plan,
-                                        insight: $el.dataset.insight,
-                                        priority: $el.dataset.priority,
-                                        validation: $el.dataset.validation
+                                        plan: aiPlan,
+                                        insight: aiInsight,
+                                        priority: aiPriority,
+                                        validation: aiValidation
                                     }}))"
                                     class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shadow-md shadow-indigo-600/20">
                                     <i class="fa-solid fa-eye mr-1"></i>{{ __('View Result') }}</button>

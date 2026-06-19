@@ -51,6 +51,8 @@ class SocialAuthController extends Controller
                 ? route('admin.dashboard')
                 : route('dashboard');
 
+            session()->flash('just_logged_in', true);
+
             return redirect($destination)
                 ->with('status', __('Successfully logged in with :provider!', ['provider' => ucfirst($provider)]));
                 

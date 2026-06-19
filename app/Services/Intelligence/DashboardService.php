@@ -170,6 +170,48 @@ class DashboardService
         
         $executiveSummary = implode(' ', $summaryParts);
 
+        // 10. Radar Chart Data (Maturity by Domain)
+        $radarData = [
+            'labels' => [],
+            'data' => []
+        ];
+        
+        $domains = [
+            'Clauses (4-10)' => fn($code) => str_starts_with($code, '4.') || str_starts_with($code, '5.') || str_starts_with($code, '6.') || str_starts_with($code, '7.') || str_starts_with($code, '8.') || str_starts_with($code, '9.') || str_starts_with($code, '10.'),
+            'A.5 Org Controls' => fn($code) => str_starts_with($code, 'A.5'),
+            'A.6 People Controls' => fn($code) => str_starts_with($code, 'A.6'),
+            'A.7 Physical Controls' => fn($code) => str_starts_with($code, 'A.7'),
+            'A.8 Tech Controls' => fn($code) => str_starts_with($code, 'A.8'),
+        ];
+
+        foreach ($domains as $domainName => $checkFn) {
+            $domainResults = $results->filter(function($r) use ($checkFn) {
+                return $checkFn($r->standard->code ?? '');
+            });
+            $avg = $domainResults->count() > 0 ? $domainResults->avg('maturity_rating') : 0;
+            $radarData['labels'][] = $domainName;
+            $radarData['data'][] = round($avg, 1);
+        }
+
+        // 11. Recent Audit Trails
+        $recentAuditTrails = \App\Models\AuditTrail::with(['user', 'model' => function ($morphTo) {
+            $morphTo->morphWith([\App\Models\AssessmentResult::class => ['standard']]);
+        }])
+        ->where('user_id', $userId)
+        ->orderByDesc('created_at')
+        ->take(4)
+        ->get();
+
+        // 12. Community Spotlight (Top 3 Templates)
+        $topTemplates = \App\Models\CommunityTemplate::popular()->take(3)->get();
+
+        // 13. Auditor Badge
+        $auditorBadge = match(true) {
+            $completedCycles >= 3 => ['title' => 'Expert Assessor', 'icon' => 'fa-medal', 'color' => 'text-amber-500 bg-amber-50 border-amber-200'],
+            $completedCycles >= 1 => ['title' => 'ISO Practitioner', 'icon' => 'fa-shield-halved', 'color' => 'text-blue-600 bg-blue-50 border-blue-200'],
+            default => ['title' => 'Novice Auditor', 'icon' => 'fa-seedling', 'color' => 'text-emerald-600 bg-emerald-50 border-emerald-200']
+        };
+
         $hasData = true;
 
         return compact(
@@ -178,7 +220,8 @@ class DashboardService
             'completedCycles', 'distribution', 'activeTasks',
             'totalCount', 'answeredCount', 'assessmentProgress', 'criticalGapCount', 'highGapCount', 'distTotal',
             'totalIsoControls', 'activeSessionAnswered', 'activeSessionProgress',
-            'historicalCoveredCount', 'historicalCoveragePercent', 'trendData', 'executiveSummary'
+            'historicalCoveredCount', 'historicalCoveragePercent', 'trendData', 'executiveSummary',
+            'radarData', 'recentAuditTrails', 'topTemplates', 'auditorBadge'
         );
     }
 

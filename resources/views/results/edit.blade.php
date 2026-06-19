@@ -211,7 +211,7 @@
                                     </div>
                                     <div class="leading-none">
                                         <h4 class="text-xs font-black text-slate-900 tracking-tight uppercase">{{ __('AI Compliance Synthesis') }}</h4>
-                                        <p class="text-[8px] text-indigo-600 font-bold uppercase tracking-widest mt-0.5">{{ __('Gemini 2.5 Flash Expert Recommendation') }}</p>
+                                        <p class="text-[8px] text-indigo-600 font-bold uppercase tracking-widest mt-0.5">{{ __('AI Expert Recommendation') }}</p>
                                     </div>
                                 </div>
                                 @if(!empty($result->risk_priority))
@@ -234,10 +234,10 @@
                                 </div>
                                 @endif
 
-                                @if(!empty($result->control_insight['gap']))
+                                @if(!empty(is_array($result->control_insight) ? ($result->control_insight['gap'] ?? null) : $result->control_insight))
                                 <div class="space-y-1">
                                     <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ __('AI Audit Insight (Gap Analysis)') }}</span>
-                                    <p class="text-xs text-slate-700 font-medium leading-relaxed bg-white/60 p-3 rounded-xl border border-slate-100/50 shadow-inner h-full">{{ $result->control_insight['gap'] }}</p>
+                                    <p class="text-xs text-slate-700 font-medium leading-relaxed bg-white/60 p-3 rounded-xl border border-slate-100/50 shadow-inner h-full">{{ is_array($result->control_insight) ? ($result->control_insight['gap'] ?? '') : $result->control_insight }}</p>
                                 </div>
                                 @endif
                             </div>
@@ -280,7 +280,7 @@
 
                              <div class="space-y-1 relative z-10">
                                  <h4 class="text-xs font-black text-slate-900 uppercase tracking-wider">{{ __('AI Compliance Synthesis Active') }}</h4>
-                                 <p class="text-[10px] text-slate-500 font-medium">{{ __('Gemini is currently analyzing your evidence and drafting strategic recommendations...') }}</p>
+                                 <p class="text-[10px] text-slate-500 font-medium">{{ __('AI is currently analyzing your evidence and drafting strategic recommendations...') }}</p>
                              </div>
 
                              <div class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-[8px] font-black uppercase tracking-widest text-indigo-700 animate-pulse relative z-10">

@@ -27,10 +27,17 @@
         <div>
             <div class="flex items-center gap-2 mb-1">
                 <div class="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse"></div>
-                <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">ISO 27001:2022</span>
+                <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">ISO 27001:2022 DSS</span>
             </div>
-            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">{{ __('Global Compliance Dashboard') }}</h1>
-            <p class="text-sm text-slate-500 font-medium mt-0.5">Aggregate overview of your ISO 27001:2022 posture</p>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-3 flex-wrap">
+                <span>{{ __('Welcome Back') }}, <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 font-black">{{ auth()->user()->name }}</span>!</span>
+                @if(isset($auditorBadge))
+                <span class="px-2 py-0.5 rounded-lg border text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 {{ $auditorBadge['color'] }} shadow-sm">
+                    <i class="fa-solid {{ $auditorBadge['icon'] }}"></i> {{ $auditorBadge['title'] }}
+                </span>
+                @endif
+            </h1>
+            <p class="text-sm text-slate-500 font-medium mt-0.5">{{ __('Here is the aggregate overview of your ISO 27001:2022 compliance posture.') }}</p>
         </div>
     </div>
 
@@ -183,7 +190,8 @@
     </div>
 
     {{-- Trend & AI Insights Grid --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5 mb-5">
+    {{-- Analytics & Insights Grid --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5 mb-5">
         
         {{-- Compliance Trend --}}
         <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full min-h-[300px]">
@@ -201,8 +209,54 @@
             </div>
         </div>
 
+        {{-- Compliance Radar Chart --}}
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full min-h-[300px]">
+            <h3 class="text-sm font-bold text-slate-900 mb-4 shrink-0">{{ __('Maturity by Domain') }}</h3>
+            <div class="flex-1 relative w-full flex items-center justify-center">
+                @if(isset($radarData) && count($radarData['data']) >= 1 && array_sum($radarData['data']) > 0)
+                    <canvas id="complianceRadarChart" style="display:block; width:100%; height:220px;"></canvas>
+                @else
+                    <div class="flex flex-col items-center justify-center h-full text-center">
+                        <i class="fa-solid fa-spider text-3xl text-slate-200 mb-2"></i>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">{{ __('No Data Yet') }}</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- Live Audit Trail Widget --}}
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full min-h-[300px]">
+            <div class="flex items-center justify-between mb-4 shrink-0">
+                <h3 class="text-sm font-bold text-slate-900">{{ __('Live Audit Trail') }}</h3>
+                <a href="{{ route('audit-trail.index') }}" class="text-[9px] font-bold text-blue-600 hover:underline uppercase tracking-widest">{{ __('View All') }}</a>
+            </div>
+            <div class="flex-1 flex flex-col gap-3 overflow-hidden">
+                @forelse($recentAuditTrails ?? [] as $trail)
+                    <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-200 text-slate-400 shrink-0 shadow-sm">
+                            <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[10px] font-bold text-slate-900 truncate">{{ $trail->model?->standard?->code ?? 'N/A' }} <span class="text-slate-400 font-medium ml-1">updated</span></p>
+                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">{{ str_replace('_', ' ', Str::title($trail->field_changed)) }}</p>
+                            <p class="text-[10px] text-slate-500 mt-1 truncate flex items-center gap-1.5">
+                                <span class="line-through text-rose-400">{{ $trail->old_value }}</span> 
+                                <i class="fa-solid fa-arrow-right text-[8px] text-slate-300"></i> 
+                                <span class="text-emerald-600 font-bold bg-emerald-50 px-1 rounded">{{ $trail->new_value }}</span>
+                            </p>
+                        </div>
+                    </div>
+                @empty
+                    <div class="flex flex-col items-center justify-center h-full text-center opacity-50">
+                        <i class="fa-solid fa-history text-2xl text-slate-300 mb-2"></i>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">{{ __('No Recent Activity') }}</p>
+                    </div>
+                @endforelse
+            </div>
+        </div>
+
         {{-- Executive Summary --}}
-        <div class="relative bg-gradient-to-br from-indigo-600 to-blue-800 rounded-2xl p-5 shadow-lg shadow-blue-900/20 text-white overflow-hidden flex flex-col" style="min-height: 300px; max-height: 340px;">
+        <div class="lg:col-span-2 relative bg-gradient-to-br from-indigo-600 to-blue-800 rounded-2xl p-5 shadow-lg shadow-blue-900/20 text-white overflow-hidden flex flex-col" style="min-height: 300px; max-height: 340px;">
             <div class="absolute -right-8 -top-8 w-28 h-28 bg-white/10 rounded-full blur-3xl"></div>
 
             <div class="flex items-center gap-3 mb-4 relative z-10 shrink-0">
@@ -223,6 +277,40 @@
                             [&::-webkit-scrollbar-thumb:hover]:bg-white/50">
                     <p class="text-sm font-medium leading-relaxed">{!! $executiveSummary !!}</p>
                 </div>
+            </div>
+        </div>
+
+        {{-- Community Spotlight Widget --}}
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full" style="min-height: 300px; max-height: 340px;">
+            <div class="flex items-center justify-between mb-4 shrink-0">
+                <h3 class="text-sm font-bold text-slate-900">{{ __('Community Spotlight') }}</h3>
+                <a href="{{ route('community.index') }}" class="text-[9px] font-bold text-blue-600 hover:underline uppercase tracking-widest">{{ __('Explore') }}</a>
+            </div>
+            <div class="flex-1 flex flex-col gap-3 overflow-y-auto pr-1
+                        [&::-webkit-scrollbar]:w-1
+                        [&::-webkit-scrollbar-track]:bg-slate-50
+                        [&::-webkit-scrollbar-track]:rounded-full
+                        [&::-webkit-scrollbar-thumb]:bg-slate-200
+                        [&::-webkit-scrollbar-thumb]:rounded-full">
+                @forelse($topTemplates ?? [] as $template)
+                    <a href="{{ route('community.preview', $template->id) }}" class="flex items-center gap-3 p-3 bg-slate-50 hover:bg-blue-50 rounded-xl border border-slate-100 transition-colors group">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-file-shield text-[10px]"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[10px] font-bold text-slate-900 truncate group-hover:text-blue-700 transition-colors">{{ $template->title }}</p>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest"><i class="fa-solid fa-arrow-up text-emerald-500 mr-0.5"></i>{{ $template->upvotes }}</span>
+                                <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest"><i class="fa-solid fa-star text-amber-400 mr-0.5"></i>{{ $template->avg_rating }}</span>
+                            </div>
+                        </div>
+                    </a>
+                @empty
+                    <div class="flex flex-col items-center justify-center h-full text-center opacity-50">
+                        <i class="fa-solid fa-users text-2xl text-slate-300 mb-2"></i>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">{{ __('No Templates Yet') }}</p>
+                    </div>
+                @endforelse
             </div>
         </div>
     </div>
@@ -375,7 +463,7 @@ window.initDashboardCharts = function() {
     if (!window.Chart) return;
 
     // Destroy existing instances to prevent duplicates or rendering glitches
-    ['complianceTrendChart'].forEach(id => {
+    ['complianceTrendChart', 'complianceRadarChart'].forEach(id => {
         if (window.chartInstances[id]) {
             window.chartInstances[id].destroy();
             delete window.chartInstances[id];
@@ -434,6 +522,61 @@ window.initDashboardCharts = function() {
                         }
                     },
                     animation: { duration: 800 }
+                }
+            });
+        }
+    }
+
+    // Radar Chart
+    const radarCtx = document.getElementById('complianceRadarChart');
+    if (radarCtx) {
+        const radarData = @json($radarData ?? ['labels' => [], 'data' => []]);
+        if (radarData.labels && radarData.labels.length > 0) {
+            window.chartInstances['complianceRadarChart'] = new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: radarData.labels,
+                    datasets: [{
+                        label: 'Avg Maturity',
+                        data: radarData.data,
+                        backgroundColor: 'rgba(99, 102, 241, 0.2)', // Indigo
+                        borderColor: '#6366f1',
+                        pointBackgroundColor: '#6366f1',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#6366f1',
+                        borderWidth: 2,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0,0,0,0.1)' },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            pointLabels: {
+                                font: { size: 9, weight: 'bold', family: "'Inter', sans-serif" },
+                                color: '#64748b'
+                            },
+                            ticks: {
+                                min: 0,
+                                max: 5,
+                                stepSize: 1,
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    return ` Maturity: ${ctx.parsed.r}/5`;
+                                }
+                            }
+                        }
+                    }
                 }
             });
         }

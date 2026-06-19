@@ -59,7 +59,6 @@
                 <div class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
                     <a href="#features" class="hover:text-blue-600 transition-colors">{{ __('Features') }}</a>
                     <a href="#how-it-works" class="hover:text-blue-600 transition-colors">{{ __('How It Works') }}</a>
-                    <a href="#pricing" class="hover:text-blue-600 transition-colors">{{ __('Pricing') }}</a>
                     <a href="#faq" class="hover:text-blue-600 transition-colors">{{ __('FAQ') }}</a>
                 </div>
                 <div class="flex items-center gap-2">
@@ -78,169 +77,151 @@
         <div class="max-w-7xl mx-auto px-4 py-3 space-y-1">
             <a href="#features" onclick="toggleMobileMenu()" class="block px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg font-medium transition-colors">{{ __('Features') }}</a>
             <a href="#how-it-works" onclick="toggleMobileMenu()" class="block px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg font-medium transition-colors">{{ __('How It Works') }}</a>
-            <a href="#pricing" onclick="toggleMobileMenu()" class="block px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg font-medium transition-colors">{{ __('Pricing') }}</a>
             <a href="#faq" onclick="toggleMobileMenu()" class="block px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg font-medium transition-colors">{{ __('FAQ') }}</a>
             <div class="pt-1.5 border-t border-gray-100">
-                <a href="{{ route('register') }}" class="block px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold text-center">{{ __('Get Started Free') }}</a>
+                <a href="{{ route('register') }}" class="block px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold text-center">{{ __('Start Assessment') }}</a>
             </div>
         </div>
     </div>
 
     <!-- Hero Section -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <!-- Left Content -->
-            <div class="text-center lg:text-left">
-                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-3 animate-fade-in-up">
-                    <i class="fa-solid fa-sparkles text-xs animate-pulse"></i>
-                    100% Open Source &bull; Free Forever
-                </div>
-                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-snug animate-fade-in-up delay-1 mb-4">{{ __('Simplify Your') }}<span class="gradient-text"> ISO 27001:2022 </span>{{ __('Compliance') }}</h1>
-                <p class="text-lg text-gray-600 mb-6 leading-normal animate-fade-in-up delay-2">{{ __('Complete self-assessment tool with AI-powered recommendations, professional reports, and community-driven resources.') }}<strong class="text-gray-900">{{ __('Start in 2 minutes') }}</strong>, no registration required.
-                </p>
-                <div class="flex flex-wrap justify-center lg:justify-start gap-3 mb-4 animate-fade-in-up delay-3">
-                    <a href="{{ route('register') }}" class="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-xl font-semibold shadow-lg transition-all transform hover:-translate-y-1">{{ __('Start Free Assessment') }}<i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-                    </a>
-                    <a href="https://github.com" target="_blank" class="flex items-center gap-2 px-6 py-3 bg-white text-gray-700 border-2 border-gray-200 rounded-xl hover:border-gray-400 font-semibold shadow-md hover:shadow-lg transition-all transform hover:-translate-y-1">
-                        <i class="fa-brands fa-github text-xl"></i>{{ __('View on GitHub') }}</a>
-                </div>
-                <div class="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-sm text-gray-500 animate-fade-in-up delay-4">
-                    <div class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-500"></i>{{ __('No credit card') }}</div>
-                    <div class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-500"></i> 2-minute setup</div>
-                    <div class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-500"></i> 93 controls covered</div>
-                </div>
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-5 animate-fade-in-up">
+            <i class="fa-solid fa-sparkles text-xs animate-pulse"></i>
+            For Academic &amp; Professional Use
+        </div>
 
-                <!-- Social Proof -->
-                <div class="mt-4 pt-6 border-t border-gray-200 animate-fade-in-up delay-4">
-                    <p class="text-sm text-gray-500 mb-3 font-medium">{{ __('Trusted by security professionals worldwide') }}</p>
-                    <div class="flex items-center justify-center lg:justify-start gap-3">
-                        <div class="flex -space-x-2">
-                            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-white flex items-center justify-center text-white text-xs font-bold">JD</div>
-                            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 border-2 border-white flex items-center justify-center text-white text-xs font-bold">AS</div>
-                            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-green-600 border-2 border-white flex items-center justify-center text-white text-xs font-bold">MK</div>
-                            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 border-2 border-white flex items-center justify-center text-white text-xs font-bold">RP</div>
-                            <div class="w-9 h-9 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-gray-600 text-xs font-bold">+50</div>
-                        </div>
+        <!-- Headline -->
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-5 animate-fade-in-up delay-1">
+            Simplify Your <span class="gradient-text">ISO 27001:2022</span><br>Compliance Assessment
+        </h1>
+
+        <!-- Subheadline -->
+        <p class="text-lg text-gray-500 max-w-2xl mx-auto mb-8 leading-relaxed animate-fade-in-up delay-2">
+            A structured, AI-powered platform to evaluate information security compliance across all 93 ISO 27001:2022 controls &mdash; with gap analysis, professional reports, and actionable recommendations.
+        </p>
+
+        <!-- CTA Buttons -->
+        <div class="flex flex-wrap justify-center gap-4 mb-8 animate-fade-in-up delay-3">
+            <a href="{{ route('register') }}" class="group inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-xl font-semibold shadow-lg transition-all transform hover:-translate-y-1">
+                Start Assessment <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            </a>
+            <a href="{{ route('login') }}" class="inline-flex items-center gap-2 px-8 py-3 bg-white text-gray-700 border-2 border-gray-200 rounded-xl hover:border-blue-400 hover:text-blue-600 font-semibold shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1">
+                <i class="fa-solid fa-right-to-bracket"></i> Login
+            </a>
+        </div>
+
+        <!-- Trust badges -->
+        <div class="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400 mb-12 animate-fade-in-up delay-4">
+            <div class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-500"></i> 93 Controls Covered</div>
+            <div class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-500"></i> AI-Powered Gap Analysis</div>
+            <div class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-500"></i> Professional Reports</div>
+        </div>
+
+        <!-- Dashboard Mockup (below text) -->
+        <div class="relative mx-auto max-w-4xl animate-fade-in-up delay-4">
+            <div class="absolute -top-10 left-1/4 w-64 h-64 bg-blue-400 rounded-full opacity-10 blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-10 right-1/4 w-64 h-64 bg-purple-400 rounded-full opacity-10 blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden card-hover">
+                <!-- Browser Bar -->
+                <div class="bg-gray-100 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
+                    <div class="flex gap-1.5">
+                        <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                    </div>
+                    <div class="flex-1 bg-white rounded-md px-3 py-1 text-xs text-gray-400 ml-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-lock text-green-500"></i>
+                        audit-system.com/dashboard
+                    </div>
+                </div>
+                <!-- Dashboard Content -->
+                <div class="p-6 bg-gradient-to-br from-slate-50 to-blue-50">
+                    <div class="flex items-center justify-between mb-5">
                         <div>
-                            <div class="flex items-center gap-1 text-yellow-400 text-sm">
-                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                            <div class="h-5 w-48 bg-gray-300 rounded-md mb-2 animate-pulse"></div>
+                            <div class="h-3 w-32 bg-gray-200 rounded-md animate-pulse"></div>
+                        </div>
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center text-white text-xs font-bold shadow">ISO</div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 mb-5">
+                        <div class="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+                            <div class="text-xs text-gray-400 mb-1">Compliance Score</div>
+                            <div class="text-2xl font-bold text-blue-600">72%</div>
+                        </div>
+                        <div class="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+                            <div class="text-xs text-gray-400 mb-1">Controls Passed</div>
+                            <div class="text-2xl font-bold text-green-600">67/93</div>
+                        </div>
+                        <div class="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+                            <div class="text-xs text-gray-400 mb-1">Open Gaps</div>
+                            <div class="text-2xl font-bold text-orange-500">26</div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                        <div class="text-sm font-semibold text-gray-600 mb-4">Compliance by Domain</div>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-500 mb-1"><span>Organizational Controls</span><span class="font-semibold text-blue-600">85%</span></div>
+                                <div class="h-2 bg-gray-100 rounded-full"><div class="h-2 bg-blue-500 rounded-full" style="width:85%"></div></div>
                             </div>
-                            <p class="text-xs text-gray-500 mt-0.5">5.0 from 50+ reviews</p>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-500 mb-1"><span>People Controls</span><span class="font-semibold text-purple-600">70%</span></div>
+                                <div class="h-2 bg-gray-100 rounded-full"><div class="h-2 bg-purple-500 rounded-full" style="width:70%"></div></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-500 mb-1"><span>Physical Controls</span><span class="font-semibold text-green-600">60%</span></div>
+                                <div class="h-2 bg-gray-100 rounded-full"><div class="h-2 bg-green-500 rounded-full" style="width:60%"></div></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-500 mb-1"><span>Technological Controls</span><span class="font-semibold text-orange-600">75%</span></div>
+                                <div class="h-2 bg-gray-100 rounded-full"><div class="h-2 bg-orange-500 rounded-full" style="width:75%"></div></div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right: Dashboard Mockup -->
-            <div class="relative hidden lg:block">
-                <div class="relative z-10 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden card-hover">
-                    <!-- Browser Bar -->
-                    <div class="bg-gray-100 px-3 py-2 flex items-center gap-2 border-b border-gray-200">
-                        <div class="flex gap-1.5">
-                            <div class="w-3 h-3 rounded-full bg-red-400"></div>
-                            <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
-                            <div class="w-3 h-3 rounded-full bg-green-400"></div>
-                        </div>
-                        <div class="flex-1 bg-white rounded-md px-3 py-1 text-xs text-gray-400 ml-2 flex items-center gap-1">
-                            <i class="fa-solid fa-lock text-green-500"></i>
-                            your-domain.com/dashboard
-                        </div>
-                    </div>
-                    <!-- Dashboard Content -->
-                    <div class="p-4 bg-gradient-to-br from-slate-50 to-blue-50">
-                        <!-- Header -->
-                        <div class="flex items-center justify-between mb-3">
-                            <div>
-                                <div class="h-4 w-36 bg-gray-300 rounded-md mb-2 animate-pulse"></div>
-                                <div class="h-3 w-24 bg-gray-200 rounded-md animate-pulse"></div>
-                            </div>
-                            <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center text-white text-xs font-bold">{{ __('ISO') }}</div>
-                        </div>
-                        <!-- Stat Cards -->
-                        <div class="grid grid-cols-3 gap-3 mb-3">
-                            <div class="bg-white rounded-xl p-2 shadow-sm border border-gray-100">
-                                <div class="text-xs text-gray-400 mb-1">{{ __('Compliance') }}</div>
-                                <div class="text-lg font-bold text-blue-600">72%</div>
-                            </div>
-                            <div class="bg-white rounded-xl p-2 shadow-sm border border-gray-100">
-                                <div class="text-xs text-gray-400 mb-1">{{ __('Controls') }}</div>
-                                <div class="text-lg font-bold text-green-600">67/93</div>
-                            </div>
-                            <div class="bg-white rounded-xl p-2 shadow-sm border border-gray-100">
-                                <div class="text-xs text-gray-400 mb-1">{{ __('Gaps') }}</div>
-                                <div class="text-lg font-bold text-orange-500">26</div>
-                            </div>
-                        </div>
-                        <!-- Chart -->
-                        <div class="bg-white rounded-xl p-2 shadow-sm border border-gray-100">
-                            <div class="text-xs font-semibold text-gray-500 mb-3">{{ __('Compliance by Domain') }}</div>
-                            <div class="space-y-2">
-                                <div>
-                                    <div class="flex justify-between text-xs text-gray-500 mb-1"><span>{{ __('Organizational') }}</span><span>85%</span></div>
-                                    <div class="h-2 bg-gray-100 rounded-full"><div class="h-2 bg-blue-500 rounded-full" style="width:85%"></div></div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between text-xs text-gray-500 mb-1"><span>{{ __('People') }}</span><span>70%</span></div>
-                                    <div class="h-2 bg-gray-100 rounded-full"><div class="h-2 bg-purple-500 rounded-full" style="width:70%"></div></div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between text-xs text-gray-500 mb-1"><span>{{ __('Physical') }}</span><span>60%</span></div>
-                                    <div class="h-2 bg-gray-100 rounded-full"><div class="h-2 bg-green-500 rounded-full" style="width:60%"></div></div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between text-xs text-gray-500 mb-1"><span>{{ __('Technological') }}</span><span>75%</span></div>
-                                    <div class="h-2 bg-gray-100 rounded-full"><div class="h-2 bg-orange-500 rounded-full" style="width:75%"></div></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Floating badges -->
+            <div class="absolute -bottom-4 -left-6 bg-white rounded-xl shadow-xl px-3 py-2 border border-gray-100 z-20 card-hover hidden md:flex items-center gap-2">
+                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i class="fa-solid fa-brain text-blue-600 text-sm"></i>
                 </div>
-                <!-- Floating Badges -->
-                <div class="absolute -top-4 -left-4 bg-white rounded-xl shadow-xl p-2 border border-gray-100 z-20 card-hover">
-                    <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center">
-                            <i class="fa-solid fa-check text-green-600 text-sm"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs font-bold text-gray-900">93 Controls</div>
-                            <div class="text-[10px] text-gray-500">{{ __('Covered') }}</div>
-                        </div>
-                    </div>
+                <div>
+                    <div class="text-xs font-bold text-gray-900">AI-Powered</div>
+                    <div class="text-[10px] text-gray-500">Recommendations</div>
                 </div>
-                <div class="absolute -bottom-4 -right-4 bg-white rounded-xl shadow-xl p-2 border border-gray-100 z-20 card-hover">
-                    <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">
-                            <i class="fa-solid fa-brain text-blue-600 text-sm"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs font-bold text-gray-900">{{ __('AI-Powered') }}</div>
-                            <div class="text-[10px] text-gray-500">{{ __('Analysis') }}</div>
-                        </div>
-                    </div>
+            </div>
+            <div class="absolute -top-4 -right-6 bg-white rounded-xl shadow-xl px-3 py-2 border border-gray-100 z-20 card-hover hidden md:flex items-center gap-2">
+                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <i class="fa-solid fa-shield-halved text-green-600 text-sm"></i>
                 </div>
-                <!-- Glow Effects -->
-                <div class="absolute -top-8 -right-8 w-32 h-32 bg-blue-400 rounded-full opacity-10 blur-3xl"></div>
-                <div class="absolute -bottom-8 -left-8 w-40 h-40 bg-purple-400 rounded-full opacity-10 blur-3xl"></div>
+                <div>
+                    <div class="text-xs font-bold text-gray-900">93 Controls</div>
+                    <div class="text-[10px] text-gray-500">ISO 27001:2022</div>
+                </div>
             </div>
         </div>
 
         <!-- Stats Bar -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16">
             <div class="bg-white rounded-2xl p-4 shadow-md border border-gray-100 text-center hover-lift card-hover">
                 <div class="text-3xl font-bold gradient-text mb-0.5">93</div>
-                <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">{{ __('ISO Controls') }}</div>
+                <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">ISO Controls</div>
             </div>
             <div class="bg-white rounded-2xl p-4 shadow-md border border-gray-100 text-center hover-lift card-hover">
                 <div class="text-3xl font-bold gradient-text mb-0.5">46+</div>
-                <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">{{ __('API Endpoints') }}</div>
+                <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">API Endpoints</div>
             </div>
             <div class="bg-white rounded-2xl p-4 shadow-md border border-gray-100 text-center hover-lift card-hover">
                 <div class="text-3xl font-bold gradient-text mb-0.5">4</div>
-                <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">{{ __('Domains') }}</div>
+                <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Domains</div>
             </div>
             <div class="bg-white rounded-2xl p-4 shadow-md border border-gray-100 text-center hover-lift card-hover">
                 <div class="text-3xl font-bold gradient-text mb-0.5">100%</div>
-                <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">{{ __('Open Source') }}</div>
+                <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Web-Based</div>
             </div>
         </div>
     </section>
@@ -344,252 +325,51 @@
             <div class="text-center mt-6">
                 <a href="{{ route('register') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-xl font-semibold shadow-lg transition-all transform hover:-translate-y-1">{{ __('Start Your Assessment Now') }}<i class="fa-solid fa-arrow-right"></i>
                 </a>
-                <p class="text-sm text-gray-400 mt-3">No credit card &bull; No installation &bull; 100% Free</p>
+                <p class="text-sm text-gray-400 mt-3">{{ __('Integrated System &bull; Web-Based &bull; Smart Analysis') }}</p>
             </div>
         </div>
     </section>
 
-    <!-- Use Cases -->
+    <!-- Target Audience -->
     <section class="py-10 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-4">
-                <h2 class="text-2xl font-bold text-gray-900 mb-1.5">{{ __('Perfect for Every Industry') }}</h2>
-                <p class="text-base text-gray-500 max-w-2xl mx-auto">{{ __('From startups to enterprises, our tool adapts to your compliance needs') }}</p>
+                <h2 class="text-2xl font-bold text-gray-900 mb-1.5">{{ __('Designed for Various Needs') }}</h2>
+                <p class="text-base text-gray-500 max-w-2xl mx-auto">{{ __('This system can be used by various types of users to facilitate information security audits') }}</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-4 border border-blue-200 hover:shadow-lg transition-all card-hover">
                     <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center mb-3 shadow-md">
-                        <i class="fa-solid fa-rocket text-white text-xl"></i>
+                        <i class="fa-solid fa-building text-white text-xl"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900 mb-1.5">{{ __('Startups') }}</h3>
-                    <p class="text-sm text-gray-600 leading-normal">{{ __('Build security from day one. Get investor-ready with proper ISMS documentation.') }}</p>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1.5">{{ __('Organizations') }}</h3>
+                    <p class="text-sm text-gray-600 leading-normal">{{ __('Conduct a self-assessment to determine the level of information security compliance in your organization.') }}</p>
                 </div>
                 <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-4 border border-purple-200 hover:shadow-lg transition-all card-hover">
                     <div class="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center mb-3 shadow-md">
-                        <i class="fa-solid fa-chart-line text-white text-xl"></i>
+                        <i class="fa-solid fa-user-tie text-white text-xl"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900 mb-1.5">{{ __('FinTech') }}</h3>
-                    <p class="text-sm text-gray-600 leading-normal">{{ __('Meet regulatory requirements. Secure customer data and build trust with partners.') }}</p>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1.5">{{ __('Internal Auditors') }}</h3>
+                    <p class="text-sm text-gray-600 leading-normal">{{ __('Use this platform as a tool to conduct structured ISO 27001 compliance audits.') }}</p>
                 </div>
                 <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-4 border border-green-200 hover:shadow-lg transition-all card-hover">
                     <div class="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center mb-3 shadow-md">
-                        <i class="fa-solid fa-heart-pulse text-white text-xl"></i>
+                        <i class="fa-solid fa-graduation-cap text-white text-xl"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900 mb-1.5">{{ __('Healthcare') }}</h3>
-                    <p class="text-sm text-gray-600 leading-normal">{{ __('Protect patient data. Comply with HIPAA and ISO 27001:2022 standards simultaneously.') }}</p>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1.5">{{ __('Academics') }}</h3>
+                    <p class="text-sm text-gray-600 leading-normal">{{ __('Learn the application of the ISO 27001:2022 information security standard and its controls.') }}</p>
                 </div>
                 <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-4 border border-orange-200 hover:shadow-lg transition-all card-hover">
                     <div class="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center mb-3 shadow-md">
-                        <i class="fa-solid fa-cloud text-white text-xl"></i>
+                        <i class="fa-solid fa-laptop-code text-white text-xl"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900 mb-1.5">{{ __('SaaS') }}</h3>
-                    <p class="text-sm text-gray-600 leading-normal">{{ __('Win enterprise clients. Demonstrate security maturity and compliance readiness.') }}</p>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1.5">{{ __('IT Practitioners') }}</h3>
+                    <p class="text-sm text-gray-600 leading-normal">{{ __('Get AI-driven recommendations on corrective actions (CAPA) to address security gaps.') }}</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Testimonials -->
-    <section id="how-it-works" class="bg-gradient-to-b from-gray-50 to-white py-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-4">
-                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium mb-3">
-                    <i class="fa-solid fa-star text-xs"></i>{{ __('Testimonials') }}</div>
-                <h2 class="text-2xl font-bold text-gray-900 mb-1.5">{{ __('Loved by Security Professionals') }}</h2>
-                <p class="text-base text-gray-500 max-w-2xl mx-auto">{{ __('See how teams are achieving ISO 27001:2022 compliance faster') }}</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-xl transition-all card-hover">
-                    <div class="flex items-center gap-1 text-yellow-400 mb-4">
-                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                    </div>
-                    <p class="text-gray-600 mb-4 leading-normal italic">"This tool saved us months of work. The AI recommendations are spot-on and helped us identify gaps we did not even know existed."</p>
-                    <div class="flex items-center gap-2">
-                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm">JD</div>
-                        <div>
-                            <div class="font-bold text-gray-900 text-sm">{{ __('John Doe') }}</div>
-                            <div class="text-xs text-gray-500">{{ __('CISO, TechCorp') }}</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-xl transition-all card-hover">
-                    <div class="flex items-center gap-1 text-yellow-400 mb-4">
-                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                    </div>
-                    <p class="text-gray-600 mb-4 leading-normal italic">"The best open-source compliance tool available. Professional reports and the REST API made it easy to integrate into our workflow."</p>
-                    <div class="flex items-center gap-2">
-                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-bold text-sm">AS</div>
-                        <div>
-                            <div class="font-bold text-gray-900 text-sm">{{ __('Alice Smith') }}</div>
-                            <div class="text-xs text-gray-500">{{ __('Security Manager, FinTech Inc') }}</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-xl transition-all card-hover">
-                    <div class="flex items-center gap-1 text-yellow-400 mb-4">
-                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                    </div>
-                    <p class="text-gray-600 mb-4 leading-normal italic">"We achieved ISO 27001:2022 certification in 6 months. The structured approach and clear guidance made the whole process manageable."</p>
-                    <div class="flex items-center gap-2">
-                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-sm">MK</div>
-                        <div>
-                            <div class="font-bold text-gray-900 text-sm">{{ __('Michael Kim') }}</div>
-                            <div class="text-xs text-gray-500">{{ __('IT Director, HealthCare Plus') }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-
-
-    <!-- Comparison Section -->
-    <section class="py-10 bg-white">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-4">
-                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm font-medium mb-3">
-                    <i class="fa-solid fa-scale-balanced text-xs"></i>{{ __('Comparison') }}</div>
-                <h2 class="text-2xl font-bold text-gray-900 mb-1.5">{{ __('How We Compare') }}</h2>
-                <p class="text-base text-gray-500 max-w-2xl mx-auto">{{ __('See why teams choose this tool over expensive alternatives') }}</p>
-            </div>
-            <div class="overflow-x-auto rounded-2xl border border-gray-200 shadow-lg">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="bg-gray-50 border-b border-gray-200">
-                            <th class="text-left px-4 py-3 font-semibold text-gray-700">{{ __('Feature') }}</th>
-                            <th class="px-4 py-3 font-semibold text-center">
-                                <div class="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-xs">
-                                    <i class="fa-solid fa-star"></i>{{ __('This Tool') }}</div>
-                            </th>
-                            <th class="px-4 py-3 font-semibold text-gray-400 text-center">{{ __('Typical SaaS') }}</th>
-                            <th class="px-4 py-3 font-semibold text-gray-400 text-center">{{ __('Consulting') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 font-medium text-gray-700">{{ __('Price') }}</td>
-                            <td class="px-4 py-3 text-center"><span class="font-bold text-green-600 text-lg">$0</span></td>
-                            <td class="px-4 py-3 text-center text-gray-400">$99-$499/mo</td>
-                            <td class="px-4 py-3 text-center text-gray-400">$5,000+</td>
-                        </tr>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 font-medium text-gray-700">ISO 27001:2022 Coverage</td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-check-circle text-green-500 text-lg"></i></td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-check-circle text-green-500 text-lg"></i></td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-check-circle text-green-500 text-lg"></i></td>
-                        </tr>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 font-medium text-gray-700">{{ __('AI Recommendations') }}</td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-check-circle text-green-500 text-lg"></i></td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-check-circle text-green-500 text-lg"></i></td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-times-circle text-red-400 text-lg"></i></td>
-                        </tr>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 font-medium text-gray-700">{{ __('REST API Access') }}</td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-check-circle text-green-500 text-lg"></i></td>
-                            <td class="px-4 py-3 text-center text-gray-400 text-xs">{{ __('Paid plans only') }}</td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-times-circle text-red-400 text-lg"></i></td>
-                        </tr>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 font-medium text-gray-700">{{ __('Self-Hosting') }}</td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-check-circle text-green-500 text-lg"></i></td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-times-circle text-red-400 text-lg"></i></td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-times-circle text-red-400 text-lg"></i></td>
-                        </tr>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 font-medium text-gray-700">{{ __('Open Source') }}</td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-check-circle text-green-500 text-lg"></i></td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-times-circle text-red-400 text-lg"></i></td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-times-circle text-red-400 text-lg"></i></td>
-                        </tr>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 font-medium text-gray-700">{{ __('No Registration Required') }}</td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-check-circle text-green-500 text-lg"></i></td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-times-circle text-red-400 text-lg"></i></td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-times-circle text-red-400 text-lg"></i></td>
-                        </tr>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 font-medium text-gray-700">{{ __('Webhook / n8n Integration') }}</td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-check-circle text-green-500 text-lg"></i></td>
-                            <td class="px-4 py-3 text-center text-gray-400 text-xs">{{ __('Limited') }}</td>
-                            <td class="px-4 py-3 text-center"><i class="fa-solid fa-times-circle text-red-400 text-lg"></i></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </section>
-
-    <!-- Pricing Section -->
-    <section id="pricing" class="py-10 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-4">
-                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-medium mb-3">
-                    <i class="fa-solid fa-gift text-xs"></i>{{ __('Always Free') }}</div>
-                <h2 class="text-2xl font-bold text-gray-900 mb-1.5">{{ __('Simple, Transparent Pricing') }}</h2>
-                <p class="text-base text-gray-500 max-w-2xl mx-auto">{{ __('No hidden fees, no credit card required, no surprises. Ever.') }}</p>
-            </div>
-            <div class="max-w-4xl mx-auto">
-                <div class="bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-3xl p-4 border-2 border-blue-100 shadow-2xl">
-                    <div class="text-center mb-4">
-                        <div class="text-4xl font-bold gradient-text mb-2">$0</div>
-                        <p class="text-xl text-gray-600 font-medium">{{ __('Forever Free') }}</p>
-                        <p class="text-gray-400 mt-2">{{ __('Open source under MIT License') }}</p>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                        <div class="flex items-start gap-3 bg-white rounded-xl p-2 shadow-sm border border-gray-100">
-                            <i class="fa-solid fa-check-circle text-green-500 text-lg mt-0.5 flex-shrink-0"></i>
-                            <div><div class="font-semibold text-gray-900 text-sm">93 ISO 27001:2022 Controls</div><div class="text-xs text-gray-500">{{ __('Complete assessment coverage') }}</div></div>
-                        </div>
-                        <div class="flex items-start gap-3 bg-white rounded-xl p-2 shadow-sm border border-gray-100">
-                            <i class="fa-solid fa-check-circle text-green-500 text-lg mt-0.5 flex-shrink-0"></i>
-                            <div><div class="font-semibold text-gray-900 text-sm">{{ __('AI-Powered Analysis') }}</div><div class="text-xs text-gray-500">{{ __('Intelligent gap recommendations') }}</div></div>
-                        </div>
-                        <div class="flex items-start gap-3 bg-white rounded-xl p-2 shadow-sm border border-gray-100">
-                            <i class="fa-solid fa-check-circle text-green-500 text-lg mt-0.5 flex-shrink-0"></i>
-                            <div><div class="font-semibold text-gray-900 text-sm">{{ __('Professional Reports') }}</div><div class="text-xs text-gray-500">{{ __('PDF, Excel, Word formats') }}</div></div>
-                        </div>
-                        <div class="flex items-start gap-3 bg-white rounded-xl p-2 shadow-sm border border-gray-100">
-                            <i class="fa-solid fa-check-circle text-green-500 text-lg mt-0.5 flex-shrink-0"></i>
-                            <div><div class="font-semibold text-gray-900 text-sm">{{ __('REST API Access') }}</div><div class="text-xs text-gray-500">46+ endpoints for integration</div></div>
-                        </div>
-                        <div class="flex items-start gap-3 bg-white rounded-xl p-2 shadow-sm border border-gray-100">
-                            <i class="fa-solid fa-check-circle text-green-500 text-lg mt-0.5 flex-shrink-0"></i>
-                            <div><div class="font-semibold text-gray-900 text-sm">{{ __('Community Templates') }}</div><div class="text-xs text-gray-500">{{ __('Shared best practices library') }}</div></div>
-                        </div>
-                        <div class="flex items-start gap-3 bg-white rounded-xl p-2 shadow-sm border border-gray-100">
-                            <i class="fa-solid fa-check-circle text-green-500 text-lg mt-0.5 flex-shrink-0"></i>
-                            <div><div class="font-semibold text-gray-900 text-sm">{{ __('Self-Hosting Option') }}</div><div class="text-xs text-gray-500">{{ __('Deploy on your own servers') }}</div></div>
-                        </div>
-                        <div class="flex items-start gap-3 bg-white rounded-xl p-2 shadow-sm border border-gray-100">
-                            <i class="fa-solid fa-check-circle text-green-500 text-lg mt-0.5 flex-shrink-0"></i>
-                            <div><div class="font-semibold text-gray-900 text-sm">{{ __('Audit Trail Logging') }}</div><div class="text-xs text-gray-500">{{ __('Complete activity tracking') }}</div></div>
-                        </div>
-                        <div class="flex items-start gap-3 bg-white rounded-xl p-2 shadow-sm border border-gray-100">
-                            <i class="fa-solid fa-check-circle text-green-500 text-lg mt-0.5 flex-shrink-0"></i>
-                            <div><div class="font-semibold text-gray-900 text-sm">{{ __('Webhook Integrations') }}</div><div class="text-xs text-gray-500">{{ __('Connect with n8n, Zapier, and more') }}</div></div>
-                        </div>
-                    </div>
-                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-4 text-white text-center">
-                        <div class="flex items-center justify-center gap-3 mb-2">
-                            <i class="fa-brands fa-github text-2xl"></i>
-                            <span class="text-lg font-bold">{{ __('Open Source Under MIT License') }}</span>
-                        </div>
-                        <p class="text-blue-100 text-sm">{{ __('Use it, modify it, distribute it. No strings attached.') }}</p>
-                    </div>
-                </div>
-                <div class="mt-4 text-center">
-                    <p class="text-gray-500 mb-3 font-medium">Compare with paid alternatives:</p>
-                    <div class="inline-flex items-end gap-6">
-                        <div class="text-center"><div class="font-bold text-gray-300 line-through text-xl">$299/mo</div><div class="text-xs text-gray-400 mt-1">{{ __('Typical SaaS') }}</div></div>
-                        <div class="text-center"><div class="font-bold text-gray-300 line-through text-xl">$5,000+</div><div class="text-xs text-gray-400 mt-1">{{ __('Consulting') }}</div></div>
-                        <div class="text-center"><div class="font-bold text-green-600 text-3xl">$0</div><div class="text-xs text-green-600 font-bold mt-1">{{ __('This Tool') }}</div></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- Integrations Section -->
     <section class="py-10 bg-gray-50">
@@ -700,12 +480,12 @@
             </div>
             <div class="space-y-3" x-data="{ open: null }">
                 <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                    <button onclick="toggleFaq(1)" class="w-full flex items-center justify-between p-4 text-left" aria-label="Toggle FAQ: Is this tool really free?" aria-expanded="false hover:bg-gray-50 transition-colors">
-                        <span class="font-semibold text-gray-900">{{ __('Is this tool really free?') }}</span>
+                    <button onclick="toggleFaq(1)" class="w-full flex items-center justify-between p-4 text-left" aria-label="Toggle FAQ: What is this tool?" aria-expanded="false hover:bg-gray-50 transition-colors">
+                        <span class="font-semibold text-gray-900">{{ __('What is this system used for?') }}</span>
                         <i id="faq-icon-1" class="fa-solid fa-chevron-down text-gray-400 transition-transform"></i>
                     </button>
                     <div id="faq-1" class="hidden px-4 pb-4">
-                        <p class="text-gray-500 leading-normal">{{ __('Yes, completely free. The tool is open source under the MIT License. You can use it, modify it, and even deploy it on your own servers at no cost. There are no premium tiers or hidden fees.') }}</p>
+                        <p class="text-gray-500 leading-normal">{{ __('This is a web-based audit decision support system designed to help organizations, internal auditors, academics, and IT practitioners evaluate information security compliance against the ISO 27001:2022 standard.') }}</p>
                     </div>
                 </div>
                 <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
@@ -714,7 +494,7 @@
                         <i id="faq-icon-2" class="fa-solid fa-chevron-down text-gray-400 transition-transform"></i>
                     </button>
                     <div id="faq-2" class="hidden px-4 pb-4">
-                        <p class="text-gray-500 leading-normal">{{ __('No. You can start a full assessment as a guest without any registration. Creating an account gives you access to saved sessions, history, community templates, and the full API.') }}</p>
+                        <p class="text-gray-500 leading-normal">{{ __('Yes. An account is required to access the system. Registration allows you to save and track assessment sessions, view history, access AI-generated recommendations, and use the knowledge base.') }}</p>
                     </div>
                 </div>
                 <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
@@ -723,7 +503,7 @@
                         <i id="faq-icon-3" class="fa-solid fa-chevron-down text-gray-400 transition-transform"></i>
                     </button>
                     <div id="faq-3" class="hidden px-4 pb-4">
-                        <p class="text-gray-500 leading-normal">The tool covers ISO 27001:2022, the latest version with all 93 controls across 4 domains (Organizational, People, Physical, Technological). This replaces the older 114-control structure from the 2013 version.</p>
+                        <p class="text-gray-500 leading-normal">The system covers ISO 27001:2022, the latest version with all 93 controls across 4 domains (Organizational, People, Physical, Technological). This replaces the older 114-control structure from the 2013 version.</p>
                     </div>
                 </div>
                 <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
@@ -736,20 +516,11 @@
                     </div>
                 </div>
                 <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                    <button onclick="toggleFaq(5)" class="w-full flex items-center justify-between p-4 text-left" aria-label="Toggle FAQ: Self-hosting option" aria-expanded="false hover:bg-gray-50 transition-colors">
-                        <span class="font-semibold text-gray-900">{{ __('Can I self-host this on my own server?') }}</span>
+                    <button onclick="toggleFaq(5)" class="w-full flex items-center justify-between p-4 text-left" aria-label="Toggle FAQ: AI recommendation" aria-expanded="false hover:bg-gray-50 transition-colors">
+                        <span class="font-semibold text-gray-900">{{ __('How does the AI recommendation work?') }}</span>
                         <i id="faq-icon-5" class="fa-solid fa-chevron-down text-gray-400 transition-transform"></i>
                     </button>
                     <div id="faq-5" class="hidden px-4 pb-4">
-                        <p class="text-gray-500 leading-normal">Absolutely. The tool is built with Laravel and can be deployed on any server that supports PHP 8.2+, MySQL, and Composer. Full installation instructions are available in the GitHub repository.</p>
-                    </div>
-                </div>
-                <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                    <button onclick="toggleFaq(6)" class="w-full flex items-center justify-between p-4 text-left" aria-label="Toggle FAQ: AI recommendation" aria-expanded="false hover:bg-gray-50 transition-colors">
-                        <span class="font-semibold text-gray-900">{{ __('How does the AI recommendation work?') }}</span>
-                        <i id="faq-icon-6" class="fa-solid fa-chevron-down text-gray-400 transition-transform"></i>
-                    </button>
-                    <div id="faq-6" class="hidden px-4 pb-4">
                         <p class="text-gray-500 leading-normal">{{ __('After completing your assessment, the AI engine analyzes your gap areas and generates prioritized corrective action plans (CAPA) with specific implementation guidance for each non-compliant control.') }}</p>
                     </div>
                 </div>
@@ -768,7 +539,7 @@
             const content = document.getElementById('faq-' + id);
             const icon = document.getElementById('faq-icon-' + id);
             const isHidden = content.classList.contains('hidden');
-            for (let i = 1; i <= 6; i++) {
+            for (let i = 1; i <= 5; i++) {
                 document.getElementById('faq-' + i).classList.add('hidden');
                 document.getElementById('faq-icon-' + i).style.transform = '';
             }
@@ -854,14 +625,14 @@
     <section class="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700 py-10">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/20 text-white rounded-full text-sm font-medium mb-3">
-                <i class="fa-solid fa-sparkles text-xs"></i>{{ __('Free Forever') }}</div>
-            <h2 class="text-2xl md:text-3xl font-bold text-white mb-4 leading-tight">{{ __('Ready to Achieve ISO 27001:2022 Compliance?') }}</h2>
-            <p class="text-lg text-blue-100 mb-4 leading-normal">{{ __('Start your assessment today. Create a free account to track your progress and access AI recommendations.') }}</p>
+                <i class="fa-solid fa-shield-halved text-xs"></i>{{ __('Start Assessment') }}</div>
+            <h2 class="text-2xl md:text-3xl font-bold text-white mb-4 leading-tight">{{ __('Ready to Measure ISO 27001:2022 Compliance?') }}</h2>
+            <p class="text-lg text-blue-100 mb-4 leading-normal">{{ __('Start your assessment today. Create an account to track your progress and receive intelligent AI recommendations.') }}</p>
             <div class="flex flex-wrap justify-center gap-4">
                 <a href="{{ route('login') }}" class="flex items-center gap-2 px-6 py-3 bg-white text-blue-600 rounded-xl hover:bg-blue-50 font-bold shadow-2xl transition-all transform hover:-translate-y-1">
                     <i class="fa-solid fa-right-to-bracket"></i>{{ __('Login') }}</a>
                 <a href="{{ route('register') }}" class="flex items-center gap-2 px-6 py-3 bg-white/10 border-2 border-white/50 text-white rounded-xl hover:bg-white/20 font-bold transition-all transform hover:-translate-y-1">
-                    <i class="fa-solid fa-user-plus"></i>{{ __('Create Free Account') }}</a>
+                    <i class="fa-solid fa-user-plus"></i>{{ __('Create Account') }}</a>
             </div>
         </div>
     </section>
@@ -869,62 +640,38 @@
     <!-- Footer -->
     <footer class="bg-gray-950 text-gray-400 py-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div>
                     <div class="flex items-center gap-2 mb-3">
-                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center font-bold text-white text-sm">{{ __('ISO') }}</div>
-                        <span class="font-bold text-white text-lg">{{ __('ISO 27001:2022 Tool') }}</span>
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center font-bold text-white text-sm">ISO</div>
+                        <span class="font-bold text-white text-lg">{{ __('ISO 27001:2022 Audit Tool') }}</span>
                     </div>
-                    <p class="text-sm leading-normal mb-3">Open source self-assessment tool for ISO 27001:2022 compliance. Free forever.</p>
-                    <div class="flex gap-3">
-                        <a href="https://github.com" target="_blank" class="w-8 h-8 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center transition-colors text-sm">
-                            <i class="fa-brands fa-github"></i>
-                        </a>
-                        <a href="#" class="w-8 h-8 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center transition-colors text-sm">
-                            <i class="fa-brands fa-twitter"></i>
-                        </a>
-                        <a href="#" class="w-8 h-8 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center transition-colors text-sm">
-                            <i class="fa-brands fa-linkedin"></i>
-                        </a>
-                    </div>
+                    <p class="text-sm leading-normal mb-3">{{ __('Audit decision support system for ISO 27001:2022 compliance.') }}</p>
                 </div>
                 <div>
-                    <h4 class="font-bold text-white mb-2 text-xs uppercase tracking-widest">{{ __('Product') }}</h4>
+                    <h4 class="font-bold text-white mb-2 text-xs uppercase tracking-widest">{{ __('Platform') }}</h4>
                     <ul class="space-y-2 text-sm">
                         <li><a href="{{ route('register') }}" class="hover:text-white transition-colors">{{ __('Start Assessment') }}</a></li>
                         <li><a href="{{ route('dashboard') }}" class="hover:text-white transition-colors">{{ __('Dashboard') }}</a></li>
-                        <li><a href="/api/documentation" class="hover:text-white transition-colors">{{ __('API Documentation') }}</a></li>
-                        <li><a href="/api/health" class="hover:text-white transition-colors">{{ __('System Status') }}</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-bold text-white mb-2 text-xs uppercase tracking-widest">{{ __('Resources') }}</h4>
-                    <ul class="space-y-2 text-sm">
                         <li><a href="{{ route('knowledge-base.index') }}" class="hover:text-white transition-colors">{{ __('Knowledge Base') }}</a></li>
                         <li><a href="{{ route('community.index') }}" class="hover:text-white transition-colors">{{ __('Community Templates') }}</a></li>
-                        <li><a href="https://github.com" target="_blank" class="hover:text-white transition-colors">{{ __('Documentation') }}</a></li>
-                        <li><a href="https://github.com" target="_blank" class="hover:text-white transition-colors">{{ __('GitHub Repository') }}</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="font-bold text-white mb-2 text-xs uppercase tracking-widest">{{ __('Company') }}</h4>
+                    <h4 class="font-bold text-white mb-2 text-xs uppercase tracking-widest">{{ __('System') }}</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors">{{ __('About') }}</a></li>
-                        <li><a href="https://github.com" target="_blank" class="hover:text-white transition-colors">{{ __('Contribute') }}</a></li>
-                        <li><a href="https://github.com/issues" target="_blank" class="hover:text-white transition-colors">{{ __('Report Issues') }}</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">{{ __('Contact') }}</a></li>
+                        <li><a href="/api/documentation" class="hover:text-white transition-colors">{{ __('API Documentation') }}</a></li>
+                        <li><a href="/api/health" class="hover:text-white transition-colors">{{ __('System Status') }}</a></li>
+                        <li><a href="{{ route('login') }}" class="hover:text-white transition-colors">{{ __('Login') }}</a></li>
+                        <li><a href="{{ route('register') }}" class="hover:text-white transition-colors">{{ __('Register') }}</a></li>
                     </ul>
                 </div>
             </div>
             <div class="border-t border-gray-800 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
                 <p class="text-xs text-gray-600 font-medium">
-                    &copy; 2026 ISO 27001:2022 Self-Assessment Tool. Open source under MIT License.
+                    &copy; {{ date('Y') }} ISO 27001:2022 Audit & Compliance Assessment System.
                 </p>
-                <div class="flex gap-6 text-xs">
-                    <a href="#" class="hover:text-white transition-colors">{{ __('Privacy Policy') }}</a>
-                    <a href="#" class="hover:text-white transition-colors">{{ __('Terms of Service') }}</a>
-                    <a href="https://github.com" target="_blank" class="hover:text-white transition-colors">{{ __('License') }}</a>
-                </div>
+                <p class="text-xs text-gray-700">{{ __('Built with Laravel · Powered by AI') }}</p>
             </div>
         </div>
     </footer>

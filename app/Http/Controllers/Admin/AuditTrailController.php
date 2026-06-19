@@ -11,6 +11,11 @@ class AuditTrailController extends Controller
 {
     public function index(Request $request)
     {
+        // Stats
+        $totalLogs    = AuditTrail::count();
+        $logsToday    = AuditTrail::whereDate('created_at', today())->count();
+        $activeUsers  = AuditTrail::whereNotNull('user_id')->distinct('user_id')->count('user_id');
+
         $query = AuditTrail::with(['user']);
 
         if ($request->filled('user_id')) {
@@ -43,6 +48,41 @@ class AuditTrailController extends Controller
 
         $users = User::orderBy('name')->get();
 
-        return view('admin.logs.index', compact('logs', 'users'));
+        return view('admin.logs.index', compact('logs', 'users', 'totalLogs', 'logsToday', 'activeUsers'));
+    }
+
+    public function exportCsv()
+    {
+        $headers = [
+            'Content-type'        => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=audit_trail_' . date('Y-m-d') . '.csv',
+            'Pragma'              => 'no-cache',
+            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires'             => '0',
+        ];
+
+        $logs = AuditTrail::with('user')->orderByDesc('created_at')->get();
+
+        $callback = function () use ($logs) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Timestamp', 'User', 'Action', 'Model', 'Model ID', 'Field Changed', 'Old Value', 'New Value']);
+
+            foreach ($logs as $log) {
+                fputcsv($file, [
+                    $log->created_at->format('Y-m-d H:i:s'),
+                    $log->user?->name ?? 'System',
+                    ucfirst($log->action),
+                    class_basename($log->model_type),
+                    $log->model_id,
+                    $log->field_changed,
+                    $log->old_value ?? '-',
+                    $log->new_value ?? '-',
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

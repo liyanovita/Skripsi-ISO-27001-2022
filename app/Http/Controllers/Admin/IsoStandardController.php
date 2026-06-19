@@ -71,7 +71,7 @@ class IsoStandardController extends Controller
         ]);
 
         // Prevent setting itself as parent
-        if ($validated['parent_id'] == $standard->id) {
+        if (isset($validated['parent_id']) && $validated['parent_id'] == $standard->id) {
             return back()->withErrors(['parent_id' => 'A standard cannot be its own parent.'])->withInput();
         }
 

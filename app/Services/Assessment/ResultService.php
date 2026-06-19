@@ -89,11 +89,17 @@ class ResultService
     {
         Log::info("Incoming Webhook from n8n Payload: ", $data);
 
+        // Auto-unwrap jika n8n mengirim data di dalam array [ { ... } ]
+        if (isset($data[0]) && is_array($data[0])) {
+            $data = $data[0];
+        }
+
         $resultId = $data['result_id'] ?? null;
         $aiRecommendation = $data['ai_recommendation'] ?? null;
 
         if (!$resultId || !$aiRecommendation) {
-            throw new \Exception('Missing result_id or ai_recommendation in payload');
+            $receivedKeys = implode(', ', array_keys($data));
+            throw new \Exception("Missing result_id or ai_recommendation in payload. Received keys: [{$receivedKeys}]");
         }
 
         $result = AssessmentResult::find($resultId);
@@ -163,7 +169,7 @@ class ResultService
                 return;
             }
             
-            $response = Http::timeout(5)->post($webhookUrl, [
+            $response = Http::timeout(60)->post($webhookUrl, [
                 'result_id'     => $result->id,
                 'session_name'  => $result->session->name ?? 'Internal Audit',
                 'organization'  => [

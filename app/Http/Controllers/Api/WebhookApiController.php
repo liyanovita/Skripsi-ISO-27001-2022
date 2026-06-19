@@ -99,16 +99,13 @@ class WebhookApiController extends BaseApiController
             }
 
             $result->update([
-                'ai_recommendation' => $request->recommendation,
+                'ai_recommendation' => $request->ai_recommendation,
                 'corrective_action_plan' => $request->action_plan,
-                'risk_priority' => $request->priority,
-                'control_insight' => is_array($request->insight)
-                    ? $request->insight
-                    : ['gap' => $request->insight],
+                'control_insight' => $request->control_insight,
             ]);
 
             return $this->successResponse(
-                null,
+                $result,
                 'AI recommendation updated successfully'
             );
         } catch (\Exception $e) {

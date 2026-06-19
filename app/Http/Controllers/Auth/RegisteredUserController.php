@@ -45,6 +45,8 @@ class RegisteredUserController extends Controller
     event(new Registered($user));
     Auth::login($user);
 
+    session()->flash('just_logged_in', true);
+
     return redirect()->route('dashboard');
 }
 }

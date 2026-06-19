@@ -19,10 +19,27 @@ class KnowledgeBaseController extends Controller
             $query->byCategory($request->category);
         }
 
-        $knowledgeBases = $query->latest()->paginate(10);
-        $categories = \App\Models\KnowledgeBase::select('category')->distinct()->pluck('category');
+        if ($request->filled('source')) {
+            if ($request->source === 'system') {
+                $query->where('is_system', true);
+            } elseif ($request->source === 'custom') {
+                $query->where('is_system', false);
+            }
+        }
 
-        return view('admin.knowledge.index', compact('knowledgeBases', 'categories'));
+        $knowledgeBases = $query->latest()->paginate(10)->withQueryString();
+        $categories     = \App\Models\KnowledgeBase::select('category')->distinct()->pluck('category');
+
+        // Stats for header cards
+        $totalCount   = \App\Models\KnowledgeBase::count();
+        $systemCount  = \App\Models\KnowledgeBase::where('is_system', true)->count();
+        $customCount  = \App\Models\KnowledgeBase::where('is_system', false)->count();
+        $totalDownloads = \App\Models\KnowledgeBase::sum('downloads_count');
+
+        return view('admin.knowledge.index', compact(
+            'knowledgeBases', 'categories',
+            'totalCount', 'systemCount', 'customCount', 'totalDownloads'
+        ));
     }
 
     public function create()

@@ -41,6 +41,7 @@ class AuthController extends Controller
             }
 
             $request->session()->regenerate();
+            $request->session()->flash('just_logged_in', true);
 
             // Admin langsung ke admin panel, user biasa ke dashboard
             if ($user->role === 'admin') {

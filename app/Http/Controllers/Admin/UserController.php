@@ -12,9 +12,14 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->input('search');
-        $roleFilter = $request->input('role');
+        $search       = $request->input('search');
+        $roleFilter   = $request->input('role');
         $statusFilter = $request->input('status');
+
+        // KPI stats
+        $totalUsers  = User::count();
+        $activeUsers = User::where('status', 'active')->count();
+        $adminCount  = User::where('role', 'admin')->count();
 
         $users = User::query()
             ->withCount('assessmentSessions')
@@ -31,7 +36,10 @@ class UserController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.users.index', compact('users', 'search', 'roleFilter', 'statusFilter'));
+        return view('admin.users.index', compact(
+            'users', 'search', 'roleFilter', 'statusFilter',
+            'totalUsers', 'activeUsers', 'adminCount'
+        ));
     }
 
     public function create()

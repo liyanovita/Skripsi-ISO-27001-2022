@@ -292,9 +292,9 @@ document.addEventListener('alpine:init', () => {
                     throw new Error(data.message || 'Synthesis Failed');
                 }
                 
-                // Poll for status since generation is async
+                // Poll for status since generation is async (give Ollama more time, up to 120s)
                 let attempts = 0;
-                const maxAttempts = 15;
+                const maxAttempts = 80;
                 const pollInterval = setInterval(async () => {
                     attempts++;
                     try {

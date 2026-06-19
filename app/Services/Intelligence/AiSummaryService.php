@@ -24,7 +24,7 @@ class AiSummaryService
         return $session->fresh();
     }
 
-    public function receiveWebhook(array $data): bool
+    public function receiveWebhook(array $data): AssessmentSession
     {
         $sessionId = $data['session_id'] ?? null;
         $aiSummary = $data['ai_summary'] ?? null;
@@ -44,7 +44,7 @@ class AiSummaryService
         }
 
         $session->update(['ai_summary' => $aiSummary]);
-        return true;
+        return $session->fresh();
     }
 
     protected function triggerN8nSummary(AssessmentSession $session): void
@@ -57,7 +57,7 @@ class AiSummaryService
         }
 
         try {
-            $response = Http::timeout(15)->post($webhookUrl, [
+            $response = Http::timeout(60)->post($webhookUrl, [
                 'session_id'   => $session->id,
                 'session_name' => $session->name,
                 'results'      => $session->results->map(fn($r) => [

@@ -67,15 +67,18 @@
 
     <div class="flex h-full overflow-hidden" 
          x-data="{ 
-            sidebarOpen: localStorage.getItem('sidebarOpen') !== null 
-                ? localStorage.getItem('sidebarOpen') === 'true' 
-                : window.innerWidth > 1024,
+            sidebarOpen: {{ session('just_logged_in') ? 'true' : "(localStorage.getItem('sidebarOpen') !== null ? localStorage.getItem('sidebarOpen') === 'true' : window.innerWidth > 1024)" }},
             toasts: [],
             quickSearchOpen: false,
             quickSearchQuery: '',
             quickSearchResults: [],
             quickSearchLoading: false,
             quickSearchActive: 0,
+            init() {
+                @if(session('just_logged_in'))
+                    localStorage.setItem('sidebarOpen', 'true');
+                @endif
+            },
             addToast(message, type = 'success') {
                 const id = Date.now();
                 this.toasts.push({ id, message, type });
@@ -439,22 +442,39 @@
 
                     {{-- Notification Bell --}}
                     @php
-                        $overdueTasks = auth()->check()
-                            ? \App\Models\AssessmentResult::with('standard')
+                        if(auth()->check()) {
+                            $baseTaskQuery = \App\Models\AssessmentResult::with('standard')
                                 ->whereHas('session', fn($q) => $q->where('user_id', auth()->id()))
                                 ->whereNotNull('treatment_due_date')
-                                ->whereDate('treatment_due_date', '<', now())
-                                ->whereBetween('maturity_rating', [1, 3])
-                                ->get()
-                            : collect();
+                                ->whereBetween('maturity_rating', [1, 3]);
+
+                            // 1. Overdue Tasks (Telat)
+                            $overdueTasks = (clone $baseTaskQuery)->whereDate('treatment_due_date', '<', now())->get();
+                            
+                            // 2. Upcoming Tasks (Jatuh tempo < 3 hari)
+                            $upcomingTasks = (clone $baseTaskQuery)->whereBetween('treatment_due_date', [now(), now()->addDays(3)])->get();
+                            
+                            // 3. Stagnant Sessions (Tidak diperbarui > 7 hari)
+                            $stagnantSessions = \App\Models\AssessmentSession::where('user_id', auth()->id())
+                                ->where('status', '!=', 'completed')
+                                ->where('updated_at', '<', now()->subDays(7))
+                                ->get();
+                                
+                            $totalNotifs = $overdueTasks->count() + $upcomingTasks->count() + $stagnantSessions->count();
+                        } else {
+                            $overdueTasks = collect();
+                            $upcomingTasks = collect();
+                            $stagnantSessions = collect();
+                            $totalNotifs = 0;
+                        }
                     @endphp
                     <div class="relative" x-data="{ notifOpen: false }">
                         <button @click="notifOpen = !notifOpen" 
                             class="relative w-8 h-8 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-all border border-transparent hover:border-slate-200">
                             <i class="fa-solid fa-bell text-sm"></i>
-                            @if($overdueTasks->count() > 0)
+                            @if($totalNotifs > 0)
                                 <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-rose-500 border-2 border-white rounded-full flex items-center justify-center text-[7px] font-black text-white">
-                                    {{ min($overdueTasks->count(), 9) }}{{ $overdueTasks->count() > 9 ? '+' : '' }}
+                                    {{ min($totalNotifs, 9) }}{{ $totalNotifs > 9 ? '+' : '' }}
                                 </span>
                             @endif
                         </button>
@@ -463,49 +483,96 @@
                             class="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 overflow-hidden">
                             <div class="px-4 py-3 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
                                 <div>
-                                    <h4 class="text-xs font-black text-slate-900">{{ __('Notifications') }}</h4>
+                                    <h4 class="text-xs font-black text-slate-900">{{ __('Action Center') }}</h4>
                                     <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                                        {{ $overdueTasks->count() }} {{ __('Overdue Tasks') }}
+                                        {{ $totalNotifs }} {{ __('Pending Alerts') }}
                                     </p>
                                 </div>
                                 @if($overdueTasks->count() > 0)
                                 <div class="w-7 h-7 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center">
                                     <i class="fa-solid fa-triangle-exclamation text-xs"></i>
                                 </div>
+                                @elseif($totalNotifs > 0)
+                                <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+                                    <i class="fa-solid fa-bell text-xs"></i>
+                                </div>
                                 @endif
                             </div>
                             
-                            <div class="max-h-72 overflow-y-auto custom-scrollbar p-2">
-                                @forelse($overdueTasks as $task)
-                                <a href="{{ route('workspace.index', ['session_id' => $task->session_id, 'focus' => $task->id]) }}" 
-                                    class="flex items-start gap-3 p-3 hover:bg-slate-50 rounded-xl transition-colors group">
-                                    <div class="w-7 h-7 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 border border-rose-100">
-                                        <i class="fa-solid fa-clock text-[10px]"></i>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <p class="text-[10px] font-bold text-slate-900 leading-tight truncate">
-                                            <span class="text-rose-600 uppercase tracking-widest text-[8px] mr-1">{{ $task->standard->code }}</span>
-                                            {{ $task->standard->title }}
-                                        </p>
-                                        <p class="text-[9px] text-slate-500 font-medium mt-0.5">
-                                            PIC: <strong class="text-slate-700">{{ $task->treatment_pic }}</strong>
-                                        </p>
-                                        <p class="text-[8px] font-bold text-rose-500 uppercase tracking-widest mt-1">
-                                            {{ $task->treatment_due_date->diffForHumans() }}
-                                        </p>
-                                    </div>
-                                </a>
-                                @empty
+                            <div class="max-h-80 overflow-y-auto custom-scrollbar p-2">
+                                
+                                {{-- Overdue Tasks --}}
+                                @if($overdueTasks->count() > 0)
+                                    <div class="px-3 py-1 mt-1 mb-1 text-[8px] font-black text-rose-500 uppercase tracking-widest">{{ __('Overdue Tasks') }}</div>
+                                    @foreach($overdueTasks as $task)
+                                    <a href="{{ route('workspace.index', ['session_id' => $task->session_id, 'focus' => $task->id]) }}" 
+                                        class="flex items-start gap-3 p-3 hover:bg-slate-50 rounded-xl transition-colors group">
+                                        <div class="w-7 h-7 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 border border-rose-100">
+                                            <i class="fa-solid fa-circle-exclamation text-[10px]"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-[10px] font-bold text-slate-900 leading-tight truncate">
+                                                <span class="text-rose-600 uppercase tracking-widest text-[8px] mr-1">{{ $task->standard->code }}</span>
+                                                {{ $task->standard->title }}
+                                            </p>
+                                            <p class="text-[9px] text-slate-500 font-medium mt-0.5">PIC: <strong class="text-slate-700">{{ $task->treatment_pic }}</strong></p>
+                                            <p class="text-[8px] font-bold text-rose-500 uppercase tracking-widest mt-1">{{ $task->treatment_due_date->diffForHumans() }}</p>
+                                        </div>
+                                    </a>
+                                    @endforeach
+                                @endif
+
+                                {{-- Upcoming Tasks --}}
+                                @if($upcomingTasks->count() > 0)
+                                    <div class="px-3 py-1 mt-1 mb-1 text-[8px] font-black text-amber-500 uppercase tracking-widest">{{ __('Upcoming Deadlines') }}</div>
+                                    @foreach($upcomingTasks as $task)
+                                    <a href="{{ route('workspace.index', ['session_id' => $task->session_id, 'focus' => $task->id]) }}" 
+                                        class="flex items-start gap-3 p-3 hover:bg-slate-50 rounded-xl transition-colors group">
+                                        <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center shrink-0 border border-amber-100">
+                                            <i class="fa-solid fa-clock text-[10px]"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-[10px] font-bold text-slate-900 leading-tight truncate">
+                                                <span class="text-amber-600 uppercase tracking-widest text-[8px] mr-1">{{ $task->standard->code }}</span>
+                                                {{ $task->standard->title }}
+                                            </p>
+                                            <p class="text-[9px] text-slate-500 font-medium mt-0.5">PIC: <strong class="text-slate-700">{{ $task->treatment_pic }}</strong></p>
+                                            <p class="text-[8px] font-bold text-amber-500 uppercase tracking-widest mt-1">{{ __('Due in') }} {{ $task->treatment_due_date->diffInDays(now()) }} {{ __('days') }}</p>
+                                        </div>
+                                    </a>
+                                    @endforeach
+                                @endif
+
+                                {{-- Stagnant Sessions --}}
+                                @if($stagnantSessions->count() > 0)
+                                    <div class="px-3 py-1 mt-1 mb-1 text-[8px] font-black text-blue-500 uppercase tracking-widest">{{ __('Stagnant Audits') }}</div>
+                                    @foreach($stagnantSessions as $sess)
+                                    <a href="{{ route('workspace.index', ['session_id' => $sess->id]) }}" 
+                                        class="flex items-start gap-3 p-3 hover:bg-slate-50 rounded-xl transition-colors group">
+                                        <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center shrink-0 border border-blue-100">
+                                            <i class="fa-solid fa-calendar-minus text-[10px]"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-[10px] font-bold text-slate-900 leading-tight truncate">{{ $sess->name }}</p>
+                                            <p class="text-[9px] text-slate-500 font-medium mt-0.5">{{ __('No updates since') }} {{ $sess->updated_at->format('M d') }}</p>
+                                            <p class="text-[8px] font-bold text-blue-500 uppercase tracking-widest mt-1">{{ __('Resume Assessment') }} →</p>
+                                        </div>
+                                    </a>
+                                    @endforeach
+                                @endif
+
+                                @if($totalNotifs === 0)
                                 <div class="py-8 text-center">
                                     <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center mx-auto mb-2">
                                         <i class="fa-regular fa-bell-slash text-lg text-slate-300"></i>
                                     </div>
                                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('All caught up!') }}</p>
+                                    <p class="text-[9px] text-slate-400 mt-1">{{ __('No pending alerts at the moment.') }}</p>
                                 </div>
-                                @endforelse
+                                @endif
                             </div>
                             
-                            @if($overdueTasks->count() > 0)
+                            @if($totalNotifs > 0)
                             <div class="p-2 border-t border-slate-100">
                                 <a href="{{ route('workspace.index') }}" 
                                     class="block w-full py-2 text-center text-[9px] font-black text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all uppercase tracking-widest">

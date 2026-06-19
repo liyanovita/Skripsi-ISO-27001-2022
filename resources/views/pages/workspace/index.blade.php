@@ -639,7 +639,7 @@
                                             title: @js(__($result->standard->title ?? '')),
                                             rec: @js($result->ai_recommendation ?? ''),
                                             plan: @js($aiPlan),
-                                            insight: @js($result->control_insight['gap'] ?? ''),
+                                            insight: @js(is_array($result->control_insight) ? ($result->control_insight['gap'] ?? '') : ($result->control_insight ?? '')),
                                             priority: @js($result->risk_priority ?? ''),
                                             validation: @js($result->evidence_validation ?? '')
                                         })"
@@ -647,10 +647,10 @@
                                         <i class="fa-solid fa-robot text-[9px] {{ $aiIconAnim }} group-hover/aibtn:text-white"></i>{{ __('Detail AI') }}</button>
                                     @endif
                                 </div>
-                                @if($isGap && !empty($result->control_insight['gap']) && empty($result->ai_recommendation))
+                                @if($isGap && !empty(is_array($result->control_insight) ? ($result->control_insight['gap'] ?? null) : $result->control_insight) && empty($result->ai_recommendation))
                                 <div class="mt-1 flex items-start gap-1 text-[9px] text-rose-600 font-medium bg-rose-50 p-1.5 rounded-lg border border-rose-100">
                                     <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
-                                    <span class="leading-tight">{{ $result->control_insight['gap'] }}</span>
+                                    <span class="leading-tight">{{ is_array($result->control_insight) ? ($result->control_insight['gap'] ?? '') : $result->control_insight }}</span>
                                 </div>
                                 @endif
                             </div>
@@ -766,7 +766,7 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="px-2.5 py-1 bg-indigo-50 border border-indigo-100 text-indigo-700 text-[9px] font-black rounded-lg uppercase tracking-wider leading-none" x-text="activeAiDetails.code"></span>
-                            <span class="text-[8px] text-indigo-500 font-bold uppercase tracking-widest leading-none">{{ __('Gemini Compliance Synthesis') }}</span>
+                            <span class="text-[8px] text-indigo-500 font-bold uppercase tracking-widest leading-none">{{ __('AI Compliance Synthesis') }}</span>
                         </div>
                         <h3 class="text-sm font-black text-slate-900 tracking-tight mt-1 leading-snug" x-text="activeAiDetails.title"></h3>
                     </div>

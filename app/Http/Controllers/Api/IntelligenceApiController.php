@@ -388,10 +388,10 @@ class IntelligenceApiController extends BaseApiController
     public function receiveAiSummaryWebhook(Request $request): JsonResponse
     {
         try {
-            $this->aiSummaryService->receiveWebhook($request->all());
+            $session = $this->aiSummaryService->receiveWebhook($request->all());
 
             return $this->successResponse(
-                null,
+                $session,
                 'AI Summary saved successfully'
             );
         } catch (\Exception $e) {

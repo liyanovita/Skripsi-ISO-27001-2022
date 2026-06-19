@@ -4,235 +4,316 @@
 @section('header_title', 'System Overview')
 
 @section('content')
-{{-- Top Stats Cards --}}
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between mb-3">
-            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Total Users</h3>
-            <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
-                <i class="fa-solid fa-users text-lg"></i>
-            </div>
-        </div>
-        <div class="text-3xl font-black text-slate-800">{{ number_format($totalUsers) }}</div>
-        <a href="{{ route('admin.users.index') }}" class="text-xs text-blue-600 hover:text-blue-700 font-medium mt-2 inline-block">View all →</a>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between mb-3">
-            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Active Sessions</h3>
-            <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center">
-                <i class="fa-solid fa-spinner text-lg"></i>
-            </div>
-        </div>
-        <div class="text-3xl font-black text-slate-800">{{ number_format($activeSessions) }}</div>
-        <span class="text-xs text-slate-400">of {{ $totalSessions }} total sessions</span>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between mb-3">
-            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Completed</h3>
-            <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center">
-                <i class="fa-solid fa-check-double text-lg"></i>
-            </div>
-        </div>
-        <div class="text-3xl font-black text-slate-800">{{ number_format($completedSessions) }}</div>
-        <a href="{{ route('admin.sessions.index', ['status' => 'completed']) }}" class="text-xs text-emerald-600 hover:text-emerald-700 font-medium mt-2 inline-block">View completed →</a>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between mb-3">
-            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Avg Maturity</h3>
-            <div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center">
-                <i class="fa-solid fa-chart-pie text-lg"></i>
-            </div>
-        </div>
-        <div class="text-3xl font-black text-slate-800">{{ number_format($averageScore, 1) }} <span class="text-base text-slate-400 font-medium">/ 5.0</span></div>
-    </div>
-</div>
-
-{{-- CAPA Alert Banner --}}
-@if($pendingCapa > 0 || $overdueCapa > 0)
-<div class="mb-8 bg-gradient-to-r from-red-50 to-amber-50 border border-red-200 rounded-xl p-5 flex items-center justify-between">
-    <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-red-100 text-red-600 rounded-xl flex items-center justify-center">
-            <i class="fa-solid fa-triangle-exclamation text-xl"></i>
-        </div>
-        <div>
-            <h3 class="font-bold text-slate-800">CAPA Tasks Require Attention</h3>
-            <p class="text-sm text-slate-600 mt-0.5">
-                <span class="font-bold text-red-600">{{ $overdueCapa }} overdue</span> · 
-                <span class="font-bold text-amber-600">{{ $pendingCapa }} pending</span> corrective action tasks
-            </p>
-        </div>
-    </div>
-</div>
-@endif
-
-{{-- System Alert Banner (Avg Score) --}}
-@if($averageScore > 0 && $averageScore < 2.5)
-<div class="mb-8 bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-5 flex items-center justify-between">
-    <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-red-100 text-red-600 rounded-xl flex items-center justify-center">
-            <i class="fa-solid fa-engine-warning text-xl"></i>
-        </div>
-        <div>
-            <h3 class="font-bold text-slate-800">Critical Compliance Alert</h3>
-            <p class="text-sm text-slate-600 mt-0.5">
-                The global average maturity score is <span class="font-bold text-red-600">{{ number_format($averageScore, 2) }}</span>. This indicates a critical lack of compliance across all users.
-            </p>
-        </div>
-    </div>
-</div>
-@endif
-
-{{-- Charts Row --}}
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    {{-- User Growth Chart --}}
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <i class="fa-solid fa-chart-area text-blue-500"></i> User Registrations
-        </h3>
-        <div class="relative h-64 w-full">
-            <canvas id="userGrowthChart"></canvas>
-        </div>
-    </div>
-
-    {{-- Session Activity Chart --}}
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <i class="fa-solid fa-chart-bar text-emerald-500"></i> Audit Sessions Created
-        </h3>
-        <div class="relative h-64 w-full">
-            <canvas id="sessionActivityChart"></canvas>
-        </div>
-    </div>
-</div>
-
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-    {{-- Maturity Distribution --}}
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <i class="fa-solid fa-signal text-purple-500"></i> Global Maturity Distribution
-        </h3>
-        <div class="relative h-64 w-full">
-            <canvas id="maturityChart"></canvas>
-        </div>
-    </div>
-
-    {{-- Sector Distribution --}}
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <i class="fa-solid fa-building text-teal-500"></i> Business Sectors
-        </h3>
-        @if(count($sectorDistribution) > 0)
-        <div class="relative h-64 w-full">
-            <canvas id="sectorChart"></canvas>
-        </div>
-        @else
-        <div class="flex flex-col items-center justify-center h-64 text-slate-400">
-            <i class="fa-solid fa-chart-pie text-3xl mb-2"></i>
-            <p class="text-sm">No sector data yet</p>
-        </div>
-        @endif
-    </div>
-
-    {{-- Quick Stats --}}
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <i class="fa-solid fa-layer-group text-amber-500"></i> Platform Summary
-        </h3>
-        <div class="space-y-3">
-            <div class="flex items-center justify-between py-2 border-b border-slate-100">
-                <span class="text-sm text-slate-600 flex items-center gap-2"><i class="fa-solid fa-users text-slate-400 w-4"></i> Total Users</span>
-                <span class="font-bold text-slate-800">{{ $totalUsers }}</span>
-            </div>
-            <div class="flex items-center justify-between py-2 border-b border-slate-100">
-                <span class="text-sm text-slate-600 flex items-center gap-2"><i class="fa-solid fa-clipboard-list text-slate-400 w-4"></i> Total Sessions</span>
-                <span class="font-bold text-slate-800">{{ $totalSessions }}</span>
-            </div>
-            <div class="flex items-center justify-between py-2 border-b border-slate-100">
-                <span class="text-sm text-slate-600 flex items-center gap-2"><i class="fa-solid fa-file-contract text-slate-400 w-4"></i> Community Templates</span>
-                <span class="font-bold text-slate-800">{{ $totalTemplates }}</span>
-            </div>
-            <div class="flex items-center justify-between py-2 border-b border-slate-100">
-                <span class="text-sm text-slate-600 flex items-center gap-2"><i class="fa-solid fa-book-open text-slate-400 w-4"></i> KB Articles</span>
-                <span class="font-bold text-slate-800">{{ $totalArticles ?? 0 }}</span>
-            </div>
-            <div class="flex items-center justify-between py-2 border-b border-slate-100">
-                <span class="text-sm text-slate-600 flex items-center gap-2"><i class="fa-solid fa-download text-slate-400 w-4"></i> Template Downloads</span>
-                <span class="font-bold text-slate-800">{{ $totalDownloads }}</span>
-            </div>
-            <div class="flex items-center justify-between py-2 border-b border-slate-100">
-                <span class="text-sm text-slate-600 flex items-center gap-2"><i class="fa-solid fa-clock text-amber-400 w-4"></i> Pending CAPA</span>
-                <span class="font-bold text-amber-600">{{ $pendingCapa }}</span>
-            </div>
-            <div class="flex items-center justify-between py-2">
-                <span class="text-sm text-slate-600 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation text-red-400 w-4"></i> Overdue CAPA</span>
-                <span class="font-bold text-red-600">{{ $overdueCapa }}</span>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Recent Activity Tables --}}
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    {{-- Recent Users --}}
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
-            <h3 class="font-bold text-slate-800">Recent Registrations</h3>
-            <a href="{{ route('admin.users.index') }}" class="text-xs font-bold text-blue-600 hover:text-blue-700">View All</a>
-        </div>
-        <div class="divide-y divide-slate-100">
-            @forelse($recentUsers as $user)
-            <a href="{{ route('admin.users.show', $user) }}" class="p-4 hover:bg-slate-50 flex items-center justify-between block">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center font-bold text-sm">
-                        {{ substr($user->name, 0, 2) }}
-                    </div>
-                    <div>
-                        <div class="font-bold text-sm text-slate-900">{{ $user->name }}</div>
-                        <div class="text-xs text-slate-500">{{ $user->email }}</div>
-                    </div>
+<div class="space-y-8 pb-8">
+    {{-- Header banner / welcome card --}}
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 rounded-2xl text-white shadow-xl relative overflow-hidden border border-slate-800">
+        <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute right-20 bottom-0 w-60 h-60 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span class="w-2 h-2 bg-emerald-400 rounded-full animate-ping"></span>
+                    <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">System Active & Secure</span>
                 </div>
-                <div class="text-xs font-medium text-slate-400 text-right">
-                    <div>{{ $user->created_at->diffForHumans() }}</div>
-                    @if($user->organization_name)
-                    <div class="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded inline-block mt-1">{{ $user->organization_name }}</div>
-                    @endif
+                <h1 class="text-2xl font-black tracking-tight text-white">Welcome back, Admin!</h1>
+                <p class="text-slate-400 text-xs mt-1 max-w-xl">Monitor your organization's global ISO 27001:2022 security governance, manage users, customize standards, and audit platform activities from this command center.</p>
+            </div>
+            <div class="flex items-center gap-3 shrink-0 bg-white/5 backdrop-blur-md px-4 py-3 rounded-xl border border-white/10 shadow-lg">
+                <div class="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                    <i class="fa-solid fa-server text-base"></i>
                 </div>
+                <div class="leading-none">
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Laravel Framework</p>
+                    <p class="text-sm font-black text-white mt-0.5">v11.x Stable</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Top Stats Cards --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+        {{-- Card 1 --}}
+        <div class="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-20 h-20 bg-blue-500/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
+            <div class="flex items-center justify-between mb-3 relative z-10">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Users</h3>
+                <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shadow-sm">
+                    <i class="fa-solid fa-users text-sm"></i>
+                </div>
+            </div>
+            <div class="text-3xl font-black text-slate-900 tracking-tight relative z-10">{{ number_format($totalUsers) }}</div>
+            <div class="mt-4 flex items-center justify-between relative z-10">
+                <span class="text-[10px] font-semibold text-slate-400">Registered Platform Accounts</span>
+                <a href="{{ route('admin.users.index') }}" class="text-[10px] text-blue-600 hover:text-blue-700 font-bold uppercase tracking-wider flex items-center gap-1">
+                    Manage <i class="fa-solid fa-arrow-right text-[8px]"></i>
+                </a>
+            </div>
+        </div>
+
+        {{-- Card 2 --}}
+        <div class="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-20 h-20 bg-amber-500/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
+            <div class="flex items-center justify-between mb-3 relative z-10">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Sessions</h3>
+                <div class="w-9 h-9 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shadow-sm">
+                    <i class="fa-solid fa-spinner text-sm animate-spin-slow"></i>
+                </div>
+            </div>
+            <div class="text-3xl font-black text-slate-900 tracking-tight relative z-10">{{ number_format($activeSessions) }}</div>
+            <div class="mt-4 flex items-center justify-between relative z-10">
+                <span class="text-[10px] font-semibold text-slate-400">Out of {{ $totalSessions }} total sessions</span>
+                <a href="{{ route('admin.sessions.index') }}" class="text-[10px] text-amber-600 hover:text-amber-700 font-bold uppercase tracking-wider flex items-center gap-1">
+                    View <i class="fa-solid fa-arrow-right text-[8px]"></i>
+                </a>
+            </div>
+        </div>
+
+        {{-- Card 3 --}}
+        <div class="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
+            <div class="flex items-center justify-between mb-3 relative z-10">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Completed Sessions</h3>
+                <div class="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shadow-sm">
+                    <i class="fa-solid fa-check-double text-sm"></i>
+                </div>
+            </div>
+            <div class="text-3xl font-black text-slate-900 tracking-tight relative z-10">{{ number_format($completedSessions) }}</div>
+            <div class="mt-4 flex items-center justify-between relative z-10">
+                <span class="text-[10px] font-semibold text-slate-400">100% Finalized Audits</span>
+                <a href="{{ route('admin.sessions.index', ['status' => 'completed']) }}" class="text-[10px] text-emerald-600 hover:text-emerald-700 font-bold uppercase tracking-wider flex items-center gap-1">
+                    Export <i class="fa-solid fa-arrow-right text-[8px]"></i>
+                </a>
+            </div>
+        </div>
+
+        {{-- Card 4 --}}
+        <div class="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-20 h-20 bg-purple-500/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
+            <div class="flex items-center justify-between mb-3 relative z-10">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Avg Maturity</h3>
+                <div class="w-9 h-9 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shadow-sm">
+                    <i class="fa-solid fa-chart-pie text-sm"></i>
+                </div>
+            </div>
+            <div class="text-3xl font-black text-slate-900 tracking-tight relative z-10">
+                {{ number_format($averageScore, 1) }} <span class="text-sm text-slate-400 font-medium">/ 5.0</span>
+            </div>
+            <div class="mt-4 flex items-center justify-between relative z-10">
+                <span class="text-[10px] font-semibold text-slate-400">Global compliance level</span>
+                <span class="px-2 py-0.5 bg-purple-50 text-purple-600 rounded text-[9px] font-black uppercase tracking-widest">
+                    @if($averageScore >= 4.5) Optimized @elseif($averageScore >= 3.5) Managed @elseif($averageScore >= 2.5) Defined @elseif($averageScore >= 1.5) Limited/Repeatable @else Initial @endif
+                </span>
+            </div>
+        </div>
+
+        {{-- Card 5: Suspended Users --}}
+        <div class="bg-white rounded-2xl border border-rose-100 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-20 h-20 bg-rose-500/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
+            <div class="flex items-center justify-between mb-3 relative z-10">
+                <h3 class="text-[10px] font-black text-rose-400 uppercase tracking-widest">Suspended</h3>
+                <div class="w-9 h-9 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center shadow-sm border border-rose-100">
+                    <i class="fa-solid fa-user-slash text-sm"></i>
+                </div>
+            </div>
+            <div class="text-3xl font-black text-rose-600 tracking-tight relative z-10">{{ number_format(\App\Models\User::where('status', 'suspended')->count()) }}</div>
+            <div class="mt-4 flex items-center justify-between relative z-10">
+                <span class="text-[10px] font-semibold text-slate-400">Blocked Platform Accounts</span>
+                <a href="{{ route('admin.users.index', ['status' => 'suspended']) }}" class="text-[10px] text-rose-600 hover:text-rose-700 font-bold uppercase tracking-wider flex items-center gap-1">
+                    View <i class="fa-solid fa-arrow-right text-[8px]"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {{-- CAPA Alert Banner --}}
+    @if($pendingCapa > 0 || $overdueCapa > 0)
+    <div class="bg-white rounded-2xl border border-rose-100 p-4 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+        <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500"></div>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pl-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center shrink-0 border border-rose-100">
+                    <i class="fa-solid fa-triangle-exclamation text-base"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-950">CAPA Tasks Require Immediate Attention</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        There are <span class="font-extrabold text-rose-600">{{ $overdueCapa }} overdue</span> and <span class="font-extrabold text-amber-500">{{ $pendingCapa }} pending</span> corrective action tasks across active sessions.
+                    </p>
+                </div>
+            </div>
+            <a href="{{ route('admin.capa.index') }}" class="px-4 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-xl text-xs font-black uppercase tracking-widest border border-rose-100 transition-all text-center shrink-0">
+                Review CAPA Plans
             </a>
-            @empty
-            <div class="p-8 text-center text-slate-500 text-sm">No users registered yet.</div>
-            @endforelse
+        </div>
+    </div>
+    @endif
+
+    {{-- Charts Row --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {{-- User Growth Chart --}}
+        <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-sm font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line text-blue-500"></i> Platform User Growth
+                </h3>
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Last 6 Months</span>
+            </div>
+            <div class="relative h-64 w-full">
+                <canvas id="userGrowthChart"></canvas>
+            </div>
+        </div>
+
+        {{-- Session Activity Chart --}}
+        <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-sm font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <i class="fa-solid fa-chart-bar text-emerald-500"></i> Audit Session Activity
+                </h3>
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Sessions Created</span>
+            </div>
+            <div class="relative h-64 w-full">
+                <canvas id="sessionActivityChart"></canvas>
+            </div>
         </div>
     </div>
 
-    {{-- Recent Sessions --}}
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
-            <h3 class="font-bold text-slate-800">Recent Audit Activity</h3>
-            <a href="{{ route('admin.sessions.index') }}" class="text-xs font-bold text-blue-600 hover:text-blue-700">View All</a>
+    {{-- Distributions & Quick Stats Row --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {{-- Maturity Distribution --}}
+        <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm flex flex-col">
+            <h3 class="text-sm font-black text-slate-900 tracking-tight mb-5 flex items-center gap-2">
+                <i class="fa-solid fa-signal text-purple-500"></i> Global Maturity Level
+            </h3>
+            <div class="relative h-56 w-full flex-1">
+                <canvas id="maturityChart"></canvas>
+            </div>
         </div>
-        <div class="divide-y divide-slate-100">
-            @forelse($recentSessions as $session)
-            <a href="{{ route('admin.sessions.show', $session) }}" class="p-4 hover:bg-slate-50 block">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="font-bold text-sm text-slate-900">{{ $session->name }}</div>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest {{ $session->status === 'completed' ? 'bg-emerald-100 text-emerald-700' : ($session->status === 'in_progress' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600') }}">
-                        {{ str_replace('_', ' ', $session->status) }}
+
+        {{-- Sector Distribution --}}
+        <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm flex flex-col">
+            <h3 class="text-sm font-black text-slate-900 tracking-tight mb-5 flex items-center gap-2">
+                <i class="fa-solid fa-building text-teal-500"></i> Industry Demographics
+            </h3>
+            @if(count($sectorDistribution) > 0)
+            <div class="relative h-56 w-full flex-1">
+                <canvas id="sectorChart"></canvas>
+            </div>
+            @else
+            <div class="flex flex-col items-center justify-center h-56 text-slate-400 flex-1">
+                <i class="fa-solid fa-chart-pie text-3xl mb-2 text-slate-300"></i>
+                <p class="text-[10px] font-bold uppercase tracking-widest">No sector data yet</p>
+            </div>
+            @endif
+        </div>
+
+        {{-- Platform Summary Card --}}
+        <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+            <h3 class="text-sm font-black text-slate-900 tracking-tight mb-5 flex items-center gap-2">
+                <i class="fa-solid fa-cubes text-amber-500"></i> Governance Indicators
+            </h3>
+            <div class="divide-y divide-slate-100">
+                @php
+                    $indicators = [
+                        ['label' => 'Total Registered Users', 'value' => $totalUsers, 'icon' => 'fa-users', 'color' => 'text-blue-500', 'bg' => 'bg-blue-50'],
+                        ['label' => 'Total Audit Sessions', 'value' => $totalSessions, 'icon' => 'fa-clipboard-list', 'color' => 'text-indigo-500', 'bg' => 'bg-indigo-50'],
+                        ['label' => 'Community Templates', 'value' => $totalTemplates, 'icon' => 'fa-file-contract', 'color' => 'text-teal-500', 'bg' => 'bg-teal-50'],
+                        ['label' => 'Knowledge Base Articles', 'value' => $totalArticles ?? 0, 'icon' => 'fa-book-open', 'color' => 'text-purple-500', 'bg' => 'bg-purple-50'],
+                        ['label' => 'Template Downloads', 'value' => $totalDownloads, 'icon' => 'fa-download', 'color' => 'text-slate-600', 'bg' => 'bg-slate-100'],
+                        ['label' => 'Pending CAPA Items', 'value' => $pendingCapa, 'icon' => 'fa-clock', 'color' => 'text-amber-500', 'bg' => 'bg-amber-50'],
+                        ['label' => 'Overdue CAPA alerts', 'value' => $overdueCapa, 'icon' => 'fa-triangle-exclamation', 'color' => 'text-rose-500', 'bg' => 'bg-rose-50'],
+                    ];
+                @endphp
+                @foreach($indicators as $ind)
+                <div class="flex items-center justify-between py-2.5">
+                    <span class="text-xs text-slate-600 flex items-center gap-2.5">
+                        <div class="w-6 h-6 rounded-lg {{ $ind['bg'] }} {{ $ind['color'] }} flex items-center justify-center shrink-0">
+                            <i class="fa-solid {{ $ind['icon'] }} text-[10px]"></i>
+                        </div>
+                        {{ $ind['label'] }}
                     </span>
+                    <span class="text-xs font-black text-slate-900">{{ $ind['value'] }}</span>
                 </div>
-                <div class="flex items-center justify-between text-xs text-slate-500">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-user text-slate-400"></i>
-                        {{ $session->user->name ?? 'Unknown User' }}
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    {{-- Recent Activity Tables --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {{-- Recent Users --}}
+        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm flex flex-col">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="text-sm font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus text-blue-500"></i> Recent User Registrations
+                </h3>
+                <a href="{{ route('admin.users.index') }}" class="text-[10px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest">
+                    View All
+                </a>
+            </div>
+            <div class="divide-y divide-slate-100 flex-1">
+                @forelse($recentUsers as $user)
+                <a href="{{ route('admin.users.show', $user) }}" class="p-4 hover:bg-slate-50 flex items-center justify-between transition-colors block">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm">
+                            {{ strtoupper(substr($user->name, 0, 2)) }}
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-bold text-sm text-slate-900 truncate">{{ $user->name }}</div>
+                            <div class="text-[10px] text-slate-400 truncate">{{ $user->email }}</div>
+                        </div>
                     </div>
-                    <div>{{ $session->updated_at->diffForHumans() }}</div>
+                    <div class="text-xs font-medium text-slate-400 text-right shrink-0">
+                        <div>{{ $user->created_at->diffForHumans() }}</div>
+                        @if($user->organization_name)
+                        <div class="text-[8px] font-black uppercase tracking-widest text-slate-500 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded mt-1 inline-block">{{ $user->organization_name }}</div>
+                        @endif
+                    </div>
+                </a>
+                @empty
+                <div class="p-8 text-center text-slate-400 text-xs py-16 flex flex-col items-center justify-center">
+                    <i class="fa-regular fa-user-circle text-3xl mb-2 text-slate-300"></i>
+                    <p class="font-bold uppercase tracking-widest">No users registered yet.</p>
                 </div>
-            </a>
-            @empty
-            <div class="p-8 text-center text-slate-500 text-sm">No recent audit sessions.</div>
-            @endforelse
+                @endforelse
+            </div>
+        </div>
+
+        {{-- Recent Sessions --}}
+        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm flex flex-col">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="text-sm font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-emerald-500"></i> Recent Audit Activity
+                </h3>
+                <a href="{{ route('admin.sessions.index') }}" class="text-[10px] font-black text-emerald-600 hover:text-emerald-700 uppercase tracking-widest">
+                    View All
+                </a>
+            </div>
+            <div class="divide-y divide-slate-100 flex-1">
+                @forelse($recentSessions as $session)
+                <a href="{{ route('admin.sessions.show', $session) }}" class="p-4 hover:bg-slate-50 block transition-colors">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="font-bold text-sm text-slate-900 truncate max-w-[200px]">{{ $session->name }}</div>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest {{ $session->status === 'completed' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : ($session->status === 'in_progress' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-slate-50 text-slate-500 border border-slate-200') }}">
+                            {{ str_replace('_', ' ', $session->status) }}
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-slate-500">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <div class="w-5 h-5 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0 text-[8px] font-bold">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <span class="truncate text-[10px] font-bold text-slate-600">{{ $session->user->name ?? 'Unknown User' }}</span>
+                        </div>
+                        <div class="text-[10px] font-semibold text-slate-400">{{ $session->updated_at->diffForHumans() }}</div>
+                    </div>
+                </a>
+                @empty
+                <div class="p-8 text-center text-slate-400 text-xs py-16 flex flex-col items-center justify-center">
+                    <i class="fa-regular fa-clipboard text-3xl mb-2 text-slate-300"></i>
+                    <p class="font-bold uppercase tracking-widest">No recent audit sessions.</p>
+                </div>
+                @endforelse
+            </div>
         </div>
     </div>
 </div>
@@ -241,10 +322,25 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 document.addEventListener('turbo:load', function() {
+    // Style chart tooltips and fonts globally
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.font.size = 10;
+    Chart.defaults.color = '#94a3b8';
+
     const chartDefaults = {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } }
+        plugins: { 
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: '#0f172a',
+                padding: 10,
+                titleFont: { size: 11, weight: 'bold' },
+                bodyFont: { size: 10 },
+                cornerRadius: 8,
+                displayColors: false
+            }
+        }
     };
 
     // Helper to safely initialize and destroy existing charts (Turbo.js fix)
@@ -260,7 +356,7 @@ document.addEventListener('turbo:load', function() {
         new Chart(canvas, config);
     };
 
-    // User Growth
+    // User Growth Line Chart
     initChart('userGrowthChart', {
         type: 'line',
         data: {
@@ -269,18 +365,35 @@ document.addEventListener('turbo:load', function() {
                 label: 'New Users',
                 data: @json($userGrowthData),
                 borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                backgroundColor: 'rgba(59, 130, 246, 0.05)',
                 fill: true,
-                tension: 0.4,
+                tension: 0.35,
                 borderWidth: 2,
                 pointBackgroundColor: '#3b82f6',
-                pointRadius: 4,
+                pointHoverBackgroundColor: '#ffffff',
+                pointHoverBorderColor: '#3b82f6',
+                pointHoverBorderWidth: 3,
+                pointHoverRadius: 6,
+                pointRadius: 3,
             }]
         },
-        options: { ...chartDefaults, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+        options: { 
+            ...chartDefaults, 
+            scales: { 
+                y: { 
+                    grid: { color: '#f1f5f9' },
+                    border: { dash: [5, 5] },
+                    beginAtZero: true, 
+                    ticks: { stepSize: 1 } 
+                },
+                x: {
+                    grid: { display: false }
+                }
+            } 
+        }
     });
 
-    // Session Activity
+    // Session Activity Bar Chart
     initChart('sessionActivityChart', {
         type: 'bar',
         data: {
@@ -288,37 +401,63 @@ document.addEventListener('turbo:load', function() {
             datasets: [{
                 label: 'Sessions Created',
                 data: @json($sessionActivityData),
-                backgroundColor: ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5', '#ecfdf5'],
+                backgroundColor: '#10b981',
                 borderRadius: 6,
                 borderSkipped: false,
+                maxBarThickness: 32,
             }]
         },
-        options: { ...chartDefaults, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+        options: { 
+            ...chartDefaults, 
+            scales: { 
+                y: { 
+                    grid: { color: '#f1f5f9' },
+                    border: { dash: [5, 5] },
+                    beginAtZero: true, 
+                    ticks: { stepSize: 1 } 
+                },
+                x: {
+                    grid: { display: false }
+                }
+            } 
+        }
     });
 
-    // Maturity Distribution
+    // Maturity Distribution Doughnut Chart
     initChart('maturityChart', {
         type: 'doughnut',
         data: {
-            labels: ['Level 1 (Initial)', 'Level 2 (Managed)', 'Level 3 (Defined)', 'Level 4 (Quantified)', 'Level 5 (Optimized)'],
+            labels: ['Lvl 1 (Initial)', 'Lvl 2 (Limited/Repeatable)', 'Lvl 3 (Defined)', 'Lvl 4 (Managed)', 'Lvl 5 (Optimized)'],
             datasets: [{
                 data: @json($maturityDistribution),
-                backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'],
-                borderWidth: 0,
+                backgroundColor: ['#ef4444', '#f97316', '#eab308', '#10b981', '#3b82f6'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
                 hoverOffset: 6,
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '55%',
+            cutout: '60%',
             plugins: {
-                legend: { display: true, position: 'bottom', labels: { font: { size: 10 }, padding: 8, usePointStyle: true, pointStyle: 'circle' } }
+                legend: { 
+                    display: true, 
+                    position: 'bottom', 
+                    labels: { 
+                        boxWidth: 8, 
+                        boxHeight: 8, 
+                        padding: 10,
+                        usePointStyle: true, 
+                        pointStyle: 'circle',
+                        font: { size: 9, weight: 'bold' } 
+                    } 
+                }
             }
         }
     });
 
-    // Sector Distribution
+    // Sector Distribution Pie Chart
     @if(count($sectorDistribution) > 0)
     initChart('sectorChart', {
         type: 'pie',
@@ -326,8 +465,9 @@ document.addEventListener('turbo:load', function() {
             labels: @json(array_keys($sectorDistribution)),
             datasets: [{
                 data: @json(array_values($sectorDistribution)),
-                backgroundColor: ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe', '#ede9fe'],
-                borderWidth: 0,
+                backgroundColor: ['#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f59e0b', '#3b82f6'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
                 hoverOffset: 6,
             }]
         },
@@ -335,7 +475,18 @@ document.addEventListener('turbo:load', function() {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: true, position: 'bottom', labels: { font: { size: 10 }, padding: 8, usePointStyle: true, pointStyle: 'circle' } }
+                legend: { 
+                    display: true, 
+                    position: 'bottom', 
+                    labels: { 
+                        boxWidth: 8, 
+                        boxHeight: 8, 
+                        padding: 10,
+                        usePointStyle: true, 
+                        pointStyle: 'circle',
+                        font: { size: 9, weight: 'bold' } 
+                    } 
+                }
             }
         }
     });
