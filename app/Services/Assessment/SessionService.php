@@ -104,7 +104,18 @@ class SessionService
                     'maturity_rating' => $result->maturity_rating,
                     'answers' => $result->answers ?? [],
                     'notes' => $result->notes,
+                    'evidence_file' => $result->evidence_file,
                     'ai_recommendation' => $result->ai_recommendation,
+                    'corrective_action_plan' => $result->corrective_action_plan,
+                    'risk_priority' => $result->risk_priority,
+                    'control_insight' => $result->control_insight,
+                    'evidence_validation' => $result->evidence_validation,
+                    'is_applicable' => $result->is_applicable,
+                    'soa_justification' => $result->soa_justification,
+                    'implementation_status' => $result->implementation_status,
+                    'treatment_due_date' => $result->treatment_due_date,
+                    'treatment_pic' => $result->treatment_pic,
+                    'treatment_status' => $result->treatment_status,
                     'status' => $result->status
                 ]);
             }
@@ -151,7 +162,18 @@ class SessionService
                         'maturity_rating' => $r->maturity_rating,
                         'answers' => $r->answers,
                         'notes' => $r->notes,
+                        'evidence_file' => $r->evidence_file,
                         'ai_recommendation' => $r->ai_recommendation,
+                        'corrective_action_plan' => $r->corrective_action_plan,
+                        'risk_priority' => $r->risk_priority,
+                        'control_insight' => $r->control_insight,
+                        'evidence_validation' => $r->evidence_validation,
+                        'is_applicable' => $r->is_applicable,
+                        'soa_justification' => $r->soa_justification,
+                        'implementation_status' => $r->implementation_status,
+                        'treatment_due_date' => $r->treatment_due_date ? $r->treatment_due_date->format('Y-m-d') : null,
+                        'treatment_pic' => $r->treatment_pic,
+                        'treatment_status' => $r->treatment_status,
                         'status' => $r->status
                     ];
                 })
@@ -187,7 +209,18 @@ class SessionService
                     'maturity_rating' => $res['maturity_rating'] ?? 0,
                     'answers' => $res['answers'] ?? [],
                     'notes' => $res['notes'] ?? '',
+                    'evidence_file' => $res['evidence_file'] ?? null,
                     'ai_recommendation' => $res['ai_recommendation'] ?? '',
+                    'corrective_action_plan' => $res['corrective_action_plan'] ?? null,
+                    'risk_priority' => $res['risk_priority'] ?? null,
+                    'control_insight' => $res['control_insight'] ?? null,
+                    'evidence_validation' => $res['evidence_validation'] ?? null,
+                    'is_applicable' => $res['is_applicable'] ?? true,
+                    'soa_justification' => $res['soa_justification'] ?? null,
+                    'implementation_status' => $res['implementation_status'] ?? 'not_started',
+                    'treatment_due_date' => $res['treatment_due_date'] ?? null,
+                    'treatment_pic' => $res['treatment_pic'] ?? null,
+                    'treatment_status' => $res['treatment_status'] ?? 'open',
                     'status' => $res ? ($res['status'] ?? 'not_started') : 'not_started'
                 ]);
             }
