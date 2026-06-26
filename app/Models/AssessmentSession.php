@@ -38,12 +38,13 @@ class AssessmentSession extends Model
 
     /**
      * Calculate and update the overall maturity score
-     * Only includes results with maturity_rating > 0
+     * Only includes completed results
      */
     public function calculateMaturityScore(): float
     {
         $avg = $this->results()
-            ->where('maturity_rating', '>', 0)
+            ->where('status', 'completed')
+            ->where('maturity_rating', '>=', 0)
             ->avg('maturity_rating') ?? 0;
         
         $this->update(['overall_maturity_score' => round($avg, 2)]);

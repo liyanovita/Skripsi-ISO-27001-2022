@@ -85,28 +85,28 @@ class AssessmentResult extends Model
     }
 
     /**
-     * Get risk level based on maturity rating
+     * Get risk level based on maturity rating.
+     * Maturity 0–1: Critical, 2: High, 3: Medium, 4–5: Compliant (no residual risk)
      */
     public function getRiskLevelAttribute(): string
     {
         return match((int)$this->maturity_rating) {
-            0 => 'Unassessed',
-            1 => 'Critical',
-            2 => 'High',
-            3 => 'Medium',
-            4 => 'Low',
-            5 => 'Low',
-            default => 'Unassessed'
+            0       => $this->status === 'completed' ? 'Critical' : 'Unassessed',
+            1       => 'Critical',
+            2       => 'High',
+            3       => 'Medium',
+            4, 5    => 'Compliant',
+            default => $this->status === 'completed' ? 'Compliant' : 'Unassessed'
         };
     }
 
     /**
-     * Scope: Get results that are not compliant
+     * Scope: Get results that are not compliant (maturity 0–3)
      */
     public function scopeNonCompliant($query)
     {
         return $query->where('maturity_rating', '<', 4)
-            ->where('maturity_rating', '>', 0);
+            ->where('maturity_rating', '>=', 0);
     }
 
     /**

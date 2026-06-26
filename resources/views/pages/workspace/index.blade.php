@@ -8,7 +8,7 @@
         'id' => $result->id,
         'code' => strtolower($result->standard->code ?? ''),
         'title' => strtolower($result->standard->title ?? ''),
-        'risk' => strtolower($result->risk_level ?? 'low'),
+        'risk' => strtolower($result->risk_level ?? 'compliant'),
         'maturityGap' => $result->status === 'completed' && $result->maturity_rating < 4,
         'isGap' => $result->is_applicable && $result->status === 'completed' && $result->maturity_rating < 4,
         'isApplicable' => (bool) $result->is_applicable,
@@ -16,7 +16,7 @@
     ])->values();
     $gapFindings = $findings->map(fn($finding) => [
         'id' => $finding->id,
-        'risk' => $finding->risk_level ?? 'Low',
+        'risk' => $finding->risk_level ?? 'Compliant',
         'isCritical' => $finding->risk_level === 'Critical' || $finding->maturity_rating <= 1,
         'isApplicable' => (bool) $finding->is_applicable,
     ])->values();
@@ -322,9 +322,14 @@
             </div>
             <div class="flex items-center gap-1.5">
                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mr-1">{{ __('Risk:') }}</span>
-                @foreach(['all' => __('All'), 'Critical' => __('Critical'), 'High' => __('High'), 'Medium' => __('Medium'), 'Low' => __('Low')] as $val => $label)
+                @foreach(['all' => __('All'), 'Critical' => __('Critical'), 'High' => __('High'), 'Medium' => __('Medium')] as $val => $label)
                 <button @click="gapRiskFilter = '{{ $val }}'"
-                    :class="gapRiskFilter === '{{ $val }}' ? 'bg-slate-900 text-white shadow' : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'"
+                    :class="gapRiskFilter === '{{ $val }}' 
+                        ? ('{{ $val }}' === 'Critical' ? 'bg-rose-600 text-white shadow shadow-rose-600/20' 
+                          : '{{ $val }}' === 'High' ? 'bg-orange-500 text-white shadow shadow-orange-500/20' 
+                          : '{{ $val }}' === 'Medium' ? 'bg-amber-500 text-white shadow shadow-amber-500/20' 
+                          : 'bg-slate-900 text-white shadow') 
+                        : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'"
                     class="px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">
                     {{ $label }}
                 </button>
@@ -356,12 +361,13 @@
                 <tbody class="divide-y divide-slate-50">
                     @foreach($findings as $finding)
                     @php
-                        $riskLevel  = $finding->risk_level ?? 'Low';
+                        $riskLevel  = $finding->risk_level ?? 'Compliant';
                         $riskClass  = match(strtolower($riskLevel)) {
-                            'critical' => 'bg-rose-100 text-rose-700',
-                            'high'     => 'bg-orange-100 text-orange-700',
-                            'medium'   => 'bg-amber-100 text-amber-700',
-                            default    => 'bg-slate-100 text-slate-600',
+                            'critical'  => 'bg-rose-100 text-rose-700',
+                            'high'      => 'bg-orange-100 text-orange-700',
+                            'medium'    => 'bg-amber-100 text-amber-700',
+                            'compliant' => 'bg-emerald-100 text-emerald-700',
+                            default     => 'bg-slate-100 text-slate-600',
                         };
                         $gapPct    = (5 - $finding->maturity_rating) * 20;
                         $isOverdue = $finding->treatment_due_date && $finding->treatment_due_date->isPast();
@@ -412,11 +418,38 @@
                             @endif
                         </td>
                         <td class="px-4 py-3 text-right">
-                            <button @click="switchTab('workspace'); $nextTick(() => { const el = document.getElementById('row-{{ $finding->id }}'); if(el) { el.scrollIntoView({behavior:'smooth', block:'center'}); el.style.boxShadow='0 0 0 3px #818cf8'; setTimeout(()=>el.style.boxShadow='',3000); } })"
-                                class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-all"
-                                title="{{ __('Edit in Workspace') }}">
-                                <i class="fa-solid fa-pen-to-square text-[9px]"></i>
-                            </button>
+                            <div class="flex items-center justify-end gap-1.5">
+                                @if(!empty($finding->ai_recommendation))
+                                @php
+                                    $aiGapBtnClass = match(strtolower($finding->risk_level ?? '')) {
+                                        'critical' => 'bg-rose-50 text-rose-700 border-rose-100 hover:bg-rose-600 hover:text-white',
+                                        'high'     => 'bg-orange-50 text-orange-700 border-orange-100 hover:bg-orange-500 hover:text-white',
+                                        'medium'   => 'bg-amber-50 text-amber-700 border-amber-100 hover:bg-amber-500 hover:text-white',
+                                        default    => 'bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-600 hover:text-white',
+                                    };
+                                    $aiGapPlan = is_array($finding->corrective_action_plan) ? implode("\n", $finding->corrective_action_plan) : ($finding->corrective_action_plan ?? '');
+                                    $aiGapInsight = is_array($finding->control_insight) ? ($finding->control_insight['gap'] ?? '') : ($finding->control_insight ?? '');
+                                @endphp
+                                <button @click="openAiDetails({
+                                        code: @js($finding->standard->code ?? ''),
+                                        title: @js(__($finding->standard->title ?? '')),
+                                        rec: @js($finding->ai_recommendation ?? ''),
+                                        plan: @js($aiGapPlan),
+                                        insight: @js($aiGapInsight),
+                                        priority: @js($finding->risk_priority ?? ''),
+                                        validation: @js($finding->evidence_validation ?? '')
+                                    })"
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1.5 border {{ $aiGapBtnClass }} rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shrink-0 shadow-sm hover:scale-105 active:scale-95 cursor-pointer"
+                                    title="{{ __('View AI Recommendation') }}">
+                                    <i class="fa-solid fa-robot text-[9px]"></i>{{ __('Detail AI') }}
+                                </button>
+                                @endif
+                                <button @click="switchTab('workspace'); $nextTick(() => { const el = document.getElementById('row-{{ $finding->id }}'); if(el) { el.scrollIntoView({behavior:'smooth', block:'center'}); el.style.boxShadow='0 0 0 3px #818cf8'; setTimeout(()=>el.style.boxShadow='',3000); } })"
+                                    class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-all"
+                                    title="{{ __('Edit in Workspace') }}">
+                                    <i class="fa-solid fa-pen-to-square text-[9px]"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     @endforeach
@@ -501,9 +534,15 @@
             <div class="w-px h-6 bg-slate-200 hidden md:block"></div>
             <div class="flex items-center gap-1">
                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mr-2">{{ __('Risk:') }}</span>
-                @foreach(['all' => __('All'), 'critical' => __('Critical'), 'high' => __('High'), 'medium' => __('Medium'), 'low' => __('Low')] as $val => $label)
+                @foreach(['all' => __('All'), 'critical' => __('Critical'), 'high' => __('High'), 'medium' => __('Medium'), 'compliant' => __('Compliant')] as $val => $label)
                 <button @click="riskFilter = '{{ $val }}'"
-                    :class="riskFilter === '{{ $val }}' ? 'bg-rose-600 text-white shadow shadow-rose-600/20' : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'"
+                    :class="riskFilter === '{{ $val }}' 
+                        ? ('{{ $val }}' === 'critical' ? 'bg-rose-600 text-white shadow shadow-rose-600/20' 
+                          : '{{ $val }}' === 'high' ? 'bg-orange-500 text-white shadow shadow-orange-500/20' 
+                          : '{{ $val }}' === 'medium' ? 'bg-amber-500 text-white shadow shadow-amber-500/20' 
+                          : '{{ $val }}' === 'compliant' ? 'bg-emerald-600 text-white shadow shadow-emerald-600/20' 
+                          : 'bg-slate-900 text-white shadow') 
+                        : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'"
                     class="px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">
                     {{ $label }}
                 </button>
@@ -570,7 +609,7 @@
                         $isApplicable = $result->is_applicable;
                         $dueDate      = $result->treatment_due_date ? $result->treatment_due_date->format('Y-m-d') : '';
                         $status       = $result->treatment_status ?? 'open';
-                        $riskLevel    = strtolower($result->risk_level ?? 'low');
+                        $riskLevel    = strtolower($result->risk_level ?? 'compliant');
                         $controlTitle = strtolower($result->standard->title ?? '');
                         $aiPlan       = is_array($result->corrective_action_plan) ? implode("\n", $result->corrective_action_plan) : ($result->corrective_action_plan ?? '');
                     @endphp
@@ -623,7 +662,7 @@
                             <div class="flex flex-col">
                                 <div class="flex items-center justify-between gap-3">
                                     <span class="text-[11px] font-bold text-slate-800 leading-tight">{{ __($result->standard->title) }}</span>
-                                    @if(!empty($result->ai_recommendation))
+                                    @if($isGap && !empty($result->ai_recommendation))
                                     @php
                                         $aiBtnClass = 'bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-600 hover:text-white shadow-indigo-600/5';
                                         $aiIconAnim = '';

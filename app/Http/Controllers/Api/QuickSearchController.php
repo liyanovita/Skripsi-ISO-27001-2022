@@ -42,7 +42,8 @@ class QuickSearchController extends Controller
             ->whereHas('standard', fn($q2) => $q2->where('code', 'like', "%{$q}%")
                 ->orWhere('title', 'like', "%{$q}%"))
             ->where('maturity_rating', '<', 4)
-            ->where('maturity_rating', '>', 0)
+            ->where('maturity_rating', '>=', 0)
+            ->where('status', 'completed')
             ->limit(4)
             ->get()
             ->each(function ($r) use (&$results) {

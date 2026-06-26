@@ -75,7 +75,9 @@ class DashboardService
         $distTotal = max(1, ($distribution['compliant'] ?? 0) + ($distribution['partial'] ?? 0) + ($distribution['non_compliant'] ?? 0) + ($distribution['unassessed'] ?? 0));
 
         // 6. Active Session Progress (latest session only)
-        $latestSession = $allSessions->first();
+        // Prefer in_progress session, then any most-recently updated
+        $latestSession = $allSessions->where('status', 'in_progress')->first()
+            ?? $allSessions->first();
         // Only count standards that have questions (assessable controls)
         $totalIsoControls = \App\Models\IsoStandard::whereNotNull('questions')
             ->where('questions', '!=', '[]')

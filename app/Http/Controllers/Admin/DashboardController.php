@@ -100,7 +100,7 @@ class DashboardController extends Controller
         // Pending CAPA tasks
         $pendingCapa = AssessmentResult::whereNotNull('treatment_due_date')
             ->where('maturity_rating', '<', 4)
-            ->where('maturity_rating', '>', 0)
+            ->where('maturity_rating', '>=', 0)
             ->where(function ($q) {
                 $q->whereNull('treatment_status')
                   ->orWhereIn('treatment_status', ['open', 'in_progress']);
@@ -110,7 +110,7 @@ class DashboardController extends Controller
         $overdueCapa = AssessmentResult::whereNotNull('treatment_due_date')
             ->where('treatment_due_date', '<', now()->toDateString())
             ->where('maturity_rating', '<', 4)
-            ->where('maturity_rating', '>', 0)
+            ->where('maturity_rating', '>=', 0)
             ->where(function ($q) {
                 $q->whereNull('treatment_status')
                   ->orWhereIn('treatment_status', ['open', 'in_progress']);

@@ -3,7 +3,7 @@
 @section('view_name', 'Audit Sessions')
 
 @section('content')
-<div x-data="{ showSessionModal: {{ request('create') ? 'true' : 'false' }}, showImportModal: false, showEditModal: false, editSessionId: '', editSessionName: '' }">
+<div x-data="{ showSessionModal: {{ request('create') ? 'true' : 'false' }}, showImportModal: false, showEditModal: false, showCloneModal: false, showArchiveModal: false, showRestoreModal: false, showDeleteModal: false, editSessionId: '', editSessionName: '', cloneSessionId: '', archiveSessionId: '', restoreSessionId: '', deleteSessionId: '' }">
     <div class="max-w-6xl mx-auto space-y-6 pb-16">
         {{-- Header Section --}}
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -21,7 +21,7 @@
                     class="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-xl text-xs font-bold shadow-sm hover:bg-slate-50 transition-all">
                     <i class="fa-solid fa-file-import text-slate-400"></i> {{ __('Import') }}
                 </button>
-                <button @click="showSessionModal = true" 
+                <button @click="showSessionModal = true" id="btn-new-session"
                     class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all active:scale-95">
                     <i class="fa-solid fa-plus"></i> {{ __('New Session') }}
                 </button>
@@ -87,7 +87,7 @@
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
-                    <thead>
+                    <thead id="session-table-header">
                         <tr class="bg-slate-50/50 border-b border-slate-100">
                             <th class="px-6 py-3.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">{{ __('Session') }}</th>
                             <th class="px-6 py-3.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">{{ __('Progress') }}</th>
@@ -97,20 +97,20 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">
-                        @forelse($sessions as $session)
+                        @forelse($sessions as $index => $session)
                         <tr x-data="{ name: '{{ addslashes(strtolower($session->name)) }}', status: '{{ $session->trashed() ? 'archived' : ($session->status == 'completed' ? 'completed' : 'in_progress') }}' }" 
                             x-show="(filterStatus === 'all' || filterStatus === status) && (searchQuery === '' || name.includes(searchQuery.toLowerCase()))"
                             class="hover:bg-slate-50/50 transition-colors group">
                             <td class="px-6 py-5">
                                 @if($session->trashed())
-                                <div class="block opacity-70">
-                                    <p class="text-sm font-bold text-slate-900 tracking-tight">{{ $session->name }}</p>
-                                    <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest flex items-center gap-2">
-                                        <i class="fa-solid fa-calendar text-[8px] opacity-40"></i> {{ $session->created_at->format('d M Y') }}
-                                    </p>
-                                </div>
+                                  <div class="block opacity-70">
+                                      <p class="text-sm font-bold text-slate-900 tracking-tight">{{ $session->name }}</p>
+                                      <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest flex items-center gap-2">
+                                          <i class="fa-solid fa-calendar text-[8px] opacity-40"></i> {{ $session->created_at->format('d M Y') }}
+                                      </p>
+                                  </div>
                                 @else
-                                <a href="{{ route('sessions.show', $session->id) }}" class="block">
+                                  <a href="{{ route('sessions.show', $session->id) }}" class="block" @if($index === 0) id="btn-start-eval-first" @endif>
                                     <p class="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors tracking-tight">{{ $session->name }}</p>
                                     <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest flex items-center gap-2">
                                         <i class="fa-solid fa-calendar text-[8px] opacity-40"></i> {{ $session->created_at->format('d M Y') }}
@@ -155,31 +155,21 @@
                             <td class="px-6 py-5 text-right">
                                 <div class="flex justify-end gap-2">
                                     @if($session->trashed())
-                                        <form action="{{ route('sessions.restore', $session->id) }}" method="POST" onsubmit="return confirm('Restore this session?')">
-                                            @csrf
-                                            <button type="submit" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-green-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Restore Session') }}">
-                                                <i class="fa-solid fa-trash-can-arrow-up text-xs"></i>
-                                            </button>
-                                        </form>
+                                        <button @click.prevent="restoreSessionId = '{{ $session->id }}'; showRestoreModal = true" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-green-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Restore Session') }}">
+                                            <i class="fa-solid fa-trash-can-arrow-up text-xs"></i>
+                                        </button>
 
-                                        <form action="{{ route('sessions.force-delete', $session->id) }}" method="POST" onsubmit="return confirm('Permanently delete this session? This cannot be undone.')">
-                                            @csrf 
-                                            @method('DELETE')
-                                            <button type="submit" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-red-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Delete Permanently') }}">
-                                                <i class="fa-solid fa-trash text-xs"></i>
-                                            </button>
-                                        </form>
+                                        <button @click.prevent="deleteSessionId = '{{ $session->id }}'; showDeleteModal = true" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-red-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Delete Permanently') }}">
+                                            <i class="fa-solid fa-trash text-xs"></i>
+                                        </button>
                                     @else
                                         <button @click.prevent="editSessionId = '{{ $session->id }}'; editSessionName = '{{ addslashes($session->name) }}'; showEditModal = true" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-emerald-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Edit Session Name') }}">
                                             <i class="fa-solid fa-pen text-xs"></i>
                                         </button>
 
-                                        <form action="{{ route('sessions.clone', $session->id) }}" method="POST" onsubmit="return confirm('Clone this session?')">
-                                            @csrf
-                                            <button type="submit" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-indigo-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Duplicate Cycle') }}">
-                                                <i class="fa-solid fa-copy text-xs"></i>
-                                            </button>
-                                        </form>
+                                        <button @click.prevent="cloneSessionId = '{{ $session->id }}'; showCloneModal = true" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-indigo-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Duplicate Cycle') }}">
+                                            <i class="fa-solid fa-copy text-xs"></i>
+                                        </button>
 
                                         <a href="{{ route('sessions.export-json', $session->id) }}" 
                                            class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-blue-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Export Template') }}">
@@ -191,13 +181,9 @@
                                             <i class="fa-solid fa-rocket text-xs"></i>
                                         </a>
                                         
-                                        <form action="{{ route('sessions.destroy', $session->id) }}" method="POST" onsubmit="return confirm('Archive this session?')">
-                                            @csrf 
-                                            @method('DELETE')
-                                            <button type="submit" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-orange-500 border border-slate-200 rounded-lg transition-all" title="{{ __('Archive Cycle') }}">
-                                                <i class="fa-solid fa-box-archive text-xs"></i>
-                                            </button>
-                                        </form>
+                                        <button @click.prevent="archiveSessionId = '{{ $session->id }}'; showArchiveModal = true" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-orange-500 border border-slate-200 rounded-lg transition-all" title="{{ __('Archive Cycle') }}">
+                                            <i class="fa-solid fa-box-archive text-xs"></i>
+                                        </button>
                                     @endif
                                 </div>
                             </td>
@@ -210,9 +196,7 @@
                                 </div>
                                 <h3 class="text-slate-900 font-bold text-base">{{ __('No Audit Cycles Yet') }}</h3>
                                 <p class="text-slate-400 text-sm font-medium mt-1">{{ __('Waiting for the first assessment launch.') }}</p>
-                                <button @click="showSessionModal = true" class="mt-4 text-blue-600 font-bold text-xs hover:underline">
-                                    {{ __('Start your first session') }} â†’
-                                </button>
+                                <button @click="showSessionModal = true" class="mt-4 inline-flex items-center gap-1.5 text-blue-600 font-bold text-xs hover:underline group">{{ __('Start your first session') }}<i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform ml-1"></i></button>
                             </td>
                         </tr>
                         @endforelse
@@ -313,6 +297,79 @@
                     <button type="button" @click="showEditModal = false" class="flex-1 px-5 py-2.5 text-sm font-bold text-slate-500 bg-slate-100 rounded-xl hover:bg-slate-200 transition-all">{{ __('Cancel') }}</button>
                     <button type="submit" class="flex-1 px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20">{{ __('Save Changes') }}</button>
                 </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Clone Confirmation Modal --}}
+    <div x-show="showCloneModal"
+         class="fixed inset-0 z-[100] flex items-center justify-center p-6" x-cloak>
+        <div x-transition.opacity class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="showCloneModal = false"></div>
+        <div x-transition.scale.95 class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-7 z-10 border border-slate-100 text-center">
+            <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm">
+                <i class="fa-solid fa-copy text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900">{{ __('Clone Session') }}</h3>
+            <p class="text-sm text-slate-500 mt-2">{{ __('Are you sure you want to duplicate this session? All assessment data and scores will be copied into a new In-Progress session.') }}</p>
+            <form :action="'{{ url('sessions') }}/' + cloneSessionId + '/clone'" method="POST" class="mt-6 flex gap-3">
+                @csrf
+                <button type="button" @click="showCloneModal = false" class="flex-1 px-5 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold uppercase tracking-wider hover:bg-slate-200 transition-all text-xs">{{ __('Cancel') }}</button>
+                <button type="submit" class="flex-1 px-5 py-3 rounded-xl bg-indigo-600 text-white font-bold uppercase tracking-wider hover:bg-indigo-700 transition-all text-xs shadow-md shadow-indigo-600/20">{{ __('Clone Now') }}</button>
+            </form>
+        </div>
+    </div>
+
+    {{-- Archive Confirmation Modal --}}
+    <div x-show="showArchiveModal"
+         class="fixed inset-0 z-[100] flex items-center justify-center p-6" x-cloak>
+        <div x-transition.opacity class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="showArchiveModal = false"></div>
+        <div x-transition.scale.95 class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-7 z-10 border border-slate-100 text-center">
+            <div class="w-16 h-16 bg-orange-50 text-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm">
+                <i class="fa-solid fa-box-archive text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900">{{ __('Archive Session') }}</h3>
+            <p class="text-sm text-slate-500 mt-2">{{ __('Are you sure you want to archive this session? It will be moved to the archive and can be restored later.') }}</p>
+            <form :action="'{{ url('sessions') }}/' + archiveSessionId" method="POST" class="mt-6 flex gap-3">
+                @csrf
+                @method('DELETE')
+                <button type="button" @click="showArchiveModal = false" class="flex-1 px-5 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold uppercase tracking-wider hover:bg-slate-200 transition-all text-xs">{{ __('Cancel') }}</button>
+                <button type="submit" class="flex-1 px-5 py-3 rounded-xl bg-orange-500 text-white font-bold uppercase tracking-wider hover:bg-orange-600 transition-all text-xs shadow-md shadow-orange-500/20">{{ __('Archive') }}</button>
+            </form>
+        </div>
+    </div>
+    {{-- Restore Confirmation Modal --}}
+    <div x-show="showRestoreModal"
+         class="fixed inset-0 z-[100] flex items-center justify-center p-6" x-cloak>
+        <div x-transition.opacity class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="showRestoreModal = false"></div>
+        <div x-transition.scale.95 class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-7 z-10 border border-slate-100 text-center">
+            <div class="w-16 h-16 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm">
+                <i class="fa-solid fa-trash-can-arrow-up text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900">{{ __('Restore Session') }}</h3>
+            <p class="text-sm text-slate-500 mt-2">{{ __('Are you sure you want to restore this session? It will be moved back to your active sessions list.') }}</p>
+            <form :action="'{{ url('sessions') }}/' + restoreSessionId + '/restore'" method="POST" class="mt-6 flex gap-3">
+                @csrf
+                <button type="button" @click="showRestoreModal = false" class="flex-1 px-5 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold uppercase tracking-wider hover:bg-slate-200 transition-all text-xs">{{ __('Cancel') }}</button>
+                <button type="submit" class="flex-1 px-5 py-3 rounded-xl bg-green-600 text-white font-bold uppercase tracking-wider hover:bg-green-700 transition-all text-xs shadow-md shadow-green-600/20">{{ __('Restore') }}</button>
+            </form>
+        </div>
+    </div>
+
+    {{-- Permanent Delete Confirmation Modal --}}
+    <div x-show="showDeleteModal"
+         class="fixed inset-0 z-[100] flex items-center justify-center p-6" x-cloak>
+        <div x-transition.opacity class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="showDeleteModal = false"></div>
+        <div x-transition.scale.95 class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-7 z-10 border border-slate-100 text-center">
+            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm">
+                <i class="fa-solid fa-trash text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900">{{ __('Delete Permanently') }}</h3>
+            <p class="text-sm text-slate-500 mt-2">{{ __('This action is irreversible. All assessment data, scores, and results for this session will be permanently deleted and cannot be recovered.') }}</p>
+            <form :action="'{{ url('sessions') }}/' + deleteSessionId + '/force-delete'" method="POST" class="mt-6 flex gap-3">
+                @csrf
+                @method('DELETE')
+                <button type="button" @click="showDeleteModal = false" class="flex-1 px-5 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold uppercase tracking-wider hover:bg-slate-200 transition-all text-xs">{{ __('Cancel') }}</button>
+                <button type="submit" class="flex-1 px-5 py-3 rounded-xl bg-red-600 text-white font-bold uppercase tracking-wider hover:bg-red-700 transition-all text-xs shadow-md shadow-red-600/20">{{ __('Delete Forever') }}</button>
             </form>
         </div>
     </div>

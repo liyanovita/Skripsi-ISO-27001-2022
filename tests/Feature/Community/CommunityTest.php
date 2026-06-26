@@ -121,7 +121,7 @@ class CommunityTest extends TestCase
         
         $this->assertDatabaseHas('assessment_sessions', [
             'user_id' => $user->id,
-            'status' => 'draft',
+            'status' => 'in_progress',
             'overall_maturity_score' => 4.0
         ]);
 
@@ -170,7 +170,7 @@ class CommunityTest extends TestCase
         
         $this->assertDatabaseHas('assessment_sessions', [
             'user_id' => $user->id,
-            'status' => 'draft',
+            'status' => 'in_progress',
             'overall_maturity_score' => 3.0
         ]);
 

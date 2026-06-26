@@ -6,64 +6,114 @@ use App\Models\AssessmentResult;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 
-class AssessmentReportExport implements FromCollection, WithHeadings, WithMapping
+class AssessmentReportExport extends DefaultValueBinder implements FromCollection, WithHeadings, WithMapping, WithCustomValueBinder
 {
     protected $sessionId;
+    protected int $rowIndex = 0;
 
     public function __construct($sessionId)
     {
         $this->sessionId = $sessionId;
     }
 
+    /**
+     * Mengambil data dengan filter IDENTIK dengan Gap Report Table (getFindings):
+     * - Hanya kontrol dengan pertanyaan (assessable)
+     * - is_applicable = true
+     * - status = completed (sudah dinilai)
+     * - maturity_rating 0-3 (non-compliant, termasuk 0 = Non-existent)
+     * - Diurutkan dari yang paling kritis (maturity_rating terendah)
+     */
     public function collection()
     {
-        return AssessmentResult::with(['standard', 'session'])
+        $results = AssessmentResult::with(['standard', 'session'])
             ->where('session_id', $this->sessionId)
-            ->get();
+            ->where('is_applicable', true)
+            ->where('status', 'completed')
+            ->where('maturity_rating', '>=', 0)
+            ->where('maturity_rating', '<', 4)
+            ->whereHas('standard', fn($q) => $q->whereNotNull('questions'))
+            ->get()
+            ->filter(fn($r) => is_array($r->standard?->questions) && count($r->standard->questions) > 0);
+
+        return $results->sortBy('maturity_rating')->values();
     }
 
+    /**
+     * Header kolom IDENTIK dengan tabel Priority Roadmap di PDF ditambah data AI:
+     */
     public function headings(): array
     {
         return [
-            'ID',
-            'Control Code',
-            'Control Title',
-            'Maturity Rating',
-            'Compliance Status',
-            'Risk Priority',
+            'Priority (#)',
+            'ISO Code',
+            'Control Name',
+            'Maturity Level',
+            'Status Compliance',
+            'Risk',
+            'Target Days',
             'AI Strategic Recommendation',
+            'AI Audit Insight (Gap)',
+            'AI Evidence Validation',
             'Corrective Action Plan (CAP)',
-            'ISO Control Insight',
-            'Auditor Notes',
-            'Executive Session Summary',
-            'Created At'
         ];
     }
 
+    /**
+     * Mapping data IDENTIK dengan kolom yang ditampilkan di PDF
+     */
     public function map($result): array
     {
-        $cap = is_array($result->corrective_action_plan) 
-            ? implode("\n- ", $result->corrective_action_plan) 
-            : ($result->corrective_action_plan ?? '');
+        // Hitung nomor prioritas berdasarkan posisi di collection (sama seperti $index+1 di PDF)
+        $priority = '#' . (++$this->rowIndex);
 
-        $insight = is_array($result->control_insight)
-            ? ($result->control_insight['gap'] ?? implode(' | ', $result->control_insight))
-            : ($result->control_insight ?? '');
+        // Target Days: logika identik dengan pdf_template.blade.php
+        $targetDays = match(true) {
+            $result->maturity_rating <= 1 => '30 Days',
+            $result->maturity_rating == 2 => '60 Days',
+            $result->maturity_rating == 3 => '90 Days',
+            default                       => '180 Days',
+        };
+
+        $insight = is_array($result->control_insight) ? ($result->control_insight['gap'] ?? '') : ($result->control_insight ?? '');
+        
+        $evidence = $result->evidence_validation ?? 'No evidence provided.';
+        if (!empty($result->evidence_file)) {
+            $evidence = '[Doc: ' . basename($result->evidence_file) . '] ' . $evidence;
+        }
+
+        $cap = is_array($result->corrective_action_plan) ? implode("\n", $result->corrective_action_plan) : ($result->corrective_action_plan ?? '');
 
         return [
-            $result->id,
+            $priority,
             $result->standard->code,
             $result->standard->title,
-            $result->maturity_rating,
-            $result->compliance_status,
-            $result->risk_level,
-            $result->ai_recommendation,
-            $cap,
+            'Maturity Level ' . $result->maturity_rating,
+            $result->compliance_status,  // accessor: Non-Compliant / Partially Compliant
+            $result->risk_level,         // accessor: Critical / High / Medium (sama seperti di PDF)
+            $targetDays,
+            $result->ai_recommendation ?? '',
             $insight,
-            $result->notes,
-            $result->session->ai_summary,
-            $result->created_at->format('Y-m-d H:i:s'),
+            $evidence,
+            $cap,
         ];
+    }
+
+    /**
+     * Memaksa kolom ISO Code (B) menjadi format teks agar tidak terkonversi menjadi format pecahan desimal oleh Excel.
+     */
+    public function bindValue(Cell $cell, $value)
+    {
+        if ($cell->getColumn() === 'B' && is_scalar($value)) {
+            $cell->setValueExplicit((string)$value, DataType::TYPE_STRING);
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
     }
 }

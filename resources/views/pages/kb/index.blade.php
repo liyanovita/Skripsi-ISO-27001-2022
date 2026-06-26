@@ -50,7 +50,7 @@
                     <input type="file" name="json_file" accept="application/json,.json" class="hidden" onchange="this.form.submit()">
                 </label>
             </form>
-            <a href="{{ route('knowledge-base.create') }}" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-md active:scale-95 flex items-center justify-center gap-2">
+            <a href="{{ route('knowledge-base.create') }}" id="btn-create-article" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-md active:scale-95 flex items-center justify-center gap-2">
                 <i class="fa-solid fa-plus"></i> {{ __('Add Resource') }}
             </a>
         </div>
@@ -69,6 +69,7 @@
                         <input 
                             type="text" 
                             name="q"
+                            id="kb-search-bar"
                             value="{{ $search ?? '' }}"
                             x-on:input.debounce.500ms="$el.closest('form').submit()"
                             placeholder="{{ __('Search knowledge assets, templates, or compliance guides...') }}"

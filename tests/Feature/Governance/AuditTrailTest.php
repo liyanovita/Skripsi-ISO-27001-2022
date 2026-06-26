@@ -21,7 +21,7 @@ class AuditTrailTest extends TestCase
         $session = AssessmentSession::create([
             'user_id' => $user->id,
             'name' => 'Audit 2026',
-            'status' => 'draft',
+            'status' => 'in_progress',
             'overall_maturity_score' => 2.0
         ]);
 
@@ -71,7 +71,7 @@ class AuditTrailTest extends TestCase
             'model_id' => 1,
             'action' => 'updated',
             'field_changed' => 'status',
-            'old_value' => 'draft',
+            'old_value' => 'in_progress',
             'new_value' => 'completed_xyz',
         ]);
 
@@ -98,7 +98,7 @@ class AuditTrailTest extends TestCase
         $session = AssessmentSession::create([
             'user_id' => $user->id,
             'name' => 'Audit Export',
-            'status' => 'draft',
+            'status' => 'in_progress',
             'overall_maturity_score' => 2.0
         ]);
 

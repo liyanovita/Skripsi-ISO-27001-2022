@@ -54,7 +54,14 @@ class ResultService
             'treatment_due_date' => $data['treatment_due_date'] ?? null,
         ]);
 
-        if ($result->maturity_rating < 3) {
+        if (isset($data['trigger_ai']) && $data['trigger_ai'] == '1') {
+            $result->update([
+                'ai_recommendation' => null,
+                'corrective_action_plan' => null,
+                'control_insight' => null,
+                'risk_priority' => null,
+                'evidence_validation' => null,
+            ]);
             $this->sendToN8n($result);
         }
 
@@ -223,7 +230,7 @@ class ResultService
             'overall_maturity_score' => round($avg ?? 0, 2),
             'status' => $session->status === 'completed'
                 ? 'completed'
-                : ($hasCompletedControls ? 'in_progress' : 'draft')
+                : 'in_progress'
         ]);
     }
 }

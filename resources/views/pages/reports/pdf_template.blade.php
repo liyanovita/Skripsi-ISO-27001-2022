@@ -55,7 +55,7 @@
                 <th style="width: 10%">{{ __('Priority') }}</th>
                 <th style="width: 12%">{{ __('Code') }}</th>
                 <th style="width: 30%">{{ __('Control Name') }}</th>
-                <th style="width: 22%">{{ __('Status') }}</th>
+                <th style="width: 22%">{{ __('Status Compliance') }}</th>
                 <th style="width: 12%">{{ __('Risk') }}</th>
                 <th style="width: 14%">{{ __('Target') }}</th>
             </tr>
@@ -77,7 +77,7 @@
             @endphp
             <tr>
                 <td>
-                    <span class="badge {{ $result->maturity_rating == 1 ? 'badge-danger' : 'badge-warning' }}">
+                    <span class="badge {{ $result->maturity_rating <= 1 ? 'badge-danger' : 'badge-warning' }}">
                         #{{ $index + 1 }}
                     </span>
                 </td>
@@ -89,7 +89,7 @@
                         {{ $result->compliance_status }}
                     </span>
                 </td>
-                <td style="font-weight: bold; color: {{ $result->maturity_rating == 1 ? '#991b1b' : '#92400e' }};">{{ $result->risk_level }}</td>
+                <td style="font-weight: bold; color: {{ $result->maturity_rating <= 1 ? '#991b1b' : '#92400e' }};">{{ $result->risk_level }}</td>
                 <td style="font-weight: bold; color: {{ $targetColor }};">{{ $targetDays }}</td>
             </tr>
             @endforeach
@@ -108,15 +108,29 @@
                 {{ $result->standard->code }}: {{ $result->standard->title }}
             </div>
             <div class="ai-card-body">
-                <table style="margin-bottom: 0; border: none;">
+                <table style="margin-bottom: 0; border: none; width: 100%;">
                     <tr>
-                        <td style="width: 50%; border: none; padding: 0 15px 0 0; vertical-align: top;">
+                        <td style="width: 33%; border: none; padding: 0 10px 0 0; vertical-align: top;">
                             <div style="font-size: 8px; font-weight: bold; color: #2563eb; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">{{ __('Strategic Recommendation') }}</div>
                             <div style="font-size: 10px; color: #334155; line-height: 1.5;">{{ $result->ai_recommendation }}</div>
                         </td>
-                        <td style="width: 50%; border: none; padding: 0 0 0 15px; vertical-align: top;">
+                        <td style="width: 34%; border: none; padding: 0 10px; vertical-align: top;">
+                            <div style="font-size: 8px; font-weight: bold; color: #dc2626; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">{{ __('AI Audit Insight (Gap)') }}</div>
+                            <div style="font-size: 10px; color: #334155; line-height: 1.5;">
+                                @php
+                                    $insight = is_array($result->control_insight) ? ($result->control_insight['gap'] ?? null) : $result->control_insight;
+                                @endphp
+                                {{ $insight ?? 'Control shows solid operational alignment.' }}
+                            </div>
+                        </td>
+                        <td style="width: 33%; border: none; padding: 0 0 0 10px; vertical-align: top;">
                             <div style="font-size: 8px; font-weight: bold; color: #d97706; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">{{ __('AI Evidence Validation') }}</div>
-                            <div style="font-size: 10px; color: #475569; font-style: italic; line-height: 1.5;">{{ $result->evidence_validation ?? 'No evidence provided.' }}</div>
+                            @if(!empty($result->evidence_file))
+                                <div style="font-size: 8px; font-weight: bold; color: #475569; margin-bottom: 4px;">Doc: <span style="font-weight: normal; color: #2563eb;">{{ basename($result->evidence_file) }}</span></div>
+                                <div style="font-size: 10px; color: #475569; font-style: italic; line-height: 1.5;">{{ $result->evidence_validation }}</div>
+                            @else
+                                <div style="font-size: 10px; color: #94a3b8; font-style: italic; line-height: 1.5;">{{ __('No evidence provided.') }}</div>
+                            @endif
                         </td>
                     </tr>
                 </table>

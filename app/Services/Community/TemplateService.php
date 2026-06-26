@@ -123,7 +123,7 @@ class TemplateService
             $session = AssessmentSession::create([
                 'user_id'                => $userId,
                 'name'                   => $template->title . ' (Imported) - ' . date('d M Y'),
-                'status'                 => 'draft',
+                'status'                 => 'in_progress',
                 'overall_maturity_score' => $sessionData['overall_maturity_score'] ?? 0,
             ]);
 
@@ -168,7 +168,7 @@ class TemplateService
             $session = AssessmentSession::create([
                 'user_id'                => $userId,
                 'name'                   => 'Cloned: ' . $template->title,
-                'status'                 => 'draft',
+                'status'                 => 'in_progress',
                 'overall_maturity_score' => $sessionData['overall_maturity_score'] ?? 0,
             ]);
 
@@ -185,7 +185,7 @@ class TemplateService
                     'iso_standard_id' => $standardId,
                     'answers'         => $res['answers'] ?? [],
                     'maturity_rating' => $res['maturity_rating'] ?? 0,
-                    'status'          => $res['status'] ?? 'pending',
+                    'status'          => $res['status'] ?? 'completed',
                     'notes'           => $res['notes'] ?? null,
                 ]);
             }

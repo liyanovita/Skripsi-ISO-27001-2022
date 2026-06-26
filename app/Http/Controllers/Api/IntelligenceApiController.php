@@ -445,11 +445,18 @@ class IntelligenceApiController extends BaseApiController
         $data = [
             'session' => $session,
             'results' => $session->results
-                ->where('maturity_rating', '<', 4)
-                ->where('maturity_rating', '>', 0)
-                ->sortBy('maturity_rating'), 
+                ->filter(fn($r) => 
+                    $r->is_applicable &&
+                    $r->status === 'completed' &&
+                    $r->maturity_rating >= 0 &&
+                    $r->maturity_rating < 4 &&
+                    is_array($r->standard?->questions) &&
+                    count($r->standard->questions) > 0
+                )
+                ->sortBy('maturity_rating')
+                ->values(),
             'summary' => $session->ai_summary ?? 'No executive summary generated.',
-            'date' => now()->format('d F Y')
+            'date'    => now()->format('d F Y')
         ];
 
         $pdf = Pdf::loadView('pages.reports.pdf_template', $data);

@@ -68,7 +68,7 @@ class AdminSessionsTest extends TestCase
         $this->makeSession($user, 'completed', 4.0);
         AssessmentSession::create([
             'user_id' => $user->id, 'name' => 'Draft Only Session',
-            'status' => 'draft', 'overall_maturity_score' => 0,
+            'status' => 'in_progress', 'overall_maturity_score' => 0,
         ]);
 
         $this->actingAs($admin)
@@ -83,10 +83,10 @@ class AdminSessionsTest extends TestCase
         $admin = $this->adminUser();
         $user  = $this->regularUser();
 
-        $this->makeSession($user, 'draft');
+        $this->makeSession($user, 'in_progress');
         AssessmentSession::create([
             'user_id' => $user->id, 'name' => 'Unique Sentinel Session XYZ',
-            'status' => 'draft', 'overall_maturity_score' => 0,
+            'status' => 'in_progress', 'overall_maturity_score' => 0,
         ]);
 
         $this->actingAs($admin)
@@ -147,7 +147,7 @@ class AdminSessionsTest extends TestCase
         $oldSession = new AssessmentSession([
             'user_id'    => $user->id,
             'name'       => 'Old Month Session',
-            'status'     => 'draft',
+            'status'     => 'in_progress',
         ]);
         $oldSession->timestamps = false;
         $oldSession->created_at = now()->subMonth();
@@ -158,7 +158,7 @@ class AdminSessionsTest extends TestCase
         $newSession = AssessmentSession::create([
             'user_id' => $user->id,
             'name'    => 'Today Session',
-            'status'  => 'draft',
+            'status'  => 'in_progress',
         ]);
 
         // Filter: only today

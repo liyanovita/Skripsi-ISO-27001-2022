@@ -33,7 +33,22 @@ class AnalyticsService
 
         $comparison = null;
         $findings = collect();
-        $stats = ['total' => 0, 'critical' => 0, 'strategic' => 0];
+        $stats = [
+            'total_gaps'       => 0,
+            'critical'         => 0,
+            'compliant'        => 0,
+            'partial'          => 0,
+            'non_compliant'    => 0,
+            'needs_improvement'=> 0,
+            'unassessed'       => 0,
+            'excluded'         => 0,
+            'total_controls'   => 1,
+            'scored'           => 0,
+            'assessed'         => 0,
+            /* legacy alias kept for safety */
+            'total'            => 0,
+            'strategic'        => 0,
+        ];
 
         if ($latestSession) {
             $comparison = $this->buildComparison($latestSession, $previousSession);

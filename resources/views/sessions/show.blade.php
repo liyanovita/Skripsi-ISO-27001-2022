@@ -23,6 +23,10 @@
         assessedCount: {{ $assessedCount }},
         totalAssessable: {{ $totalAssessable }},
         showAiModal: false,
+        showFinalizeModal: false,
+        get isReadyToFinalize() {
+            return this.assessedCount >= this.totalAssessable;
+        },
         activeAiDetails: { code: '', title: '', rec: '', plan: '', insight: '', priority: '', validation: '' },
         openAiDetails(dataset) {
             this.activeAiDetails = {
@@ -87,6 +91,11 @@
                         <i class="fa-solid fa-file-excel text-green-600"></i>{{ __('Excel') }}</a>
                     <a href="{{ route('workspace.index', ['session_id' => $session->id]) }}" class="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all" title="{{ __('Open Workspace') }}" aria-label="Open session workspace">
                         <i class="fa-solid fa-diagram-project text-indigo-500"></i>{{ __('Workspace') }}</a>
+                    
+                    @if($session->status === 'completed')
+                    <span class="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold shadow-sm">
+                        <i class="fa-solid fa-check-circle"></i>{{ __('Completed') }}</span>
+                    @endif
                 </div>
                 <div class="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest" x-text="progress + '%'"></span>
@@ -98,6 +107,25 @@
             </div>
         </div>
     </div>
+
+    {{-- Finalize Prompt Banner (Shows when 100% complete but not yet finalized) --}}
+    @if($session->status !== 'completed')
+    <div x-show="isReadyToFinalize" x-cloak x-transition
+         class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-4 shadow-lg shadow-emerald-600/20 text-white flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center border border-white/20 shrink-0">
+                <i class="fa-solid fa-flag-checkered text-xl"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-black tracking-tight leading-tight">{{ __('Assessment 100% Completed!') }}</h3>
+                <p class="text-emerald-50 text-xs mt-0.5 font-medium">{{ __('You have scored all controls. Please finalize the assessment to lock your scores and generate the Statement of Applicability.') }}</p>
+            </div>
+        </div>
+        <button type="button" @click="showFinalizeModal = true" class="shrink-0 px-6 py-2.5 bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md active:scale-95 flex items-center gap-2">
+            <i class="fa-solid fa-lock text-emerald-500"></i> {{ __('Finalize Now') }}
+        </button>
+    </div>
+    @endif
 
     {{-- Registry Mode --}}
     <div class="flex gap-5">
@@ -234,6 +262,59 @@
 
         </div>
     </div>
+
+    {{-- Finalize Session Modal --}}
+    @if($session->status !== 'completed')
+    <div x-show="showFinalizeModal" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-4"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 scale-95"
+        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95">
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" @click="showFinalizeModal = false"></div>
+        <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-xl p-6 z-10" @keydown.escape.window="showFinalizeModal = false">
+            <div class="flex flex-col sm:flex-row gap-6">
+                <div class="shrink-0 flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 border-4 border-white shadow-sm mx-auto sm:mx-0">
+                    <i class="fa-solid fa-lock text-2xl"></i>
+                </div>
+                <div class="flex-1 text-center sm:text-left">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xl font-bold text-slate-900">{{ __('Confirm Finalize Assessment') }}</h3>
+                        <button type="button" @click="showFinalizeModal = false" class="w-9 h-9 rounded-xl bg-slate-100 text-slate-500 hover:text-slate-900 transition-all hidden sm:flex items-center justify-center">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    
+                    <template x-if="isReadyToFinalize">
+                        <p class="text-sm text-slate-700">{{ __('You are about to finalize this audit session. This action will mark the session as Completed and lock the assessment scores.') }}</p>
+                    </template>
+                    <template x-if="!isReadyToFinalize">
+                        <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl mt-2 text-left">
+                            <div class="flex items-center gap-2 mb-1">
+                                <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                                <span class="text-sm font-bold text-amber-800">{{ __('Incomplete Assessment') }}</span>
+                            </div>
+                            <p class="text-xs text-amber-700" x-text="'There are ' + (totalAssessable - assessedCount) + ' controls without a score. Please score every control before finalizing.'"></p>
+                        </div>
+                    </template>
+
+                    <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                        <button type="button" @click="showFinalizeModal = false" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold uppercase tracking-wider hover:bg-slate-200 transition-all text-xs">
+                            {{ __('Cancel') }}
+                        </button>
+                        <form action="{{ route('sessions.finalize', $session->id) }}" method="POST" class="w-full sm:w-auto">
+                            @csrf
+                            <button type="submit" :disabled="!isReadyToFinalize" class="w-full px-5 py-3 rounded-xl bg-emerald-600 text-white font-bold uppercase tracking-wider hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs shadow-md">
+                                {{ __('Confirm Finalize') }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>
 
 @push('scripts')

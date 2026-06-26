@@ -124,12 +124,12 @@ class IsoStandardTest extends TestCase
         $session = AssessmentSession::create([
             'user_id' => $admin->id,
             'name' => 'Test Session',
-            'status' => 'draft',
+            'status' => 'in_progress',
         ]);
 
         $standard->results()->create([
             'session_id' => $session->id,
-            'status' => 'draft',
+            'status' => 'in_progress',
             'is_applicable' => true,
             'maturity_rating' => 1,
         ]);

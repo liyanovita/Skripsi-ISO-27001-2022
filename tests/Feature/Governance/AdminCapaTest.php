@@ -29,7 +29,7 @@ class AdminCapaTest extends TestCase
         $session = AssessmentSession::create([
             'user_id' => $user->id,
             'name' => 'IT Department Audit ' . $code,
-            'status' => 'draft',
+            'status' => 'in_progress',
         ]);
 
         $standard = IsoStandard::create([
@@ -41,7 +41,7 @@ class AdminCapaTest extends TestCase
 
         return $standard->results()->create(array_merge([
             'session_id' => $session->id,
-            'status' => 'draft',
+            'status' => 'in_progress',
             'is_applicable' => true,
             'maturity_rating' => 2, // Non-compliant (<4) -> triggers CAPA
             'notes' => 'Some findings here.',

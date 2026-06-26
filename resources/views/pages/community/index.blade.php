@@ -135,7 +135,7 @@
                             class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/30 transition-all placeholder:text-slate-400">
                     </form>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div id="community-template-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     @forelse($templates as $temp)
                     <div class="p-5 bg-white rounded-2xl border border-slate-100 hover:border-indigo-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-full blur-2xl -mr-10 -mt-10 transition-all duration-500 group-hover:scale-150"></div>
@@ -200,7 +200,7 @@
                                 {{-- Clone button with label --}}
                                 <form action="{{ route('community.clone', $temp->id) }}" method="POST">
                                     @csrf
-                                    <button type="submit" title="{{ __('Clone as new session') }}" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-lg font-black text-[9px] uppercase tracking-widest transition-all flex items-center gap-1.5 shadow-sm">
+                                    <button type="submit" @if($loop->first) id="btn-clone-first" @endif title="{{ __('Clone as new session') }}" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-lg font-black text-[9px] uppercase tracking-widest transition-all flex items-center gap-1.5 shadow-sm">
                                         <i class="fa-solid fa-cloud-arrow-down text-[10px]"></i>
                                         <span>{{ __('Clone') }}</span>
                                     </button>

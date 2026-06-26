@@ -78,7 +78,8 @@
                                     </td>
                                     <td>{{ $result->soa_justification ?: '-' }}</td>
                                     <td>{{ $result->maturity_rating }}</td>
-                                    <td class="status">{{ $result->status === 'completed' ? 'Implemented' : 'In Progress' }}</td>
+                                    @php $statusText = $result->is_applicable ? 'Implemented' : 'Excluded'; @endphp
+                                    <td class="status">{{ __($statusText) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -120,7 +121,8 @@
                                     </td>
                                     <td>{{ $result->soa_justification ?: '-' }}</td>
                                     <td>{{ $result->maturity_rating }}</td>
-                                    <td class="status">{{ $result->status === 'completed' ? 'Implemented' : 'In Progress' }}</td>
+                                    @php $statusText = $result->is_applicable ? 'Implemented' : 'Excluded'; @endphp
+                                    <td class="status">{{ __($statusText) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -163,7 +165,8 @@
                                     </td>
                                     <td>{{ $result->soa_justification ?: '-' }}</td>
                                     <td>{{ $result->maturity_rating }}</td>
-                                    <td class="status">{{ $result->status === 'completed' ? 'Implemented' : 'In Progress' }}</td>
+                                    @php $statusText = $result->is_applicable ? 'Implemented' : 'Excluded'; @endphp
+                                    <td class="status">{{ __($statusText) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

@@ -44,7 +44,7 @@ class SessionService
             $session = AssessmentSession::create([
                 'user_id' => $data['user_id'],
                 'name' => $data['name'],
-                'status' => 'draft',
+                'status' => 'in_progress',
             ]);
 
             $this->initializeResults($session);
@@ -93,7 +93,7 @@ class SessionService
             $newSession = AssessmentSession::create([
                 'user_id' => $userId,
                 'name' => $original->name . ' (Copy)',
-                'status' => 'draft',
+                'status' => 'in_progress',
                 'overall_maturity_score' => $original->overall_maturity_score
             ]);
 
@@ -171,7 +171,7 @@ class SessionService
             $newSession = AssessmentSession::create([
                 'user_id' => $userId,
                 'name' => $name ?? $sessionData['name'] . ' (Imported)',
-                'status' => 'draft',
+                'status' => 'in_progress',
                 'overall_maturity_score' => $sessionData['overall_maturity_score'] ?? 0
             ]);
 

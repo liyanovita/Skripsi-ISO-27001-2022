@@ -176,7 +176,7 @@
                         <i class="fa-solid fa-file-pdf text-rose-400"></i>{{ __('PDF') }}</a>
                     <a href="{{ route('reports.export-excel', $latestSession->id) }}" class="px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-100 rounded-xl text-[8px] font-black uppercase tracking-widest border border-emerald-500/30 transition-all flex items-center gap-1.5">
                         <i class="fa-solid fa-file-excel text-emerald-400"></i>{{ __('Excel') }}</a>
-                    <button @click="triggerAISummary()" :disabled="isGenerating" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[8px] font-black uppercase tracking-widest border border-white/10 disabled:opacity-50 transition-all sm:ml-1">
+                    <button @click="triggerAISummary()" :disabled="isGenerating" id="btn-generate-summary" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[8px] font-black uppercase tracking-widest border border-white/10 disabled:opacity-50 transition-all sm:ml-1">
                         <i class="fa-solid fa-arrows-rotate mr-1" :class="isGenerating && 'animate-spin'"></i>
                         <span x-text="isGenerating ? 'Synthesizing...' : 'Regenerate'"></span>
                     </button>
@@ -215,7 +215,7 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <div id="analytics-radar-section" class="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300">
             <div class="mb-4">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
@@ -258,6 +258,34 @@
     </div>
     @endif
 
+    {{-- Incomplete Assessment Modal --}}
+    <div x-show="showIncompleteModal" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-4"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 scale-95"
+        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95">
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" @click="showIncompleteModal = false"></div>
+        <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 z-10 text-center">
+            <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm">
+                <i class="fa-solid fa-triangle-exclamation text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900">{{ __('Not Finalized') }}</h3>
+            <p class="text-sm text-slate-500 mt-2">{{ __('You must complete and finalize the assessment before the AI can generate a strategic summary.') }}</p>
+            <div class="mt-6 flex flex-col gap-2">
+                @if($latestSession)
+                <a href="{{ route('sessions.show', $latestSession->id) }}" class="w-full px-5 py-3 rounded-xl bg-blue-600 text-white font-bold uppercase tracking-wider hover:bg-blue-500 transition-all text-xs shadow-md">
+                    <i class="fa-solid fa-arrow-right-to-bracket mr-2"></i>{{ __('Go to Assessment') }}
+                </a>
+                @endif
+                <button @click="showIncompleteModal = false" class="w-full px-5 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold uppercase tracking-wider hover:bg-slate-200 transition-all text-xs">
+                    {{ __('Dismiss') }}
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @push('scripts')
@@ -275,8 +303,16 @@ document.addEventListener('alpine:init', () => {
         isGenerating: false,
         expandedId: null,
         summaryHtml: null,
+        showIncompleteModal: false,
         async triggerAISummary() {
             if (!this.selectedSession) return;
+            
+            const isCompleted = {{ ($latestSession && $latestSession->status === 'completed') ? 'true' : 'false' }};
+            if (!isCompleted) {
+                this.showIncompleteModal = true;
+                return;
+            }
+
             this.isGenerating = true;
             this.summaryHtml = `<div class="text-center py-4 opacity-70"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-indigo-500"></i><p>{{ __('Analyzing and synthesizing session data...') }}</p></div>`;
             try {

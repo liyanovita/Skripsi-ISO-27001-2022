@@ -115,7 +115,7 @@ class ReportController extends Controller
         $failingControls = AssessmentResult::join('iso_standards', 'assessment_results.iso_standard_id', '=', 'iso_standards.id')
             ->join('assessment_sessions', 'assessment_results.session_id', '=', 'assessment_sessions.id')
             ->where('assessment_sessions.status', 'completed')
-            ->where('assessment_results.maturity_rating', '>', 0)
+            ->where('assessment_results.maturity_rating', '>=', 0)
             ->where('assessment_results.maturity_rating', '<', 4) // Less than compliant
             ->select('iso_standards.code', 'iso_standards.title', 'iso_standards.type', DB::raw('AVG(assessment_results.maturity_rating) as avg_rating'), DB::raw('COUNT(assessment_results.id) as occurrences'))
             ->groupBy('iso_standards.id', 'iso_standards.code', 'iso_standards.title', 'iso_standards.type')
@@ -137,7 +137,8 @@ class ReportController extends Controller
             
             // Calculate average maturity score for this clause
             $avgClauseRating = AssessmentResult::whereIn('iso_standard_id', $childIds)
-                ->where('maturity_rating', '>', 0)
+                ->where('status', 'completed')
+                ->where('maturity_rating', '>=', 0)
                 ->avg('maturity_rating') ?? 0;
 
             $clauseStats[] = [

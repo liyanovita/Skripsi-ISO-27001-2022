@@ -289,9 +289,9 @@
                         @endif
 
                         <div class="flex justify-end pt-4">
-                            <button type="submit" class="px-8 py-3.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 transition-all flex items-center gap-2 active:scale-95">
+                            <button type="submit" name="trigger_ai" value="1" class="px-8 py-3.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 transition-all flex items-center gap-2 active:scale-95">
                                 <i class="fa-solid fa-wand-magic-sparkles"></i>
-                                Save & Analyze with AI
+                                {{ !empty($result->ai_recommendation) ? __('Save & Regenerate with AI') : __('Save & Analyze with AI') }}
                             </button>
                         </div>
                     </div>

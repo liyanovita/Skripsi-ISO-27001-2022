@@ -14,7 +14,7 @@ class CapaController extends Controller
         $baseQuery = AssessmentResult::where(function ($q) {
             // CAPA is relevant for items with priority risk OR non-compliant OR explicitly scheduled
             $q->where('maturity_rating', '<', 4)
-              ->where('maturity_rating', '>', 0)
+              ->where('maturity_rating', '>=', 0)
               ->orWhereNotNull('treatment_due_date')
               ->orWhereNotNull('treatment_status');
         });
@@ -36,7 +36,7 @@ class CapaController extends Controller
         $query = AssessmentResult::with(['session.user', 'standard'])
             ->where(function ($q) {
                 $q->where('maturity_rating', '<', 4)
-                  ->where('maturity_rating', '>', 0)
+                  ->where('maturity_rating', '>=', 0)
                   ->orWhereNotNull('treatment_due_date')
                   ->orWhereNotNull('treatment_status');
             });
@@ -134,7 +134,7 @@ class CapaController extends Controller
         $query = AssessmentResult::with(['session.user', 'standard'])
             ->where(function ($q) {
                 $q->where('maturity_rating', '<', 4)
-                  ->where('maturity_rating', '>', 0)
+                  ->where('maturity_rating', '>=', 0)
                   ->orWhereNotNull('treatment_due_date')
                   ->orWhereNotNull('treatment_status');
             });

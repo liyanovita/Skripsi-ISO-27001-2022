@@ -43,7 +43,7 @@
 
 
     {{-- Stats Grid --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div id="dashboard-kpi-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
         {{-- Overall Compliance --}}
         <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
             <div class="flex justify-between items-start">
@@ -117,7 +117,7 @@
     </div>
 
     {{-- Resume Assessment Hero Banner --}}
-    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-4 shadow-lg shadow-blue-900/20 text-white flex flex-col sm:flex-row items-center justify-between gap-3 relative overflow-hidden">
+    <div id="dashboard-resume-banner" class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-4 shadow-lg shadow-blue-900/20 text-white flex flex-col sm:flex-row items-center justify-between gap-3 relative overflow-hidden">
         <div class="absolute -right-16 -top-16 w-40 h-40 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
         <div class="relative z-10 flex items-center gap-4 flex-1 min-w-0">
             <div class="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center border border-white/20 shrink-0">
@@ -167,8 +167,19 @@
             <a href="{{ route('sessions.show', $session->id) }}" class="block p-4 bg-slate-50 border border-slate-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all group">
                 <div class="flex items-start justify-between mb-2">
                     <h4 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors">{{ $session->name }}</h4>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest {{ $session->status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
-                        {{ $session->status }}
+                    @php
+                        $statusLabel = match($session->status) {
+                            'completed'   => __('Completed'),
+                            'in_progress' => __('In Progress'),
+                            default       => __('In Progress'),
+                        };
+                        $statusColor = match($session->status) {
+                            'completed' => 'bg-emerald-100 text-emerald-700',
+                            default     => 'bg-blue-100 text-blue-700',
+                        };
+                    @endphp
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest {{ $statusColor }}">
+                        {{ $statusLabel }}
                     </span>
                 </div>
                 <div class="flex items-center justify-between mt-4">
@@ -358,7 +369,12 @@
                             <p class="text-[9px] font-bold text-indigo-500 bg-indigo-50 w-fit px-1.5 py-0.5 rounded mt-1 truncate max-w-[180px]" title="{{ $task->session->name ?? 'Unknown Session' }}">{{ $task->session->name ?? 'Unknown Session' }}</p>
                         </td>
                         <td class="py-3 px-3">
-                            <span class="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest {{ $task->risk_level === 'Critical' ? 'bg-rose-100 text-rose-700' : ($task->risk_level === 'High' ? 'bg-orange-100 text-orange-700' : 'bg-amber-100 text-amber-700') }}">
+                            <span class="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest {{ 
+                                $task->risk_level === 'Critical' ? 'bg-rose-100 text-rose-700' : (
+                                $task->risk_level === 'High' ? 'bg-orange-100 text-orange-700' : (
+                                $task->risk_level === 'Medium' ? 'bg-amber-100 text-amber-700' : (
+                                $task->risk_level === 'Compliant' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
+                            ))) }}">
                                 {{ $task->risk_level }}
                             </span>
                         </td>

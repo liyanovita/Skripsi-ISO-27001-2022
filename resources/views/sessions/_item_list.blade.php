@@ -128,6 +128,7 @@
                         'critical': 'bg-rose-100 text-rose-700',
                         'high': 'bg-orange-100 text-orange-700',
                         'medium': 'bg-amber-100 text-amber-700',
+                        'compliant': 'bg-emerald-100 text-emerald-700',
                         'low': 'bg-slate-100 text-slate-600',
                     };
                     return info[this.risk?.toLowerCase()] || 'bg-slate-100 text-slate-500';
@@ -174,6 +175,11 @@
 
                 async generateAi() {
                     this.aiLoading = true;
+                    this.aiRec = '';
+                    this.aiPlan = '';
+                    this.aiInsight = '';
+                    this.aiPriority = '';
+                    this.aiValidation = '';
                     try {
                         const res = await fetch('{{ route('results.generate-ai', $result->id) }}', {
                             method: 'POST',
@@ -339,16 +345,7 @@
                                           placeholder="{{ __('Enter findings...') }}" 
                                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-[10px] font-medium outline-none focus:bg-white focus:border-blue-600 transition-all text-slate-800 leading-relaxed shadow-inner">{{ $result->notes }}</textarea>
                             </div>
-                            <div class="grid grid-cols-2 gap-4 mt-2">
-                                <div>
-                                    <h5 class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2">{{ __('Person In Charge (PIC)') }}</h5>
-                                    <input type="text" name="treatment_pic" value="{{ $result->treatment_pic }}" @input.debounce.2000ms="submitForm()" placeholder="{{ __('e.g., IT Dept, Budi...') }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-[10px] font-medium outline-none focus:bg-white focus:border-blue-600 transition-all text-slate-800 shadow-inner">
-                                </div>
-                                <div>
-                                    <h5 class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2">{{ __('Target Deadline') }}</h5>
-                                    <input type="date" name="treatment_due_date" value="{{ $result->treatment_due_date ? $result->treatment_due_date->format('Y-m-d') : '' }}" @change="submitForm()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-[10px] font-medium outline-none focus:bg-white focus:border-blue-600 transition-all text-slate-800 shadow-inner">
-                                </div>
-                            </div>
+
                             <div>
                                 <h5 class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2">{{ __('Evidence Repository') }}</h5>
                                 <div class="relative group/up">
@@ -410,6 +407,13 @@
                                     <i class="fa-solid fa-eye mr-1"></i>{{ __('View Result') }}</button>
                                 <a href="{{ route('workspace.index', ['session_id' => $session->id, 'focus' => $result->id]) }}" class="px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg text-[8px] font-black uppercase tracking-widest transition-all border border-indigo-100">{{ __('Workspace') }}<i class="fa-solid fa-arrow-right ml-1"></i>
                                 </a>
+                                <template x-if="rating < 4">
+                                    <button type="button" @click="generateAi()" :disabled="aiLoading"
+                                            class="px-4 py-2 bg-white border border-slate-200 hover:border-indigo-400 hover:text-indigo-600 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 text-slate-600">
+                                        <i class="fa-solid fa-arrows-rotate" :class="aiLoading && 'animate-spin text-indigo-500'"></i>
+                                        <span x-text="aiLoading ? 'Regenerating...' : 'Regenerate'"></span>
+                                    </button>
+                                </template>
                             </div>
                         </template>
 
