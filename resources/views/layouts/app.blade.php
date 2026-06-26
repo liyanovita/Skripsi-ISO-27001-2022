@@ -166,7 +166,7 @@
         </button>
 
         {{-- Global Toast Container --}}
-        <div class="fixed bottom-6 right-6 z-[500] flex flex-col items-end gap-3 w-full max-w-sm pointer-events-none">
+        <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[500] flex flex-col items-center gap-3 w-full max-w-sm px-4 pointer-events-none">
             <template x-for="toast in toasts" :key="toast.id">
                 <div x-transition:enter="transition ease-out duration-400"
                      x-transition:enter-start="opacity-0 scale-90 translate-y-6"

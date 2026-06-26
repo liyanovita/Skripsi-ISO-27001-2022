@@ -63,7 +63,19 @@ class DashboardService
         $findings = $this->getFindings($results);
         $totalGaps = $findings->count();
         $highestGaps = $findings->sortBy('maturity_rating')->take(5);
-        $activeTasks = $this->getResultsWithPendingTreatment($results)->take(10);
+        
+        // Active CAPA Tasks: Get all pending tasks across all sessions of the user (not collapsed by unique standard)
+        $activeTasks = \App\Models\AssessmentResult::with(['standard', 'session'])
+            ->whereHas('session', fn($q) => $q->where('user_id', $userId))
+            ->where('status', 'completed')
+            ->where('is_applicable', true)
+            ->where('maturity_rating', '<', 4)
+            ->where('treatment_status', '!=', 'closed')
+            ->whereNotNull('treatment_due_date')
+            ->orderBy('treatment_due_date')
+            ->take(10)
+            ->get();
+            
         $distribution = $this->calculateComplianceBreakdown($results);
 
         // 5. Variables for Blade
