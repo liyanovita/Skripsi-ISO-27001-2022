@@ -48,7 +48,7 @@
 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
     {{-- Toolbar: Search + Sort --}}
     <div class="p-5 border-b border-slate-200 bg-slate-50">
-        <form method="GET" action="{{ route('admin.community.index') }}" id="filter-form"
+        <form method="GET" action="{{ route('admin.community.index') }}" id="filter-form" x-data
               class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 flex-wrap">
 
             {{-- Left: Total + Search --}}
@@ -59,6 +59,7 @@
                 <div class="relative flex-1 min-w-[200px]">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                     <input type="text" name="search" id="search-input" value="{{ $search }}"
+                        x-on:input.debounce.500ms="$el.closest('form').requestSubmit()"
                         placeholder="Search title, author..."
                         class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white">
                 </div>
@@ -66,7 +67,7 @@
 
             {{-- Right: Sort + Clear --}}
             <div class="flex items-center gap-2 shrink-0">
-                <select name="sort" onchange="document.getElementById('filter-form').submit()"
+                <select name="sort" onchange="document.getElementById('filter-form').requestSubmit()"
                     class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white font-semibold text-slate-700">
                     <option value="newest"    {{ $sortBy == 'newest'    ? 'selected' : '' }}>Newest</option>
                     <option value="downloads" {{ $sortBy == 'downloads' ? 'selected' : '' }}>Most Downloaded</option>
@@ -155,7 +156,7 @@
                         {{ $template->created_at->format('d M Y') }}
                     </td>
                     <td class="px-5 py-4 text-right">
-                        <div class="flex items-center justify-end gap-2" x-data="{ showDelete: false }">
+                        <div class="flex items-center justify-end gap-2">
                             {{-- Preview --}}
                             <a href="{{ route('community.preview', $template->id) }}"
                                 target="_blank"
@@ -164,21 +165,36 @@
                                 <i class="fa-solid fa-eye text-xs"></i>
                             </a>
                             {{-- Delete --}}
-                            <button @click="showDelete = true" x-show="!showDelete"
-                                class="w-8 h-8 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 border border-red-200 bg-white transition-colors"
-                                title="Delete Template">
-                                <i class="fa-solid fa-trash-can text-xs"></i>
-                            </button>
                             <form method="POST" action="{{ route('admin.community.destroy', $template) }}"
-                                x-show="showDelete" class="flex gap-1" x-cloak>
+                                x-data
+                                @submit.prevent="
+                                    Swal.fire({
+                                        title: '{{ addslashes(__('Delete Template?')) }}',
+                                        text: '{{ addslashes(__('Are you sure you want to delete template ":title"? This action cannot be undone.', ['title' => $template->title])) }}',
+                                        icon: 'warning',
+                                        showCancelButton: true,
+                                        confirmButtonColor: '#ef4444',
+                                        cancelButtonColor: '#64748b',
+                                        confirmButtonText: '{{ addslashes(__('Yes, Delete!')) }}',
+                                        cancelButtonText: '{{ addslashes(__('Cancel')) }}',
+                                        width: '22rem',
+                                        customClass: {
+                                            title: 'text-base font-bold text-slate-800',
+                                            htmlContainer: 'text-xs text-slate-500',
+                                            confirmButton: 'text-xs px-3 py-2 rounded-lg font-semibold',
+                                            cancelButton: 'text-xs px-3 py-2 rounded-lg font-semibold'
+                                        }
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            $el.submit();
+                                        }
+                                    });
+                                ">
                                 @csrf @method('DELETE')
                                 <button type="submit"
-                                    class="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition-colors">
-                                    Confirm
-                                </button>
-                                <button type="button" @click="showDelete = false"
-                                    class="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200 transition-colors">
-                                    Cancel
+                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 border border-red-200 bg-white transition-colors"
+                                    title="Delete Template">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
                                 </button>
                             </form>
                         </div>
@@ -203,17 +219,4 @@
     </div>
     @endif
 </div>
-
-@push('scripts')
-<script>
-    // Auto-submit search on typing (debounced 400ms)
-    let searchTimer;
-    document.getElementById('search-input')?.addEventListener('input', function () {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(() => {
-            document.getElementById('filter-form').submit();
-        }, 400);
-    });
-</script>
-@endpush
 @endsection

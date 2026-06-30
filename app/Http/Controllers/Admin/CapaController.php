@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AssessmentResult;
 use App\Models\AuditTrail;
+use App\Services\ExcelExportService;
 use Illuminate\Http\Request;
 
 class CapaController extends Controller
@@ -123,14 +124,6 @@ class CapaController extends Controller
 
     public function exportCsv(Request $request)
     {
-        $headers = [
-            'Content-type'        => 'text/csv',
-            'Content-Disposition' => 'attachment; filename=capa_plan_' . date('Y-m-d') . '.csv',
-            'Pragma'              => 'no-cache',
-            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires'             => '0',
-        ];
-
         $query = AssessmentResult::with(['session.user', 'standard'])
             ->where(function ($q) {
                 $q->where('maturity_rating', '<', 4)
@@ -139,7 +132,6 @@ class CapaController extends Controller
                   ->orWhereNotNull('treatment_status');
             });
 
-        // Apply same filters as index
         if ($request->filled('status')) {
             if ($request->status == 'pending') {
                 $query->where(function ($q) {
@@ -159,45 +151,33 @@ class CapaController extends Controller
             ->orderBy('treatment_due_date', 'asc')
             ->get();
 
-        $callback = function () use ($capas) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, [
-                'User Name',
-                'Organization',
-                'Session Name',
-                'ISO Code',
-                'Control Title',
-                'Maturity Rating',
-                'Risk Priority',
-                'CAPA Status',
-                'PIC',
-                'Due Date',
-                'Corrective Action Plan',
-                'Last Updated',
-            ]);
+        $headers = [
+            'User Name', 'Organization', 'Session Name', 'ISO Code', 'Control Title',
+            'Maturity Rating', 'Risk Priority', 'CAPA Status', 'PIC', 'Due Date',
+            'Corrective Action Plan', 'Last Updated',
+        ];
 
-            foreach ($capas as $capa) {
-                $plan = $capa->corrective_action_plan;
-                $planText = is_array($plan) ? ($plan['action'] ?? '-') : ($plan ?? '-');
-                fputcsv($file, [
-                    $capa->session->user->name ?? 'N/A',
-                    $capa->session->user->organization_name ?? 'N/A',
-                    $capa->session->name ?? 'N/A',
-                    $capa->standard->code ?? 'N/A',
-                    $capa->standard->title ?? 'N/A',
-                    $capa->maturity_rating,
-                    $capa->risk_priority ?? 'N/A',
-                    $capa->treatment_status ?? 'open',
-                    $capa->treatment_pic ?? '-',
-                    $capa->treatment_due_date ? $capa->treatment_due_date->format('Y-m-d') : 'N/A',
-                    $planText,
-                    $capa->updated_at->format('Y-m-d H:i:s'),
-                ]);
-            }
+        $rows = [];
+        foreach ($capas as $capa) {
+            $plan     = $capa->corrective_action_plan;
+            $planText = is_array($plan) ? ($plan['action'] ?? '-') : ($plan ?? '-');
+            $rows[] = [
+                $capa->session->user->name ?? 'N/A',
+                $capa->session->user->organization_name ?? 'N/A',
+                $capa->session->name ?? 'N/A',
+                $capa->standard->code ?? 'N/A',
+                $capa->standard->title ?? 'N/A',
+                $capa->maturity_rating,
+                $capa->risk_priority ?? 'N/A',
+                $capa->treatment_status ?? 'open',
+                $capa->treatment_pic ?? '-',
+                $capa->treatment_due_date ? $capa->treatment_due_date->format('Y-m-d') : 'N/A',
+                $planText,
+                $capa->updated_at->format('Y-m-d H:i:s'),
+            ];
+        }
 
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        $filename = 'capa_plan_' . date('Y-m-d') . '.xlsx';
+        return ExcelExportService::download($filename, $headers, $rows, 'CAPA Plan');
     }
 }

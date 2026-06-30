@@ -57,6 +57,20 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return $this->status === 'active';
     }
 
+    public function isProfileComplete(): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        return !empty($this->organization_name) &&
+               !empty($this->business_sector) &&
+               !empty($this->organization_scale) &&
+               !empty($this->it_governance_structure) &&
+               !empty($this->isms_scope) &&
+               !empty($this->organization_description);
+    }
+
     /**
      * Get all assessment sessions for this user
      */

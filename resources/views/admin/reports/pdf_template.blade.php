@@ -157,7 +157,7 @@
     </table>
 
     <div class="footer">
-        ISO 27001:2022 Audit Intelligence Dashboard | Generated in Administrator Mode | Confidential Document
+        ISO 27001 Compliance Dashboard Report | Internal Self-Assessment Report
     </div>
 </body>
 </html>

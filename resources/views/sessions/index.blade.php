@@ -3,7 +3,7 @@
 @section('view_name', 'Audit Sessions')
 
 @section('content')
-<div x-data="{ showSessionModal: {{ request('create') ? 'true' : 'false' }}, showImportModal: false, showEditModal: false, showCloneModal: false, showArchiveModal: false, showRestoreModal: false, showDeleteModal: false, editSessionId: '', editSessionName: '', cloneSessionId: '', archiveSessionId: '', restoreSessionId: '', deleteSessionId: '' }">
+<div x-data="{ showSessionModal: {{ request('create') ? 'true' : 'false' }}, showImportModal: false, showEditModal: false, showCloneModal: false, showArchiveModal: false, showRestoreModal: false, editSessionId: '', editSessionName: '', cloneSessionId: '', archiveSessionId: '', restoreSessionId: '' }">
     <div class="max-w-6xl mx-auto space-y-6 pb-16">
         {{-- Header Section --}}
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -159,9 +159,36 @@
                                             <i class="fa-solid fa-trash-can-arrow-up text-xs"></i>
                                         </button>
 
-                                        <button @click.prevent="deleteSessionId = '{{ $session->id }}'; showDeleteModal = true" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-red-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Delete Permanently') }}">
-                                            <i class="fa-solid fa-trash text-xs"></i>
-                                        </button>
+                                        <form method="POST" action="{{ route('sessions.force-delete', $session->id) }}"
+                                            x-data
+                                            @submit.prevent="
+                                                Swal.fire({
+                                                    title: '{{ addslashes(__('Delete Session Permanently?')) }}',
+                                                    text: '{{ addslashes(__('Are you sure you want to delete session ":name"? This action cannot be undone. All assessment data, scores, and results will be lost forever.', ['name' => $session->name])) }}',
+                                                    icon: 'warning',
+                                                    showCancelButton: true,
+                                                    confirmButtonColor: '#ef4444',
+                                                    cancelButtonColor: '#64748b',
+                                                    confirmButtonText: '{{ addslashes(__('Yes, Delete!')) }}',
+                                                    cancelButtonText: '{{ addslashes(__('Cancel')) }}',
+                                                    width: '22rem',
+                                                    customClass: {
+                                                        title: 'text-base font-bold text-slate-800',
+                                                        htmlContainer: 'text-xs text-slate-500',
+                                                        confirmButton: 'text-xs px-3 py-2 rounded-lg font-semibold',
+                                                        cancelButton: 'text-xs px-3 py-2 rounded-lg font-semibold'
+                                                    }
+                                                }).then((result) => {
+                                                    if (result.isConfirmed) {
+                                                        $el.submit();
+                                                    }
+                                                });
+                                            ">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-red-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Delete Permanently') }}">
+                                                <i class="fa-solid fa-trash text-xs"></i>
+                                            </button>
+                                        </form>
                                     @else
                                         <button @click.prevent="editSessionId = '{{ $session->id }}'; editSessionName = '{{ addslashes($session->name) }}'; showEditModal = true" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-emerald-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Edit Session Name') }}">
                                             <i class="fa-solid fa-pen text-xs"></i>
@@ -355,23 +382,5 @@
         </div>
     </div>
 
-    {{-- Permanent Delete Confirmation Modal --}}
-    <div x-show="showDeleteModal"
-         class="fixed inset-0 z-[100] flex items-center justify-center p-6" x-cloak>
-        <div x-transition.opacity class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="showDeleteModal = false"></div>
-        <div x-transition.scale.95 class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-7 z-10 border border-slate-100 text-center">
-            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm">
-                <i class="fa-solid fa-trash text-3xl"></i>
-            </div>
-            <h3 class="text-xl font-bold text-slate-900">{{ __('Delete Permanently') }}</h3>
-            <p class="text-sm text-slate-500 mt-2">{{ __('This action is irreversible. All assessment data, scores, and results for this session will be permanently deleted and cannot be recovered.') }}</p>
-            <form :action="'{{ url('sessions') }}/' + deleteSessionId + '/force-delete'" method="POST" class="mt-6 flex gap-3">
-                @csrf
-                @method('DELETE')
-                <button type="button" @click="showDeleteModal = false" class="flex-1 px-5 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold uppercase tracking-wider hover:bg-slate-200 transition-all text-xs">{{ __('Cancel') }}</button>
-                <button type="submit" class="flex-1 px-5 py-3 rounded-xl bg-red-600 text-white font-bold uppercase tracking-wider hover:bg-red-700 transition-all text-xs shadow-md shadow-red-600/20">{{ __('Delete Forever') }}</button>
-            </form>
-        </div>
-    </div>
 </div>
 @endsection

@@ -18,12 +18,12 @@ trait MaturityHelper
     public function getMaturityLabel(float $score): string
     {
         $score = round($score);
-        if ($score <= 0) return 'Non-existent';
-        if ($score == 1) return 'Initial';
-        if ($score == 2) return 'Limited/Repeatable';
-        if ($score == 3) return 'Defined';
-        if ($score == 4) return 'Managed';
-        return 'Optimized';
+        if ($score <= 0) return __('Non-existent');
+        if ($score == 1) return __('Initial');
+        if ($score == 2) return __('Limited/Repeatable');
+        if ($score == 3) return __('Defined');
+        if ($score == 4) return __('Managed');
+        return __('Optimized');
     }
 
     /**

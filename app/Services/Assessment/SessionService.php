@@ -14,12 +14,14 @@ class SessionService
     {
         return AssessmentSession::withCount([
             'results' => function ($query) {
-                $query->whereHas('standard', function ($standardQuery) {
-                    $standardQuery->whereNotNull('questions');
-                });
+                $query->where('is_applicable', true)
+                    ->whereHas('standard', function ($standardQuery) {
+                        $standardQuery->whereNotNull('questions');
+                    });
             },
             'results as answered_count' => function ($query) {
-                $query->where('status', 'completed')
+                $query->where('is_applicable', true)
+                    ->where('status', 'completed')
                     ->whereHas('standard', function ($standardQuery) {
                         $standardQuery->whereNotNull('questions');
                     });
@@ -131,11 +133,12 @@ class SessionService
             ->findOrFail($id);
 
         $assessableResults = $this->getAssessableResults($session);
-        $total = $assessableResults->count();
-        $completed = $assessableResults->where('status', 'completed')->count();
+        $applicableAssessable = $assessableResults->filter(fn($r) => $r->is_applicable);
+        $total = $applicableAssessable->count();
+        $completed = $applicableAssessable->where('status', 'completed')->count();
 
         if ($total !== $completed) {
-            throw new \Exception("Cannot finalize: {$completed}/{$total} controls scored. Please score all controls first.");
+            throw new \Exception("Cannot finalize: {$completed}/{$total} applicable controls scored. Please score all applicable controls first.");
         }
 
         $session->update(['status' => 'completed']);
@@ -232,7 +235,7 @@ class SessionService
     public function getMissingScores(AssessmentSession $session): array
     {
         $missingScores = $this->getAssessableResults($session)->filter(function ($result) {
-            return $result->status !== 'completed';
+            return $result->is_applicable && $result->status !== 'completed';
         });
 
         return [
@@ -244,8 +247,9 @@ class SessionService
     public function getAssessmentProgress(AssessmentSession $session): array
     {
         $assessableResults = $this->getAssessableResults($session);
-        $total = $assessableResults->count();
-        $completed = $assessableResults->where('status', 'completed')->count();
+        $applicableAssessable = $assessableResults->filter(fn($r) => $r->is_applicable);
+        $total = $applicableAssessable->count();
+        $completed = $applicableAssessable->where('status', 'completed')->count();
 
         return [
             'total' => $total,

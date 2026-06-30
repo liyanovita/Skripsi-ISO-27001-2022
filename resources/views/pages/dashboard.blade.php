@@ -31,9 +31,9 @@
             </div>
             <h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-3 flex-wrap">
                 <span>{{ __('Welcome Back') }}, <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 font-black">{{ auth()->user()->name }}</span>!</span>
-                @if(isset($auditorBadge))
-                <span class="px-2 py-0.5 rounded-lg border text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 {{ $auditorBadge['color'] }} shadow-sm">
-                    <i class="fa-solid {{ $auditorBadge['icon'] }}"></i> {{ $auditorBadge['title'] }}
+                @if(isset($assessorBadge))
+                <span class="px-2 py-0.5 rounded-lg border text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 {{ $assessorBadge['color'] }} shadow-sm">
+                    <i class="fa-solid {{ $assessorBadge['icon'] }}"></i> {{ $assessorBadge['title'] }}
                 </span>
                 @endif
             </h1>
@@ -373,7 +373,7 @@
                                 $task->risk_level === 'Critical' ? 'bg-rose-100 text-rose-700' : (
                                 $task->risk_level === 'High' ? 'bg-orange-100 text-orange-700' : (
                                 $task->risk_level === 'Medium' ? 'bg-amber-100 text-amber-700' : (
-                                $task->risk_level === 'Compliant' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
+                                $task->risk_level === 'Low' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
                             ))) }}">
                                 {{ $task->risk_level }}
                             </span>
@@ -475,8 +475,20 @@
 <script>
 window.chartInstances = window.chartInstances || {};
 
+// Waits until Chart.js is available, then runs the callback
+window.waitForChartJs = function(callback, retries) {
+    retries = retries === undefined ? 20 : retries;
+    if (window.Chart) {
+        callback();
+    } else if (retries > 0) {
+        setTimeout(function() {
+            window.waitForChartJs(callback, retries - 1);
+        }, 150);
+    }
+};
+
 window.initDashboardCharts = function() {
-    if (!window.Chart) return;
+    window.waitForChartJs(function() {
 
     // Destroy existing instances to prevent duplicates or rendering glitches
     ['complianceTrendChart', 'complianceRadarChart'].forEach(id => {
@@ -597,10 +609,12 @@ window.initDashboardCharts = function() {
             });
         }
     }
+    }); // end waitForChartJs
 };
 
 document.addEventListener('DOMContentLoaded', window.initDashboardCharts);
 document.addEventListener('turbo:load', window.initDashboardCharts);
+document.addEventListener('turbo:render', window.initDashboardCharts);
 </script>
 @endpush
 @endif

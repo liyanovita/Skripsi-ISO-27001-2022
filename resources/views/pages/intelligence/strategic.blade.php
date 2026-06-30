@@ -28,7 +28,7 @@
             <div class="flex items-center gap-4">
                 <form action="{{ route('reports.strategic') }}" method="GET" id="hubFilter" class="flex items-center gap-3">
                     <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none hidden md:block">{{ __('Session:') }}</label>
-                    <select name="session_id" onchange="document.getElementById('hubFilter').submit()" 
+                    <select name="session_id" onchange="document.getElementById('hubFilter').requestSubmit()" 
                         class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-600/5 transition-all min-w-[260px] cursor-pointer shadow-sm">
                         @if($sessions && $sessions->count() > 0)
                             @foreach($sessions as $session)
@@ -87,7 +87,7 @@
             </div>
             <div>
                 <div class="flex items-center justify-between text-[8px] font-black uppercase tracking-widest mb-1">
-                    <span class="text-slate-500 font-bold">{{ $maturityLabel }}</span>
+                    <span class="text-slate-500 font-bold">{{ __($maturityLabel) }}</span>
                     @if(isset($comparison['delta']) && $comparison['delta'] != 0)
                         <span class="font-bold {{ $comparison['delta'] > 0 ? 'text-emerald-600 bg-emerald-50' : 'text-rose-600 bg-rose-50' }} px-1.5 py-0.5 rounded">
                             <i class="fa-solid {{ $comparison['delta'] > 0 ? 'fa-arrow-up' : 'fa-arrow-down' }} mr-0.5"></i>{{ number_format(abs($comparison['delta']), 2) }}
@@ -176,32 +176,47 @@
                         <i class="fa-solid fa-file-pdf text-rose-400"></i>{{ __('PDF') }}</a>
                     <a href="{{ route('reports.export-excel', $latestSession->id) }}" class="px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-100 rounded-xl text-[8px] font-black uppercase tracking-widest border border-emerald-500/30 transition-all flex items-center gap-1.5">
                         <i class="fa-solid fa-file-excel text-emerald-400"></i>{{ __('Excel') }}</a>
+                    @if($latestSession->status === 'completed')
                     <button @click="triggerAISummary()" :disabled="isGenerating" id="btn-generate-summary" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[8px] font-black uppercase tracking-widest border border-white/10 disabled:opacity-50 transition-all sm:ml-1">
                         <i class="fa-solid fa-arrows-rotate mr-1" :class="isGenerating && 'animate-spin'"></i>
                         <span x-text="isGenerating ? 'Synthesizing...' : 'Regenerate'"></span>
                     </button>
+                    @endif
                 </div>
                 @endif
             </div>
-            <div class="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-5 max-h-[260px] overflow-y-auto custom-scrollbar">
+            <div class="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-5 max-h-[300px] overflow-y-auto custom-scrollbar">
                 <div class="text-blue-50 text-[11px] leading-relaxed font-medium space-y-3">
                     
-                    {{-- Alpine dynamically injected summary --}}
-                    <div x-show="summaryHtml !== null" x-html="summaryHtml"></div>
+                    @if($latestSession && $latestSession->status !== 'completed')
+                        <div class="text-center py-6 flex flex-col items-center justify-center">
+                            <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center mb-3 border border-amber-500/20">
+                                <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                            </div>
+                            <h3 class="text-xs font-bold text-white mb-1 uppercase tracking-wider">{{ __('Assessment Not Finalized') }}</h3>
+                            <p class="text-slate-400 max-w-sm mx-auto mb-4 text-[10px] leading-relaxed">{{ __('You must finalize and complete this assessment session before the AI can generate a strategic executive summary.') }}</p>
+                            <a href="{{ route('sessions.show', $latestSession->id) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-blue-600/20">
+                                <i class="fa-solid fa-arrow-right-to-bracket mr-1"></i>{{ __('Go to Assessment') }}
+                            </a>
+                        </div>
+                    @else
+                        {{-- Alpine dynamically injected summary --}}
+                        <div x-show="summaryHtml !== null" x-html="summaryHtml"></div>
 
-                    {{-- Initial Blade-rendered summary --}}
-                    <div x-show="summaryHtml === null">
-                        @if($latestSession && $latestSession->ai_summary)
-                            <div class="ai-prose space-y-2">
-                                {!! Str::markdown(e($latestSession->ai_summary)) !!}
-                            </div>
-                        @else
-                            <div class="text-center py-4 opacity-70">
-                               <i class="fa-solid fa-wand-magic-sparkles text-2xl mb-2"></i>
-                                <p>{{ __('Trigger AI synthesis to analyze the current audit session.') }}</p>
-                            </div>
-                        @endif
-                    </div>
+                        {{-- Initial Blade-rendered summary --}}
+                        <div x-show="summaryHtml === null">
+                            @if($latestSession && $latestSession->ai_summary)
+                                <div class="ai-prose space-y-2">
+                                    {!! Str::markdown(e($latestSession->ai_summary)) !!}
+                                </div>
+                            @else
+                                <div class="text-center py-4 opacity-70">
+                                   <i class="fa-solid fa-wand-magic-sparkles text-2xl mb-2"></i>
+                                    <p>{{ __('Trigger AI synthesis to analyze the current audit session.') }}</p>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
 
                     <style>
                         .ai-prose p { margin-bottom: 0.5rem; }

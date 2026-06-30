@@ -154,7 +154,7 @@ class CommunityTemplateApiController extends BaseApiController
             $template = $this->templateService->createTemplate([
                 'title'        => $request->title,
                 'description'  => $request->description,
-                'author_name'  => auth()->user()->name ?? 'Anonymous Auditor',
+                'author_name'  => auth()->user()->name ?? 'Anonymous Assessor',
                 'tags'         => $request->tags ? explode(',', $request->tags) : [],
                 'base_score'   => $fileContent['session']['overall_maturity_score'] ?? 0,
                 'content_data' => $fileContent,

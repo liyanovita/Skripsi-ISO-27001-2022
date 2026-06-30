@@ -13,19 +13,40 @@
             </div>
         </div>
         
-        <div class="flex items-center gap-2" x-data="{ showDelete: false }">
+        <div class="flex items-center gap-2">
             <a href="{{ route('admin.standards.edit', $item) }}" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors" title="Edit">
                 <i class="fa-solid fa-pen text-xs"></i>
             </a>
             
-            <button @click="showDelete = true" x-show="!showDelete" class="w-8 h-8 rounded-lg flex items-center justify-center text-red-600 hover:bg-red-50 transition-colors" title="Delete">
-                <i class="fa-solid fa-trash-can text-xs"></i>
-            </button>
-            
-            <form method="POST" action="{{ route('admin.standards.destroy', $item) }}" x-show="showDelete" class="flex gap-1" x-cloak>
+            <form method="POST" action="{{ route('admin.standards.destroy', $item) }}"
+                x-data
+                @submit.prevent="
+                    Swal.fire({
+                        title: '{{ addslashes(__('Delete Standard Item?')) }}',
+                        text: '{{ addslashes(__('Are you sure you want to delete standard item ":code - :title"? This action cannot be undone.', ['code' => $item->code, 'title' => $item->title])) }}',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: '{{ addslashes(__('Yes, Delete!')) }}',
+                        cancelButtonText: '{{ addslashes(__('Cancel')) }}',
+                        width: '22rem',
+                        customClass: {
+                            title: 'text-base font-bold text-slate-800',
+                            htmlContainer: 'text-xs text-slate-500',
+                            confirmButton: 'text-xs px-3 py-2 rounded-lg font-semibold',
+                            cancelButton: 'text-xs px-3 py-2 rounded-lg font-semibold'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $el.submit();
+                        }
+                    });
+                ">
                 @csrf @method('DELETE')
-                <button type="submit" class="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded hover:bg-red-700">Confirm</button>
-                <button type="button" @click="showDelete = false" class="px-3 py-1 bg-slate-200 text-slate-700 text-xs font-bold rounded hover:bg-slate-300">Cancel</button>
+                <button type="submit" class="w-8 h-8 rounded-lg flex items-center justify-center text-red-600 hover:bg-red-50 transition-colors" title="Delete">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
             </form>
         </div>
     </div>

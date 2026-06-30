@@ -61,8 +61,9 @@ class AppServiceProvider extends ServiceProvider
             $view->with([
                 'sidebarInProgressSessions' => AssessmentSession::forUser($userId)->inProgress()->count(),
                 'sidebarOpenGaps'           => AssessmentResult::whereHas('session', fn($q) => $q->where('user_id', $userId))
+                                                    ->where('status', 'completed')
+                                                    ->where('is_applicable', true)
                                                     ->where('maturity_rating', '<', 4)
-                                                    ->where('maturity_rating', '>', 0)
                                                     ->where('treatment_status', 'open')
                                                     ->count(),
                 'sidebarKbCustomCount'      => KnowledgeBase::custom()->count(),

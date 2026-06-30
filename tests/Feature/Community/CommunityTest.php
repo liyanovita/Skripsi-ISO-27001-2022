@@ -232,7 +232,7 @@ class CommunityTest extends TestCase
             'user_id' => $user->id,
             'title' => 'Fintech Standard',
             'description' => 'Comprehensive previewable template.',
-            'author_name' => 'Fintech Auditor',
+            'author_name' => 'Fintech Assessor',
             'tags' => ['preview'],
             'base_score' => 4.2,
             'content_data' => [

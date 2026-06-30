@@ -78,7 +78,7 @@
             <tr>
                 <td>
                     <span class="badge {{ $result->maturity_rating <= 1 ? 'badge-danger' : 'badge-warning' }}">
-                        #{{ $index + 1 }}
+                        {{ $index + 1 }}
                     </span>
                 </td>
                 <td style="font-weight: bold;">{{ $result->standard->code }}</td>
@@ -97,12 +97,8 @@
     </table>
 
     <div class="section-title">AI Intelligence Analysis & Improvement Plans</div>
-    @php
-        $aiResults = $results->filter(fn($r) => !empty($r->ai_recommendation));
-    @endphp
-
-    @if($aiResults->count() > 0)
-        @foreach($aiResults as $result)
+    @if($results->count() > 0)
+        @foreach($results as $result)
         <div class="ai-card">
             <div class="ai-card-header">
                 {{ $result->standard->code }}: {{ $result->standard->title }}
@@ -112,22 +108,43 @@
                     <tr>
                         <td style="width: 33%; border: none; padding: 0 10px 0 0; vertical-align: top;">
                             <div style="font-size: 8px; font-weight: bold; color: #2563eb; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">{{ __('Strategic Recommendation') }}</div>
-                            <div style="font-size: 10px; color: #334155; line-height: 1.5;">{{ $result->ai_recommendation }}</div>
+                            <div style="font-size: 10px; color: #334155; line-height: 1.5;">
+                                @if(!empty($result->ai_recommendation))
+                                    {{ $result->ai_recommendation }}
+                                @else
+                                    <span style="color: #94a3b8; font-style: italic;">{{ __('AI recommendation not yet generated.') }}</span>
+                                @endif
+                            </div>
                         </td>
                         <td style="width: 34%; border: none; padding: 0 10px; vertical-align: top;">
                             <div style="font-size: 8px; font-weight: bold; color: #dc2626; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">{{ __('AI Audit Insight (Gap)') }}</div>
                             <div style="font-size: 10px; color: #334155; line-height: 1.5;">
                                 @php
                                     $insight = is_array($result->control_insight) ? ($result->control_insight['gap'] ?? null) : $result->control_insight;
+                                    $insight = trim($insight ?? '');
                                 @endphp
-                                {{ $insight ?? 'Control shows solid operational alignment.' }}
+                                @if(!empty($insight))
+                                    {{ $insight }}
+                                @else
+                                    <span style="color: #94a3b8; font-style: italic;">{{ __('AI insight not yet generated.') }}</span>
+                                @endif
                             </div>
                         </td>
                         <td style="width: 33%; border: none; padding: 0 0 0 10px; vertical-align: top;">
                             <div style="font-size: 8px; font-weight: bold; color: #d97706; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">{{ __('AI Evidence Validation') }}</div>
                             @if(!empty($result->evidence_file))
-                                <div style="font-size: 8px; font-weight: bold; color: #475569; margin-bottom: 4px;">Doc: <span style="font-weight: normal; color: #2563eb;">{{ basename($result->evidence_file) }}</span></div>
-                                <div style="font-size: 10px; color: #475569; font-style: italic; line-height: 1.5;">{{ $result->evidence_validation }}</div>
+                                @php
+                                    $evidenceFiles = is_array($result->evidence_file)
+                                        ? $result->evidence_file
+                                        : [$result->evidence_file];
+                                    $fileNames = implode(', ', array_map('basename', $evidenceFiles));
+                                @endphp
+                                <div style="font-size: 8px; font-weight: bold; color: #475569; margin-bottom: 4px;">Doc: <span style="font-weight: normal; color: #2563eb;">{{ $fileNames }}</span></div>
+                                @if(!empty($result->evidence_validation))
+                                    <div style="font-size: 10px; color: #475569; font-style: italic; line-height: 1.5;">{{ $result->evidence_validation }}</div>
+                                @else
+                                    <div style="font-size: 10px; color: #94a3b8; font-style: italic; line-height: 1.5;">{{ __('AI validation not yet generated.') }}</div>
+                                @endif
                             @else
                                 <div style="font-size: 10px; color: #94a3b8; font-style: italic; line-height: 1.5;">{{ __('No evidence provided.') }}</div>
                             @endif
@@ -135,12 +152,32 @@
                     </tr>
                 </table>
                 <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
+                    <div style="margin-bottom: 15px;">
+                        <div style="font-size: 8px; font-weight: bold; color: #b45309; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">{{ __('Audit Notes') }}</div>
+                        <div style="padding: 12px; background: #fffbeb; border-radius: 8px; border: 1px solid #fef3c7; font-size: 10px; color: #92400e; line-height: 1.5;">
+                            @if(!empty($result->notes))
+                                {!! nl2br(e($result->notes)) !!}
+                            @else
+                                <span style="color: #94a3b8; font-style: italic;">{{ __('No audit notes provided.') }}</span>
+                            @endif
+                        </div>
+                    </div>
+
                     <div style="font-size: 8px; font-weight: bold; color: #1e293b; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">{{ __('Corrective Action Plan (CAP)') }}</div>
                     <div class="cap-box">
-                        @if(is_array($result->corrective_action_plan))
-                            {!! nl2br(e($result->corrective_action_plan['action'] ?? implode("\n", $result->corrective_action_plan))) !!}
+                        @php
+                            $capText = '';
+                            if (is_array($result->corrective_action_plan)) {
+                                $capText = $result->corrective_action_plan['action'] ?? implode("\n", $result->corrective_action_plan);
+                            } else {
+                                $capText = $result->corrective_action_plan;
+                            }
+                            $capText = trim($capText);
+                        @endphp
+                        @if(!empty($capText))
+                            {!! nl2br(e($capText)) !!}
                         @else
-                            {!! nl2br(e($result->corrective_action_plan)) !!}
+                            <span style="color: #94a3b8; font-style: italic;">{{ __('AI corrective action plan not yet generated.') }}</span>
                         @endif
                     </div>
                 </div>
@@ -152,9 +189,8 @@
             <p style="text-align: center; color: #94a3b8; font-size: 11px;">{{ __('No AI analysis has been generated for this session yet.') }}</p>
         </div>
     @endif
-
     <div class="footer">
-        Audit Intelligence Hub | Confidential Internal Audit Document | Digital Signature Verified
+        ISO 27001:2022 Improvement Roadmap | Internal Self-Assessment Report
     </div>
 </body>
 </html>

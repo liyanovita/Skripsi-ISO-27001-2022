@@ -19,6 +19,7 @@ class AssessmentResult extends Model
         'answers' => 'array',
         'corrective_action_plan' => 'array',
         'control_insight' => 'array',
+        'evidence_file' => 'array',
         'is_applicable' => 'boolean',
         'treatment_due_date' => 'date',
         'created_at' => 'datetime',
@@ -90,13 +91,17 @@ class AssessmentResult extends Model
      */
     public function getRiskLevelAttribute(): string
     {
+        if (!$this->is_applicable || $this->maturity_rating === null) {
+            return $this->status === 'completed' ? 'Low' : 'Unassessed';
+        }
+
         return match((int)$this->maturity_rating) {
             0       => $this->status === 'completed' ? 'Critical' : 'Unassessed',
             1       => 'Critical',
             2       => 'High',
             3       => 'Medium',
-            4, 5    => 'Compliant',
-            default => $this->status === 'completed' ? 'Compliant' : 'Unassessed'
+            4, 5    => 'Low',
+            default => $this->status === 'completed' ? 'Low' : 'Unassessed'
         };
     }
 

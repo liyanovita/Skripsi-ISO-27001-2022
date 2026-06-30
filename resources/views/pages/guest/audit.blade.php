@@ -428,7 +428,7 @@
                                                 
                                                 {{-- Scale Description --}}
                                                 <div class="grid grid-cols-6 gap-2 -mt-1">
-                                                    <template x-for="(label, idx) in ['Non-existent', 'Initial', 'Limited/Repeatable', 'Defined', 'Managed', 'Optimized']">
+                                                    <template x-for="(label, idx) in ['{{ __('Non-existent') }}', '{{ __('Initial') }}', '{{ __('Limited/Repeatable') }}', '{{ __('Defined') }}', '{{ __('Managed') }}', '{{ __('Optimized') }}']">
                                                         <p class="text-center text-[8px] font-bold uppercase tracking-wide leading-tight"
                                                            :class="{
                                                                'text-red-400': idx === 0,
@@ -779,12 +779,12 @@
 
                 getComplianceLabel(score) {
                     const labels = {
-                        0: 'Non-existent',
-                        1: 'Initial',
-                        2: 'Limited/Repeatable',
-                        3: 'Defined',
-                        4: 'Managed',
-                        5: 'Optimized'
+                        0: '{{ __('Non-existent') }}',
+                        1: '{{ __('Initial') }}',
+                        2: '{{ __('Limited/Repeatable') }}',
+                        3: '{{ __('Defined') }}',
+                        4: '{{ __('Managed') }}',
+                        5: '{{ __('Optimized') }}'
                     };
                     return labels[score] || 'Unknown';
                 },
@@ -1091,7 +1091,7 @@
                             distribution[score] = (distribution[score] || 0) + 1;
                         });
                         
-                        const maturityLabels = ['Non-existent', 'Initial', 'Limited/Repeatable', 'Defined', 'Managed', 'Optimized'];
+                        const maturityLabels = ['{{ __('Non-existent') }}', '{{ __('Initial') }}', '{{ __('Limited/Repeatable') }}', '{{ __('Defined') }}', '{{ __('Managed') }}', '{{ __('Optimized') }}'];
                         const barColors = [[239, 68, 68], [251, 146, 60], [234, 179, 8], [132, 204, 22], [34, 197, 94], [16, 185, 129]];
                         
                         for (let i = 0; i <= 5; i++) {

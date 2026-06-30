@@ -28,12 +28,33 @@ class CreateKnowledgeBaseRequest extends FormRequest
             'title' => 'required|string|max:255|min:5',
             'category' => ['required', 'string', Rule::in(KnowledgeBaseService::CATEGORIES)],
             'description' => 'nullable|string|max:1000',
-            'content' => 'required|string|min:10',
+            'content' => 'nullable|string',
             'format' => 'nullable|string|max:50',
             'size' => 'nullable|string|max:50',
             'attachment' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,txt,md,csv|max:10240',
             'icon' => 'nullable|string|max:100',
         ];
+    }
+
+    /**
+     * Get the validated data from the request.
+     */
+    public function validated($key = null, $default = null)
+    {
+        $validated = parent::validated($key, $default);
+
+        if ($key !== null) {
+            if ($key === 'content' && !auth()->user()?->isAdmin()) {
+                return '';
+            }
+            return $validated;
+        }
+
+        if (is_array($validated) && !auth()->user()?->isAdmin()) {
+            $validated['content'] = '';
+        }
+
+        return $validated;
     }
 
     /**
@@ -48,8 +69,6 @@ class CreateKnowledgeBaseRequest extends FormRequest
             'title.min' => 'Title must be at least 5 characters.',
             'category.required' => 'Category is required.',
             'category.in' => 'Category must be one of: guides, templates, sop, evidence.',
-            'content.required' => 'Content is required.',
-            'content.min' => 'Content must be at least 10 characters.',
             'attachment.mimes' => 'Attachment must be a PDF, Word, Excel, text, Markdown, or CSV file.',
             'attachment.max' => 'Attachment cannot exceed 10 MB.',
         ];

@@ -17,8 +17,18 @@ class KnowledgeBaseService
 
     public function getAll(array $filters = [], int $perPage = 12): array
     {
+        $isUserAdmin = auth()->check() && auth()->user()->isAdmin();
         $categories = self::CATEGORIES;
-        $categoryTotals = KnowledgeBase::query()
+        
+        $baseQuery = KnowledgeBase::query();
+        if (!$isUserAdmin) {
+            $baseQuery->where(function($q) {
+                $q->where('is_system', true)
+                  ->orWhere('user_id', auth()->id());
+            });
+        }
+
+        $categoryTotals = (clone $baseQuery)
             ->selectRaw('category, count(*) as aggregate')
             ->whereIn('category', $categories)
             ->groupBy('category')
@@ -29,14 +39,14 @@ class KnowledgeBaseService
                 $category => (int) ($categoryTotals[$category] ?? 0),
             ]);
 
-        $totalCount = KnowledgeBase::count();
+        $totalCount = (clone $baseQuery)->count();
         $statistics     = [
             'total_resources' => $totalCount,
             'system_resources' => KnowledgeBase::system()->count(),
-            'user_resources' => KnowledgeBase::custom()->count(),
+            'user_resources' => (clone $baseQuery)->custom()->count(),
         ];
 
-        $query = KnowledgeBase::query()->latest();
+        $query = (clone $baseQuery)->latest();
         $search = trim((string) ($filters['q'] ?? ''));
         $selectedCategory = (string) ($filters['category'] ?? 'all');
         $selectedSort = (string) ($filters['sort'] ?? 'latest');
@@ -91,8 +101,8 @@ class KnowledgeBaseService
         unset($data['attachment']);
 
         // Validate required fields
-        if (empty($data['title']) || empty($data['category']) || empty($data['content'])) {
-            throw new InvalidArgumentException('Title, category, and content are required.');
+        if (empty($data['title']) || empty($data['category'])) {
+            throw new InvalidArgumentException('Title and category are required.');
         }
 
         if (! in_array($data['category'], self::CATEGORIES, true)) {
@@ -103,8 +113,26 @@ class KnowledgeBaseService
             throw new InvalidArgumentException('Title must be between 5 and 255 characters.');
         }
 
-        if (strlen($data['content']) < 10) {
+        $data['content'] = $data['content'] ?? '';
+        if (strlen($data['content']) > 0 && strlen($data['content']) < 10) {
             throw new InvalidArgumentException('Content must be at least 10 characters.');
+        }
+
+        // Fill automatic default fallbacks if not provided in payload
+        if (empty($data['format'])) {
+            $data['format'] = 'PDF';
+        }
+        if (empty($data['icon'])) {
+            $data['icon'] = match ($data['category']) {
+                'guides' => 'fa-solid fa-route',
+                'templates' => 'fa-solid fa-file-lines',
+                'sop' => 'fa-solid fa-list-check',
+                default => 'fa-solid fa-file-shield',
+            };
+        }
+
+        if (!isset($data['user_id']) && auth()->check()) {
+            $data['user_id'] = auth()->id();
         }
 
         $resource = KnowledgeBase::create($data);
@@ -118,7 +146,7 @@ class KnowledgeBaseService
 
     public function update(int $id, array $data): KnowledgeBase
     {
-        $resource = KnowledgeBase::findOrFail($id);
+        $resource = $this->findOrFail($id);
         $attachment = $data['attachment'] ?? null;
         unset($data['attachment']);
 
@@ -136,10 +164,24 @@ class KnowledgeBaseService
             throw new InvalidArgumentException('Category must be one of: guides, templates, sop, evidence.');
         }
 
-        if (isset($data['content'])) {
-            if (strlen($data['content']) < 10) {
+        if (array_key_exists('content', $data)) {
+            $data['content'] = $data['content'] ?? '';
+            if (strlen($data['content']) > 0 && strlen($data['content']) < 10) {
                 throw new InvalidArgumentException('Content must be at least 10 characters.');
             }
+        }
+
+        // Fill automatic default fallbacks if not provided in payload
+        if (empty($data['format'])) {
+            $data['format'] = 'PDF';
+        }
+        if (empty($data['icon']) && isset($data['category'])) {
+            $data['icon'] = match ($data['category']) {
+                'guides' => 'fa-solid fa-route',
+                'templates' => 'fa-solid fa-file-lines',
+                'sop' => 'fa-solid fa-list-check',
+                default => 'fa-solid fa-file-shield',
+            };
         }
 
         $auditKeys = array_unique(array_merge(array_keys($data), [
@@ -166,7 +208,7 @@ class KnowledgeBaseService
 
     public function delete(int $id): bool
     {
-        $resource = KnowledgeBase::findOrFail($id);
+        $resource = $this->findOrFail($id);
 
         if ($resource->is_system) {
             throw new InvalidArgumentException('Official system assets cannot be deleted.');
@@ -185,7 +227,14 @@ class KnowledgeBaseService
 
     public function findOrFail(int $id): KnowledgeBase
     {
-        return KnowledgeBase::findOrFail($id);
+        $resource = KnowledgeBase::findOrFail($id);
+        
+        $isUserAdmin = auth()->check() && auth()->user()->isAdmin();
+        if (!$resource->is_system && !$isUserAdmin && $resource->user_id !== auth()->id()) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException();
+        }
+        
+        return $resource;
     }
 
     public function recordDownload(KnowledgeBase $item): KnowledgeBase
@@ -227,11 +276,20 @@ class KnowledgeBaseService
 
     public function exportResources(): array
     {
+        $query = KnowledgeBase::query();
+        $isUserAdmin = auth()->check() && auth()->user()->isAdmin();
+        if (!$isUserAdmin) {
+            $query->where(function($q) {
+                $q->where('is_system', true)
+                  ->orWhere('user_id', auth()->id());
+            });
+        }
+
         return [
             'exported_at' => now()->toISOString(),
             'resource_type' => 'knowledge_base',
             'version' => 1,
-            'resources' => KnowledgeBase::query()
+            'resources' => $query
                 ->orderBy('title')
                 ->get([
                     'title',
@@ -245,8 +303,21 @@ class KnowledgeBaseService
                     'attachment_name',
                     'attachment_mime',
                     'attachment_size',
+                    'attachment_path',
                 ])
-                ->map(fn(KnowledgeBase $resource) => $resource->toArray())
+                ->map(function(KnowledgeBase $resource) {
+                    $arr = $resource->toArray();
+                    
+                    if (filled($resource->attachment_path) && \Illuminate\Support\Facades\Storage::disk('local')->exists($resource->attachment_path)) {
+                        $arr['attachment_base64'] = base64_encode(\Illuminate\Support\Facades\Storage::disk('local')->get($resource->attachment_path));
+                    } else {
+                        $arr['attachment_base64'] = null;
+                    }
+                    
+                    unset($arr['attachment_path']);
+                    
+                    return $arr;
+                })
                 ->all(),
         ];
     }
@@ -273,7 +344,7 @@ class KnowledgeBaseService
                 'category' => (string) ($item['category'] ?? ''),
                 'description' => $item['description'] ?? null,
                 'content' => (string) ($item['content'] ?? ''),
-                'format' => $item['format'] ?? 'PDF',
+                'format' => $item['format'] ?? null,
                 'size' => $item['size'] ?? null,
                 'icon' => $item['icon'] ?? 'fa-book-open',
                 'is_system' => false,
@@ -283,6 +354,33 @@ class KnowledgeBaseService
             if (KnowledgeBase::where('title', $data['title'])->where('category', $data['category'])->exists()) {
                 $skipped++;
                 continue;
+            }
+
+            // Handle base64 attachment import
+            if (filled($item['attachment_name'] ?? '') && filled($item['attachment_base64'] ?? '')) {
+                try {
+                    $fileData = base64_decode($item['attachment_base64']);
+                    $extension = pathinfo((string)$item['attachment_name'], PATHINFO_EXTENSION);
+                    $filename = 'knowledge-base/' . \Illuminate\Support\Str::uuid() . ($extension ? '.' . $extension : '');
+                    
+                    \Illuminate\Support\Facades\Storage::disk('local')->put($filename, $fileData);
+                    
+                    $data['attachment_path'] = $filename;
+                    $data['attachment_name'] = $item['attachment_name'];
+                    $data['attachment_mime'] = $item['attachment_mime'] ?? 'application/octet-stream';
+                    $data['attachment_size'] = strlen($fileData);
+                    
+                    if (empty($data['format'])) {
+                        $data['format'] = $extension ?: 'PDF';
+                    }
+                    
+                    if (empty($data['size'])) {
+                        $kb = round(strlen($fileData) / 1024, 1);
+                        $data['size'] = $kb . ' KB';
+                    }
+                } catch (\Throwable $e) {
+                    // Fail silently
+                }
             }
 
             try {
@@ -327,13 +425,33 @@ class KnowledgeBaseService
         $extension = strtoupper($attachment->getClientOriginalExtension() ?: pathinfo($path, PATHINFO_EXTENSION));
         $size = $attachment->getSize();
 
+        // Determine matching FontAwesome icon
+        $lowerExt = strtolower($extension);
+        $icon = 'fa-solid fa-file';
+        if (in_array($lowerExt, ['doc', 'docx'])) {
+            $icon = 'fa-solid fa-file-word';
+        } elseif (in_array($lowerExt, ['xls', 'xlsx'])) {
+            $icon = 'fa-solid fa-file-excel';
+        } elseif ($lowerExt === 'pdf') {
+            $icon = 'fa-solid fa-file-pdf';
+        } elseif (in_array($lowerExt, ['ppt', 'pptx'])) {
+            $icon = 'fa-solid fa-file-powerpoint';
+        } elseif (in_array($lowerExt, ['txt', 'md'])) {
+            $icon = 'fa-solid fa-file-lines';
+        } elseif ($lowerExt === 'csv') {
+            $icon = 'fa-solid fa-file-csv';
+        } elseif (in_array($lowerExt, ['zip', 'rar', '7z'])) {
+            $icon = 'fa-solid fa-file-zipper';
+        }
+
         $resource->forceFill([
             'attachment_path' => $path,
             'attachment_name' => $attachment->getClientOriginalName(),
             'attachment_mime' => $attachment->getMimeType(),
             'attachment_size' => $size,
-            'format' => $resource->format ?: $extension,
-            'size' => $resource->size ?: $this->formatBytes($size),
+            'format' => $extension,
+            'size' => $this->formatBytes($size),
+            'icon' => $icon,
         ])->save();
     }
 

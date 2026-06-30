@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\ExcelExportService;
 use Illuminate\Http\Request;
 
 class IsoStandardController extends Controller
@@ -99,42 +100,32 @@ class IsoStandardController extends Controller
 
     public function export()
     {
-        $headers = [
-            "Content-type"        => "text/csv",
-            "Content-Disposition" => "attachment; filename=iso27001_standards_" . date('Y-m-d') . ".csv",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
-        ];
-
         $standards = \App\Models\IsoStandard::with('parent')->orderByRaw('LENGTH(code) ASC, code ASC')->get();
 
-        $callback = function() use($standards) {
+        $headers = [
+            'Content-type'        => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=iso27001_standards_' . date('Y-m-d') . '.csv',
+            'Pragma'              => 'no-cache',
+            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires'             => '0'
+        ];
+
+        $columns = ['parent_code', 'type', 'level', 'code', 'title', 'description', 'questions', 'implementation_guidance'];
+
+        $callback = function() use($standards, $columns) {
             $file = fopen('php://output', 'w');
-            
-            // CSV Headers
-            fputcsv($file, [
-                'parent_code',
-                'type',
-                'level',
-                'code',
-                'title',
-                'description',
-                'questions',
-                'implementation_guidance'
-            ]);
+            fputcsv($file, $columns);
 
             foreach ($standards as $row) {
-                $parentCode = $row->parent ? $row->parent->code : '';
                 fputcsv($file, [
-                    $parentCode,
+                    $row->parent ? $row->parent->code : '',
                     $row->type,
                     $row->level,
                     $row->code,
                     $row->title,
                     $row->description,
                     is_array($row->questions) ? json_encode($row->questions) : $row->questions,
-                    $row->implementation_guidance
+                    $row->implementation_guidance,
                 ]);
             }
 
@@ -157,6 +148,9 @@ class IsoStandardController extends Controller
         if (($handle = fopen($filePath, "r")) !== FALSE) {
             // Get headers
             $headers = fgetcsv($handle, 1000, ",");
+            if ($headers && count($headers) === 1 && strpos($headers[0], 'sep=') === 0) {
+                $headers = fgetcsv($handle, 1000, ",");
+            }
             
             // Read all rows
             while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {

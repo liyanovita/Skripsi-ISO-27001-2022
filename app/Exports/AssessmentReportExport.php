@@ -11,7 +11,10 @@ use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 
-class AssessmentReportExport extends DefaultValueBinder implements FromCollection, WithHeadings, WithMapping, WithCustomValueBinder
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
+class AssessmentReportExport extends DefaultValueBinder implements FromCollection, WithHeadings, WithMapping, WithCustomValueBinder, WithStyles
 {
     protected $sessionId;
     protected int $rowIndex = 0;
@@ -50,15 +53,17 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
     public function headings(): array
     {
         return [
-            'Priority (#)',
+            'Priority',
             'ISO Code',
             'Control Name',
             'Maturity Level',
             'Status Compliance',
             'Risk',
             'Target Days',
+            'Audit Notes',
             'AI Strategic Recommendation',
             'AI Audit Insight (Gap)',
+            'Evidence File',
             'AI Evidence Validation',
             'Corrective Action Plan (CAP)',
         ];
@@ -70,7 +75,7 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
     public function map($result): array
     {
         // Hitung nomor prioritas berdasarkan posisi di collection (sama seperti $index+1 di PDF)
-        $priority = '#' . (++$this->rowIndex);
+        $priority = ++$this->rowIndex;
 
         // Target Days: logika identik dengan pdf_template.blade.php
         $targetDays = match(true) {
@@ -81,25 +86,53 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
         };
 
         $insight = is_array($result->control_insight) ? ($result->control_insight['gap'] ?? '') : ($result->control_insight ?? '');
+        $insight = trim($insight);
+        if (empty($insight)) {
+            $insight = 'AI insight not yet generated.';
+        }
         
-        $evidence = $result->evidence_validation ?? 'No evidence provided.';
         if (!empty($result->evidence_file)) {
-            $evidence = '[Doc: ' . basename($result->evidence_file) . '] ' . $evidence;
+            $evidenceFiles = is_array($result->evidence_file)
+                ? $result->evidence_file
+                : [$result->evidence_file];
+            $evidenceFileNames = implode(', ', array_map('basename', $evidenceFiles));
+            $evidenceValidation = !empty($result->evidence_validation)
+                ? $result->evidence_validation
+                : 'AI validation not yet generated.';
+        } else {
+            $evidenceFileNames = 'No evidence provided.';
+            $evidenceValidation = 'No evidence provided.';
         }
 
         $cap = is_array($result->corrective_action_plan) ? implode("\n", $result->corrective_action_plan) : ($result->corrective_action_plan ?? '');
+        $cap = trim($cap);
+        if (empty($cap)) {
+            $cap = 'AI corrective action plan not yet generated.';
+        }
+        
+        $notes = trim($result->notes ?? '');
+        if (empty($notes)) {
+            $notes = 'No audit notes provided.';
+        }
+
+        $recommendation = trim($result->ai_recommendation ?? '');
+        if (empty($recommendation)) {
+            $recommendation = 'AI recommendation not yet generated.';
+        }
 
         return [
             $priority,
             $result->standard->code,
             $result->standard->title,
-            'Maturity Level ' . $result->maturity_rating,
-            $result->compliance_status,  // accessor: Non-Compliant / Partially Compliant
-            $result->risk_level,         // accessor: Critical / High / Medium (sama seperti di PDF)
+            $result->maturity_rating,
+            $result->compliance_status,
+            $result->risk_level,
             $targetDays,
-            $result->ai_recommendation ?? '',
+            $notes,
+            $recommendation,
             $insight,
-            $evidence,
+            $evidenceFileNames,
+            $evidenceValidation,
             $cap,
         ];
     }
@@ -115,5 +148,29 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
         }
 
         return parent::bindValue($cell, $value);
+    }
+
+    /**
+     * Style the worksheet.
+     */
+    public function styles(Worksheet $sheet)
+    {
+        return [
+            1 => [
+                'font' => [
+                    'bold'  => true,
+                    'color' => ['argb' => 'FFFFFFFF'],
+                    'size'  => 10,
+                ],
+                'fill' => [
+                    'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['argb' => 'FF1E3A5F'], // Navy Blue
+                ],
+                'alignment' => [
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                    'vertical'   => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                ],
+            ],
+        ];
     }
 }

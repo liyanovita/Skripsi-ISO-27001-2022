@@ -96,4 +96,29 @@ class ProfileTest extends TestCase
 
         $this->assertNotNull($user->fresh());
     }
+
+    public function test_is_profile_complete_returns_false_for_newly_created_user(): void
+    {
+        $user = User::factory()->create([
+            'organization_name' => null,
+            'business_sector' => null,
+            'organization_scale' => null,
+        ]);
+
+        $this->assertFalse($user->isProfileComplete());
+    }
+
+    public function test_is_profile_complete_returns_true_when_all_required_details_are_filled(): void
+    {
+        $user = User::factory()->create([
+            'organization_name' => 'Kopikita Corp',
+            'business_sector' => 'Beverage & IT',
+            'organization_scale' => 'Medium',
+            'it_governance_structure' => 'IT Manager',
+            'isms_scope' => 'All networks',
+            'organization_description' => 'A local coffee company.',
+        ]);
+
+        $this->assertTrue($user->isProfileComplete());
+    }
 }

@@ -65,23 +65,22 @@ class AdminKnowledgeBaseTest extends TestCase
     {
         $admin = $this->adminUser();
         $this->createKb(['is_system' => true]);
-        $this->createKb(['title' => 'Custom Doc', 'is_system' => false]);
 
         $this->actingAs($admin)
             ->get(route('admin.knowledge.index'))
             ->assertOk()
-            ->assertSee('System (Official)')
-            ->assertSee('User-Created');
+            ->assertSee('Total Articles')
+            ->assertSee('Total Downloads');
     }
 
-    public function test_admin_index_can_filter_by_source(): void
+    public function test_admin_index_does_not_show_user_created_custom_resources(): void
     {
         $admin = $this->adminUser();
         $this->createKb(['title' => 'System Guide', 'is_system' => true]);
         $this->createKb(['title' => 'Custom Article', 'is_system' => false]);
 
         $response = $this->actingAs($admin)
-            ->get(route('admin.knowledge.index', ['source' => 'system']));
+            ->get(route('admin.knowledge.index'));
 
         $response->assertOk()
             ->assertSee('System Guide')
@@ -126,7 +125,7 @@ class AdminKnowledgeBaseTest extends TestCase
             ->get(route('admin.knowledge.create'))
             ->assertOk()
             ->assertSee('Add New Document or Article')
-            ->assertSee('Markdown is supported');
+            ->assertSee('Word-like editor');
     }
 
     public function test_admin_can_create_knowledge_base_article(): void
@@ -140,7 +139,6 @@ class AdminKnowledgeBaseTest extends TestCase
                 'category'    => 'Policies',
                 'description' => 'Short description',
                 'content'     => '## Overview\nContent here.',
-                'icon'        => 'fa-solid fa-shield-halved',
             ])
             ->assertRedirect(route('admin.knowledge.index'))
             ->assertSessionHas('success');
@@ -186,7 +184,7 @@ class AdminKnowledgeBaseTest extends TestCase
             ->assertOk()
             ->assertSee('Edit Document or Article')
             ->assertSee($kb->title)
-            ->assertSee('Markdown is supported');
+            ->assertSee('Word-like editor');
     }
 
     public function test_admin_can_update_knowledge_base(): void
@@ -273,5 +271,54 @@ class AdminKnowledgeBaseTest extends TestCase
             ->delete(route('admin.knowledge.destroy', $kb));
 
         Storage::disk('public')->assertMissing('knowledge-base/file.pdf');
+    }
+
+    public function test_admin_cannot_access_or_modify_custom_user_documents(): void
+    {
+        $admin = $this->adminUser();
+        $customKb = $this->createKb(['title' => 'User Custom Doc', 'is_system' => false]);
+
+        // Edit form
+        $this->actingAs($admin)
+            ->get(route('admin.knowledge.edit', $customKb))
+            ->assertNotFound();
+
+        // Update
+        $this->actingAs($admin)
+            ->put(route('admin.knowledge.update', $customKb), [
+                'title'       => 'Hacked Title',
+                'category'    => 'Guides',
+                'description' => 'Hacked',
+                'content'     => 'Hacked content',
+            ])
+            ->assertNotFound();
+
+        // Delete
+        $this->actingAs($admin)
+            ->delete(route('admin.knowledge.destroy', $customKb))
+            ->assertNotFound();
+    }
+
+    public function test_admin_can_view_knowledge_base_item_detail(): void
+    {
+        $admin = $this->adminUser();
+        $kb = $this->createKb(['title' => 'Specific Official Audit SOP', 'is_system' => true]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.knowledge.show', $kb))
+            ->assertOk()
+            ->assertSee('Specific Official Audit SOP')
+            ->assertSee('Back')
+            ->assertSee('Edit Article');
+    }
+
+    public function test_admin_cannot_view_user_custom_document_detail(): void
+    {
+        $admin = $this->adminUser();
+        $customKb = $this->createKb(['title' => 'User Custom Doc', 'is_system' => false]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.knowledge.show', $customKb))
+            ->assertNotFound();
     }
 }

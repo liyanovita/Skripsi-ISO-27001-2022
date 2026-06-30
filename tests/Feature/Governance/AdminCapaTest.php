@@ -181,7 +181,7 @@ class AdminCapaTest extends TestCase
         ]);
     }
 
-    public function test_admin_can_export_capa_as_csv(): void
+    public function test_admin_can_export_capa_as_excel(): void
     {
         $admin = $this->adminUser();
         $user  = $this->regularUser();
@@ -191,13 +191,8 @@ class AdminCapaTest extends TestCase
             ->get(route('admin.capa.export'));
 
         $response->assertOk();
-        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
-
-        $content = $response->streamedContent();
-        $this->assertStringContainsString('User Name', $content);
-        $this->assertStringContainsString('ISO Code', $content);
-        $this->assertStringContainsString('CAPA Status', $content);
-        $this->assertStringContainsString('Policies Export Test', $content);
+        $response->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $response->assertHeader('Content-Disposition', 'attachment; filename=capa_plan_' . date('Y-m-d') . '.xlsx');
     }
 
     public function test_non_admin_cannot_export_capa_csv(): void

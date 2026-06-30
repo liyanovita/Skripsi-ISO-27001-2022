@@ -44,7 +44,7 @@ class TemplateService
             ->get()
             ->map(fn($u) => [
                 'name'     => $u->name,
-                'role'     => $u->community_templates_count > 5 ? 'Senior Auditor' : 'Framework Contributor',
+                'role'     => $u->community_templates_count > 5 ? 'Senior Assessor' : 'Framework Contributor',
                 'count'    => $u->community_templates_count,
                 'initials' => strtoupper(substr($u->name, 0, 2)),
             ]);

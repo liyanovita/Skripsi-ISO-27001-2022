@@ -101,14 +101,24 @@
         <form method="POST" action="{{ route('admin.users.reset-password', $user) }}" class="p-6 space-y-5">
             @csrf
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
+                <div x-data="{ show: false }">
                     <label class="block text-sm font-bold text-slate-700 mb-1.5">New Password *</label>
-                    <input type="password" name="password" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                    <div class="relative">
+                        <input :type="show ? 'text' : 'password'" name="password" required class="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <button type="button" @click="show = !show" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                            <i class="fa-solid" :class="show ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        </button>
+                    </div>
                     @error('password') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                 </div>
-                <div>
+                <div x-data="{ show: false }">
                     <label class="block text-sm font-bold text-slate-700 mb-1.5">Confirm Password *</label>
-                    <input type="password" name="password_confirmation" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                    <div class="relative">
+                        <input :type="show ? 'text' : 'password'" name="password_confirmation" required class="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <button type="button" @click="show = !show" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                            <i class="fa-solid" :class="show ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="flex justify-end">

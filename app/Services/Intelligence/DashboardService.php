@@ -54,7 +54,14 @@ class DashboardService
         $averageMaturity = $completedResults->count() > 0 ? $completedResults->avg('maturity_rating') : 0;
         
         $complianceScore = $this->calculateCompliancePercentage($averageMaturity);
-        $statusKematangan = $this->getMaturityLabel($averageMaturity);
+        $statusKematangan = match (true) {
+            $averageMaturity >= 4.5 => 'Optimized (Level 5)',
+            $averageMaturity >= 3.5 => 'Managed (Level 4)',
+            $averageMaturity >= 2.5 => 'Defined (Level 3)',
+            $averageMaturity >= 1.5 => 'Repeatable (Level 2)',
+            $averageMaturity >= 0.5 => 'Initial (Level 1)',
+            default                 => 'Non-existent (Level 0)',
+        };
 
         // Delta is not applicable for a global view unless comparing timeframes
         $complianceDelta = 0;
@@ -212,6 +219,7 @@ class DashboardService
             $morphTo->morphWith([\App\Models\AssessmentResult::class => ['standard']]);
         }])
         ->where('user_id', $userId)
+        ->where('model_type', \App\Models\AssessmentResult::class)
         ->orderByDesc('created_at')
         ->take(4)
         ->get();
@@ -219,11 +227,11 @@ class DashboardService
         // 12. Community Spotlight (Top 3 Templates)
         $topTemplates = \App\Models\CommunityTemplate::popular()->take(3)->get();
 
-        // 13. Auditor Badge
-        $auditorBadge = match(true) {
+        // 13. Assessor Badge
+        $assessorBadge = match(true) {
             $completedCycles >= 3 => ['title' => 'Expert Assessor', 'icon' => 'fa-medal', 'color' => 'text-amber-500 bg-amber-50 border-amber-200'],
             $completedCycles >= 1 => ['title' => 'ISO Practitioner', 'icon' => 'fa-shield-halved', 'color' => 'text-blue-600 bg-blue-50 border-blue-200'],
-            default => ['title' => 'Novice Auditor', 'icon' => 'fa-seedling', 'color' => 'text-emerald-600 bg-emerald-50 border-emerald-200']
+            default => ['title' => 'Novice Assessor', 'icon' => 'fa-seedling', 'color' => 'text-emerald-600 bg-emerald-50 border-emerald-200']
         };
 
         $hasData = true;
@@ -235,7 +243,7 @@ class DashboardService
             'totalCount', 'answeredCount', 'assessmentProgress', 'criticalGapCount', 'highGapCount', 'distTotal',
             'totalIsoControls', 'activeSessionAnswered', 'activeSessionProgress',
             'historicalCoveredCount', 'historicalCoveragePercent', 'trendData', 'executiveSummary',
-            'radarData', 'recentAuditTrails', 'topTemplates', 'auditorBadge'
+            'radarData', 'recentAuditTrails', 'topTemplates', 'assessorBadge'
         );
     }
 

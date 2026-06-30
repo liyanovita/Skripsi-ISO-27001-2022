@@ -15,10 +15,10 @@
                 <div class="leading-none">
                     <div class="flex items-center gap-2 mb-0.5">
                         <div class="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
-                        <span class="text-[9px] font-bold text-blue-600 uppercase tracking-widest">{{ __('Identity Management') }}</span>
+                        <span class="text-[9px] font-bold text-blue-600 uppercase tracking-widest">{{ __('Profile Settings') }}</span>
                     </div>
-                    <h2 class="text-xl font-black text-slate-900 tracking-tighter">Security & Organization Profile</h2>
-                    <p class="text-slate-400 font-bold uppercase tracking-widest text-[8px] mt-0.5">{{ __('Configure your professional identity and organizational governance scope.') }}</p>
+                    <h2 class="text-xl font-black text-slate-900 tracking-tighter">User & Organization Profile</h2>
+                    <p class="text-slate-400 font-bold uppercase tracking-widest text-[8px] mt-0.5">{{ __('Configure your personal details, organization, and ISMS scope.') }}</p>
                 </div>
             </div>
             {{-- User Badge --}}
@@ -29,7 +29,7 @@
                 <div class="leading-none">
                     <p class="font-black text-slate-900 text-sm">{{ $user->name }}</p>
                     <p class="text-[10px] text-slate-400 font-medium mt-0.5">{{ $user->organization_name ?? 'No organization set' }}</p>
-                    <span class="mt-1 inline-flex px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[8px] font-black uppercase tracking-widest border border-blue-100">{{ __('User') }}</span>
+                    <span class="mt-1 inline-flex px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[8px] font-black uppercase tracking-widest border border-blue-100">{{ __('Assessor') }}</span>
                 </div>
             </div>
         </div>
@@ -75,8 +75,8 @@
                     <i class="fa-solid fa-address-card text-base"></i>
                 </div>
                 <div class="leading-none">
-                    <h3 class="text-sm font-black text-slate-900 tracking-tight">{{ __('Profile Artifacts') }}</h3>
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{{ __('Update organizational parameters and contact') }}</p>
+                    <h3 class="text-sm font-black text-slate-900 tracking-tight">{{ __('Profile Details') }}</h3>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{{ __('Update your personal information and organization settings.') }}</p>
                 </div>
             </div>
             <div class="max-w-2xl">
@@ -91,8 +91,8 @@
                     <i class="fa-solid fa-key text-base"></i>
                 </div>
                 <div class="leading-none">
-                    <h3 class="text-sm font-black text-slate-900 tracking-tight">{{ __('Access Control') }}</h3>
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{{ __('Rotate security credentials and passwords') }}</p>
+                    <h3 class="text-sm font-black text-slate-900 tracking-tight">{{ __('Change Password') }}</h3>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{{ __('Update your account password to maintain security.') }}</p>
                 </div>
             </div>
             <div class="max-w-2xl">

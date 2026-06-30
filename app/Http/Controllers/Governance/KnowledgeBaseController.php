@@ -33,8 +33,30 @@ class KnowledgeBaseController extends Controller
     {
         $content = (string) $request->input('content', '');
 
+        $isHtml = str_contains($content, '<p>') 
+            || str_contains($content, '<div>') 
+            || str_contains($content, '<strong>')
+            || str_contains($content, '<em>')
+            || str_contains($content, '<ul>')
+            || str_contains($content, '<ol>')
+            || str_contains($content, '<table>')
+            || str_contains($content, '<h1>')
+            || str_contains($content, '<h2>')
+            || str_contains($content, '<h3>')
+            || str_contains($content, '<h4>')
+            || str_contains($content, '<h5>')
+            || str_contains($content, '<h6>')
+            || str_contains($content, '<br>')
+            || str_contains($content, '<span');
+
+        if ($isHtml) {
+            $html = $content;
+        } else {
+            $html = (string) Str::markdown(e($content !== '' ? $content : __('Start typing to preview this resource...')));
+        }
+
         return response()->json([
-            'html' => (string) Str::markdown(e($content !== '' ? $content : __('Start typing to preview this resource...'))),
+            'html' => $html,
         ]);
     }
 
@@ -160,6 +182,12 @@ class KnowledgeBaseController extends Controller
     {
         try {
             $item = $this->knowledgeBaseService->findOrFail($id);
+
+            if (! $item->is_system) {
+                return redirect()->route('knowledge-base.index')
+                    ->with('error', 'PDF download is only available for official system resources.');
+            }
+
             $item = $this->knowledgeBaseService->recordDownload($item);
             $html = $this->knowledgeBaseService->generatePdfContent($item);
             $pdf = Pdf::loadHTML($html);
@@ -175,7 +203,7 @@ class KnowledgeBaseController extends Controller
         }
     }
 
-    public function downloadAttachment($id)
+    public function downloadAttachment(Request $request, $id)
     {
         try {
             $item = $this->knowledgeBaseService->findOrFail($id);
@@ -183,6 +211,32 @@ class KnowledgeBaseController extends Controller
             if (! $this->knowledgeBaseService->hasAttachment($item)) {
                 return redirect()->route('knowledge-base.index')
                     ->with('error', 'Attachment file not found.');
+            }
+
+            $mime = $item->attachment_mime;
+            
+            // Support inline preview for PDF, images, txt, md
+            $inlineTypes = [
+                'application/pdf',
+                'image/jpeg',
+                'image/png',
+                'image/gif',
+                'image/webp',
+                'image/svg+xml',
+                'text/plain',
+                'text/markdown',
+            ];
+            
+            $isInline = in_array($mime, $inlineTypes) && !$request->has('download');
+
+            if ($isInline) {
+                return response()->file(
+                    Storage::disk('local')->path($item->attachment_path),
+                    [
+                        'Content-Type' => $mime,
+                        'Content-Disposition' => 'inline; filename="' . $this->knowledgeBaseService->attachmentDownloadName($item) . '"'
+                    ]
+                );
             }
 
             $this->knowledgeBaseService->recordDownload($item);
@@ -197,6 +251,28 @@ class KnowledgeBaseController extends Controller
         } catch (\Throwable $e) {
             return redirect()->route('knowledge-base.index')
                 ->with('error', 'Failed to download attachment.');
+        }
+    }
+
+    public function show($id): View|RedirectResponse
+    {
+        try {
+            $resource = $this->knowledgeBaseService->findOrFail($id);
+            if ($resource->isHtml()) {
+                $contentHtml = $resource->content;
+            } else {
+                $contentHtml = (string) Str::markdown(e($resource->content));
+            }
+
+            // Format LaTeX formulas into beautiful inline styled widgets
+            $pattern = '/\\$\\$\\s*\\\\text\\{\\s*Risk\\s+Score\\s*\\}\\s*=\\s*\\\\text\\{\\s*Impact\\s*\\}\\s*\\\\times\\s*\\\\text\\{\\s*Likelihood\\s*\\}\\s*\\$\\$/i';
+            $replacement = '<span class="inline-flex items-center px-2 py-0.5 bg-slate-50 border border-slate-200/60 rounded-lg font-serif text-[11px] font-semibold text-slate-800 mx-1"><span class="font-bold text-indigo-600">Risk Score</span>&nbsp;=&nbsp;<span class="font-medium text-slate-700">Impact</span>&nbsp;&times;&nbsp;<span class="font-medium text-slate-700">Likelihood</span></span>';
+            $contentHtml = preg_replace($pattern, $replacement, $contentHtml);
+
+            return view('pages.kb.show', compact('resource', 'contentHtml'));
+        } catch (ModelNotFoundException $e) {
+            return redirect()->route('knowledge-base.index')
+                ->with('error', 'Resource not found.');
         }
     }
 }

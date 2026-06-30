@@ -87,7 +87,7 @@ class AdminReportTest extends TestCase
             ->assertRedirect();
     }
 
-    public function test_admin_can_export_reports_csv(): void
+    public function test_admin_can_export_reports_excel(): void
     {
         $admin = $this->adminUser();
         $user = $this->regularUser();
@@ -97,13 +97,8 @@ class AdminReportTest extends TestCase
             ->get(route('admin.reports.export_csv'));
 
         $response->assertOk();
-        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
-        $response->assertHeader('Content-Disposition', 'attachment; filename=iso27001_compliance_report_' . date('Y-m-d') . '.csv');
-
-        $content = $response->streamedContent();
-        $this->assertStringContainsString('Session Name', $content);
-        $this->assertStringContainsString('Technology Audit', $content);
-        $this->assertStringContainsString('Understanding the organization', $content);
+        $response->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $response->assertHeader('Content-Disposition', 'attachment; filename=iso27001_compliance_report_' . date('Y-m-d') . '.xlsx');
     }
 
     public function test_admin_can_export_reports_pdf(): void

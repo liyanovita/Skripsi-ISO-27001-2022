@@ -59,6 +59,7 @@ class StrategicAnalyticsTest extends TestCase
     public function test_ai_summary_markdown_does_not_render_raw_html(): void
     {
         [$user, $session] = $this->createStrategicFixture([
+            'status' => 'completed',
             'ai_summary' => '**Safe Summary** <script>alert("xss")</script>',
         ]);
 

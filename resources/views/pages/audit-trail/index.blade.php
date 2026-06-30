@@ -18,14 +18,19 @@
 
         {{-- Session filter & Export --}}
         <div class="flex flex-col sm:flex-row items-center gap-2">
-            <form action="{{ route('audit-trail.index') }}" method="GET" id="audit-trail-filter" class="flex flex-wrap items-center gap-2">
+            <form action="{{ route('audit-trail.index') }}" method="GET" id="audit-trail-filter" x-data class="flex flex-wrap items-center gap-2">
                 <div class="relative">
                     <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]"></i>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('Search logs...') }}"
-                        class="pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-slate-800/30 transition-all w-full sm:w-44 placeholder:text-slate-400"
-                        onkeypress="if(event.keyCode==13) { document.getElementById('audit-trail-filter').submit(); }">
+                        class="pl-8 {{ request('search') ? 'pr-8' : 'pr-3' }} py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-slate-800/30 transition-all w-full sm:w-44 placeholder:text-slate-400"
+                        @input.debounce.500ms="$el.form.requestSubmit()">
+                    @if(request('search'))
+                        <a href="{{ route('audit-trail.index', array_merge(request()->except(['search', 'page']))) }}" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                            <i class="fa-solid fa-circle-xmark text-xs"></i>
+                        </a>
+                    @endif
                 </div>
-                <select name="session_id" onchange="document.getElementById('audit-trail-filter').submit()"
+                <select name="session_id" @change="$el.form.requestSubmit()"
                     class="bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-slate-800/30 transition-all cursor-pointer shadow-sm">
                     <option value="" {{ empty($selectedId) ? 'selected' : '' }}>-- {{ __('All Sessions') }} --</option>
                     @foreach($sessions as $s)
@@ -36,9 +41,9 @@
                 </select>
             </form>
             <a href="{{ route('audit-trail.export', ['session_id' => $selectedId, 'search' => request('search')]) }}"
-               id="btn-export-csv"
+               id="btn-export-excel"
                class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 shadow-md transition-all flex items-center gap-2 shrink-0">
-                <i class="fa-solid fa-download"></i>{{ __('CSV') }}</a>
+                <i class="fa-solid fa-file-excel"></i>{{ __('Export') }}</a>
         </div>
     </div>
 
@@ -81,15 +86,43 @@
                                     {{ str_replace('_', ' ', Str::title($trail->field_changed)) }}
                                 </span>
                             </td>
+                            @php
+                                $booleanFields = ['is_applicable'];
+                                $isBool = in_array($trail->field_changed, $booleanFields);
+                                $oldRaw = $trail->old_value;
+                                $newRaw = $trail->new_value;
+                                $oldDisplay = (!is_null($oldRaw) && $oldRaw !== '')
+                                    ? ($isBool ? ($oldRaw == '1' ? 'Yes' : 'No') : $oldRaw)
+                                    : null;
+                                $newDisplay = (!is_null($newRaw) && $newRaw !== '')
+                                    ? ($isBool ? ($newRaw == '1' ? 'Yes' : 'No') : $newRaw)
+                                    : null;
+                            @endphp
                             <td class="px-4 py-3">
-                                <div class="text-xs text-rose-500 font-medium bg-rose-50 px-2 py-0.5 rounded inline-block max-w-[120px] truncate">
-                                    {{ $trail->old_value ?? '—' }}
-                                </div>
+                                @if(is_null($oldDisplay))
+                                    <span class="text-slate-300 text-xs">—</span>
+                                @elseif($isBool)
+                                    <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest {{ $oldDisplay === 'Yes' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500' }}">
+                                        {{ $oldDisplay }}
+                                    </span>
+                                @else
+                                    <div class="text-xs text-rose-500 font-medium bg-rose-50 px-2 py-0.5 rounded inline-block max-w-[120px] truncate">
+                                        {{ $oldDisplay }}
+                                    </div>
+                                @endif
                             </td>
                             <td class="px-4 py-3">
-                                <div class="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded inline-block max-w-[120px] truncate">
-                                    {{ $trail->new_value ?? '—' }}
-                                </div>
+                                @if(is_null($newDisplay))
+                                    <span class="text-slate-300 text-xs">—</span>
+                                @elseif($isBool)
+                                    <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest {{ $newDisplay === 'Yes' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500' }}">
+                                        {{ $newDisplay }}
+                                    </span>
+                                @else
+                                    <div class="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded inline-block max-w-[120px] truncate">
+                                        {{ $newDisplay }}
+                                    </div>
+                                @endif
                             </td>
                         </tr>
                     @empty

@@ -118,7 +118,7 @@ class AdminLogsTest extends TestCase
             ->assertSee('unique_sentinel_value');
     }
 
-    public function test_admin_can_export_logs_csv(): void
+    public function test_admin_can_export_logs_excel(): void
     {
         $admin = $this->adminUser();
         $user  = $this->regularUser();
@@ -128,11 +128,7 @@ class AdminLogsTest extends TestCase
             ->get(route('admin.logs.export'));
 
         $response->assertOk();
-        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
-
-        $content = $response->streamedContent();
-        $this->assertStringContainsString('Timestamp', $content);
-        $this->assertStringContainsString('csv_export_marker', $content);
-        $this->assertStringContainsString('maturity_rating', $content);
+        $response->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $response->assertHeader('Content-Disposition', 'attachment; filename=audit_trail_' . date('Y-m-d') . '.xlsx');
     }
 }

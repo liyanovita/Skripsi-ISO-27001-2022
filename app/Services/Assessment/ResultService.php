@@ -26,33 +26,58 @@ class ResultService
             throw new \Exception('Unauthorized: You do not have permission to update this assessment result.');
         }
 
-        // Score is the only required assessment input. Evidence, notes, PIC,
-        // and due date remain optional.
-        $hasSubmittedScore = array_key_exists('maturity_rating', $data)
-            || (isset($data['answers']) && is_array($data['answers']) && count($data['answers']) > 0);
+        $isClause = in_array($result->standard->type ?? '', ['clause', 'clausa']);
 
-        if (!$hasSubmittedScore && $result->status !== 'completed') {
-            throw new \Exception('Please select a score before saving this control.');
+        // Determine applicability
+        if ($isClause) {
+            $isApplicable = true;
+        } else {
+            $isApplicable = array_key_exists('is_applicable', $data)
+                ? filter_var($data['is_applicable'], FILTER_VALIDATE_BOOLEAN)
+                : $result->is_applicable;
         }
 
-        $maturityRating = $hasSubmittedScore
-            ? $this->calculateMaturityRating($data)
-            : $result->maturity_rating;
-        if ($maturityRating < 0 || $maturityRating > 5) {
-            throw new \Exception('Invalid maturity rating: must be between 0 and 5.');
+        // Non-applicable controls don't require scores — skip score logic entirely
+        if (!$isApplicable) {
+            $maturityRating = null;
+            $status = 'completed';
+        } else {
+            // Score is the only required assessment input. Evidence, notes, PIC,
+            // and due date remain optional.
+            $hasSubmittedScore = array_key_exists('maturity_rating', $data)
+                || (isset($data['answers']) && is_array($data['answers']) && count($data['answers']) > 0);
+
+            if (!$hasSubmittedScore && $result->status !== 'completed') {
+                throw new \Exception('Please select a score before saving this control.');
+            }
+
+            $maturityRating = $hasSubmittedScore
+                ? $this->calculateMaturityRating($data)
+                : $result->maturity_rating;
+            if ($maturityRating !== null && ($maturityRating < 0 || $maturityRating > 5)) {
+                throw new \Exception('Invalid maturity rating: must be between 0 and 5.');
+            }
+            $status = $hasSubmittedScore ? 'completed' : $result->status;
         }
 
         $evidencePath = $this->handleEvidenceUpload($result, $file);
 
-        $result->update([
+        $updateData = [
             'answers' => $data['answers'] ?? [],
             'maturity_rating' => $maturityRating,
             'notes' => $data['notes'] ?? null,
             'evidence_file' => $evidencePath,
-            'status' => $hasSubmittedScore ? 'completed' : $result->status,
+            'status' => $status,
             'treatment_pic' => $data['treatment_pic'] ?? null,
             'treatment_due_date' => $data['treatment_due_date'] ?? null,
-        ]);
+            'is_applicable' => $isApplicable,
+        ];
+
+        if (array_key_exists('soa_justification', $data)) {
+            $updateData['soa_justification'] = $data['soa_justification'];
+        }
+
+        $result->update($updateData);
 
         if (isset($data['trigger_ai']) && $data['trigger_ai'] == '1') {
             $result->update([
@@ -153,17 +178,26 @@ class ResultService
         return 0;
     }
 
-    protected function handleEvidenceUpload(AssessmentResult $result, ?UploadedFile $file): ?string
+    protected function handleEvidenceUpload(AssessmentResult $result, ?UploadedFile $file): ?array
     {
+        $currentFiles = is_array($result->evidence_file) ? $result->evidence_file : (empty($result->evidence_file) ? [] : [$result->evidence_file]);
+
         if (!$file) {
-            return $result->evidence_file;
+            return $currentFiles;
         }
 
-        if ($result->evidence_file && Storage::exists($result->evidence_file)) {
-            Storage::delete($result->evidence_file);
-        }
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $extension = $file->getClientOriginalExtension();
+        
+        $cleanName = \Illuminate\Support\Str::slug($originalName);
+        $codeSlug = \Illuminate\Support\Str::slug($result->standard->code);
+        $fileName = 'evidence-' . $codeSlug . '-' . $cleanName . '-' . time() . '.' . $extension;
 
-        return $file->store('evidence/' . $result->session_id);
+        $path = $file->storeAs('evidence/' . $result->session_id, $fileName, 'public');
+        
+        $currentFiles[] = $path;
+
+        return $currentFiles;
     }
 
     protected function sendToN8n(AssessmentResult $result): void
@@ -214,6 +248,7 @@ class ResultService
         
         $avg = AssessmentResult::where('session_id', $sessionId)
             ->where('status', 'completed')
+            ->where('is_applicable', true)
             ->whereHas('standard', function ($query) {
                 $query->whereNotNull('questions');
             })
@@ -221,6 +256,7 @@ class ResultService
 
         $hasCompletedControls = AssessmentResult::where('session_id', $sessionId)
             ->where('status', 'completed')
+            ->where('is_applicable', true)
             ->whereHas('standard', function ($query) {
                 $query->whereNotNull('questions');
             })

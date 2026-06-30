@@ -349,7 +349,7 @@
                     <div class="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center mb-3 shadow-md">
                         <i class="fa-solid fa-user-tie text-white text-xl"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900 mb-1.5">{{ __('Internal Auditors') }}</h3>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1.5">{{ __('Internal Assessors') }}</h3>
                     <p class="text-sm text-gray-600 leading-normal">{{ __('Use this platform as a tool to conduct structured ISO 27001 compliance audits.') }}</p>
                 </div>
                 <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-4 border border-green-200 hover:shadow-lg transition-all card-hover">
@@ -485,7 +485,7 @@
                         <i id="faq-icon-1" class="fa-solid fa-chevron-down text-gray-400 transition-transform"></i>
                     </button>
                     <div id="faq-1" class="hidden px-4 pb-4">
-                        <p class="text-gray-500 leading-normal">{{ __('This is a web-based audit decision support system designed to help organizations, internal auditors, academics, and IT practitioners evaluate information security compliance against the ISO 27001:2022 standard.') }}</p>
+                        <p class="text-gray-500 leading-normal">{{ __('This is a web-based assessment decision support system designed to help organizations, assessors, academics, and IT practitioners evaluate information security compliance against the ISO 27001:2022 standard.') }}</p>
                     </div>
                 </div>
                 <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">

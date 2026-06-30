@@ -49,7 +49,7 @@
             <i class="fa-solid fa-file-pdf"></i> Download PDF Report
         </a>
         <a href="{{ route('admin.reports.export_csv') }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
-            <i class="fa-solid fa-file-csv"></i> Export Raw Data (CSV)
+            <i class="fa-solid fa-file-excel"></i> Export Raw Data (Excel)
         </a>
     </div>
 </div>

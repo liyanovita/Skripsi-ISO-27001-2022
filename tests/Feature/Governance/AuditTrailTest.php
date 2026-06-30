@@ -91,7 +91,7 @@ class AuditTrailTest extends TestCase
             ->assertSee('No changes found in the audit trail');
     }
 
-    public function test_audit_trail_csv_export(): void
+    public function test_audit_trail_excel_export(): void
     {
         $user = User::factory()->create();
         
@@ -132,11 +132,6 @@ class AuditTrailTest extends TestCase
             ->get(route('audit-trail.export'));
 
         $response->assertOk();
-        $response->assertHeader('Content-type', 'text/csv; charset=UTF-8');
-        
-        $content = $response->streamedContent();
-        $this->assertStringContainsString('Export_Test_Value', $content);
-        $this->assertStringContainsString('A.5.1', $content);
-        $this->assertStringContainsString('maturity_rating', $content);
+        $response->assertHeader('Content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     }
 }

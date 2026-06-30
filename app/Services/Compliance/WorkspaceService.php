@@ -36,13 +36,14 @@ class WorkspaceService
 
         // Calculate stats from already-loaded results
         $stats = [
-            'total' => $results->count(),
-            'gaps' => $results->where('is_applicable', true)->where('status', 'completed')->where('maturity_rating', '<', 4)->count(),
-            'applicable' => $results->where('is_applicable', true)->count(),
-            'not_applicable' => $results->where('is_applicable', false)->count(),
-            'closed' => $results
+            'total'         => $results->count(),
+            'gaps'          => $results->where('is_applicable', true)->where('status', 'completed')->whereNotNull('maturity_rating')->where('maturity_rating', '<', 4)->count(),
+            'applicable'    => $results->where('is_applicable', true)->count(),
+            'not_applicable'=> $results->where('is_applicable', false)->count(),
+            'closed'        => $results
                 ->where('is_applicable', true)
                 ->where('status', 'completed')
+                ->whereNotNull('maturity_rating')
                 ->where('maturity_rating', '<', 4)
                 ->where('treatment_status', 'closed')
                 ->count(),
@@ -60,13 +61,15 @@ class WorkspaceService
      */
     public function updateEntry(int $resultId, int $userId, array $data): AssessmentResult
     {
-        $result = AssessmentResult::whereHas('session', fn($query) => $query->where('user_id', $userId))
+        $result = AssessmentResult::with('standard')
+            ->whereHas('session', fn($query) => $query->where('user_id', $userId))
             ->findOrFail($resultId);
 
         $updateData = [];
 
         if (array_key_exists('is_applicable', $data)) {
-            $updateData['is_applicable'] = filter_var($data['is_applicable'], FILTER_VALIDATE_BOOLEAN);
+            $isClause = in_array($result->standard->type ?? '', ['clause', 'clausa']);
+            $updateData['is_applicable'] = $isClause ? true : filter_var($data['is_applicable'], FILTER_VALIDATE_BOOLEAN);
         }
         if (array_key_exists('soa_justification', $data)) {
             $updateData['soa_justification'] = $data['soa_justification'];

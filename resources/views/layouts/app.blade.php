@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/@hotwired/turbo@7.3.0/dist/turbo.es2017-umd.js"></script>
     {{-- Chart.js hanya di-load jika halaman membutuhkannya --}}
     @stack('head_scripts')
@@ -19,6 +20,11 @@
     <style>
         .turbo-progress-bar { display: none !important; }
         [x-cloak] { display: none !important; }
+        /* Hide browser-native reveal password buttons */
+        input::-ms-reveal,
+        input::-ms-clear {
+            display: none;
+        }
         body { font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -0.01em; scroll-behavior: smooth; }
         .custom-scrollbar::-webkit-scrollbar { width: 5px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
@@ -85,6 +91,39 @@
                 if (!localStorage.getItem('guideShown')) {
                     this.showWelcomeGuide = true;
                 }
+
+                @auth
+                    @if(session('just_logged_in') && !auth()->user()->isProfileComplete())
+                        this.$nextTick(() => {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: '{{ __("Incomplete Profile") }}',
+                                text: '{{ __("Your organization profile is not yet complete. Please complete your profile to get the most accurate ISO 27001:2022 assessment results.") }}',
+                                showCancelButton: true,
+                                confirmButtonText: '{{ __("Complete Now") }}',
+                                cancelButtonText: '{{ __("Later") }}',
+                                confirmButtonColor: '#4f46e5',
+                                cancelButtonColor: '#94a3b8',
+                                width: '22rem',
+                                customClass: {
+                                    popup: 'rounded-2xl p-4',
+                                    title: 'text-sm font-bold text-slate-800 mt-2',
+                                    htmlContainer: 'text-xs text-slate-500 font-medium my-2',
+                                    confirmButton: 'rounded-xl font-bold px-4 py-2 text-xs',
+                                    cancelButton: 'rounded-xl font-bold px-4 py-2 text-xs'
+                                }
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    if (typeof Turbo !== 'undefined') {
+                                        Turbo.visit('{{ route("profile.edit") }}');
+                                    } else {
+                                        window.location.href = '{{ route("profile.edit") }}';
+                                    }
+                                }
+                            });
+                        });
+                    @endif
+                @endauth
             },
             dismissGuide() {
                 this.showWelcomeGuide = false;
@@ -99,7 +138,7 @@
                 this.toasts.push({ id, message, type });
                 setTimeout(() => {
                     this.toasts = this.toasts.filter(t => t.id !== id);
-                }, 6000);
+                }, 5000);
             },
             toggleSidebar() {
                 this.sidebarOpen = !this.sidebarOpen;
@@ -166,39 +205,32 @@
         </button>
 
         {{-- Global Toast Container --}}
-        <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[500] flex flex-col items-center gap-3 w-full max-w-sm px-4 pointer-events-none">
+        <div class="fixed top-5 right-5 z-[100] space-y-2 w-72">
             <template x-for="toast in toasts" :key="toast.id">
-                <div x-transition:enter="transition ease-out duration-400"
-                     x-transition:enter-start="opacity-0 scale-90 translate-y-6"
-                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                     x-transition:leave="transition ease-in duration-300"
-                     x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                     x-transition:leave-end="opacity-0 scale-90 translate-y-6"
-                     :class="{
-                         'bg-emerald-600 shadow-emerald-600/40': toast.type === 'success',
-                         'bg-rose-600 shadow-rose-600/40': toast.type === 'error',
-                         'bg-blue-600 shadow-blue-600/40': toast.type === 'info',
-                         'bg-amber-500 shadow-amber-500/40': toast.type === 'warning'
-                     }"
-                     class="w-full rounded-2xl px-5 py-4 shadow-2xl flex items-center gap-4 pointer-events-auto">
-                    {{-- Icon --}}
-                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0 border border-white/20">
-                        <i class="fa-solid text-white text-base" :class="{
-                            'fa-circle-check': toast.type === 'success',
-                            'fa-circle-xmark': toast.type === 'error',
-                            'fa-circle-info': toast.type === 'info',
+                <div x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 scale-95 translate-x-8"
+                     x-transition:enter-end="opacity-100 scale-100 translate-x-0"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100 scale-100 translate-x-0"
+                     x-transition:leave-end="opacity-0 scale-95 translate-x-8"
+                     class="bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-xl flex items-center gap-3">
+                    <div :class="{
+                        'bg-emerald-50 text-emerald-600': toast.type === 'success',
+                        'bg-rose-50 text-rose-600': toast.type === 'error',
+                        'bg-blue-50 text-blue-600': toast.type === 'info',
+                        'bg-amber-50 text-amber-600': toast.type === 'warning'
+                    }" class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="fa-solid text-xs" :class="{
+                            'fa-check': toast.type === 'success',
+                            'fa-xmark': toast.type === 'error',
+                            'fa-info': toast.type === 'info',
                             'fa-triangle-exclamation': toast.type === 'warning'
                         }"></i>
                     </div>
-                    {{-- Text --}}
                     <div class="flex-1 min-w-0">
-                        <p class="text-[9px] font-black uppercase tracking-widest text-white/70 leading-none" x-text="toast.type === 'error' ? 'Error' : toast.type === 'success' ? 'Success' : toast.type === 'warning' ? 'Warning' : 'Info'"></p>
-                        <p class="text-sm font-bold text-white leading-snug mt-0.5" x-text="toast.message"></p>
+                        <p class="text-[9px] font-black uppercase tracking-widest text-slate-400 leading-none" x-text="toast.type"></p>
+                        <p class="text-[11px] font-bold text-slate-700 leading-snug mt-0.5" x-text="toast.message"></p>
                     </div>
-                    {{-- Close Button --}}
-                    <button @click="toasts = toasts.filter(t => t.id !== toast.id)" class="w-7 h-7 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center text-white transition-all shrink-0 border border-white/20">
-                        <i class="fa-solid fa-xmark text-xs"></i>
-                    </button>
                 </div>
             </template>
         </div>
@@ -768,7 +800,26 @@
                 <div class="w-full">
                     {{-- Global Alerts (Triggering Alpine Toasts) --}}
                     @if(session('success'))
-                    <div x-init="$nextTick(() => { addToast('{{ addslashes(session('success')) }}', 'success') })"></div>
+                    <div x-init="$nextTick(() => { 
+                        const msg = '{{ addslashes(session('success')) }}';
+                        if (msg.toLowerCase().includes('import') || msg.toLowerCase().includes('export')) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '{{ __("Success") }}',
+                                text: msg,
+                                width: '22rem',
+                                confirmButtonColor: '#4f46e5',
+                                customClass: {
+                                    popup: 'rounded-2xl p-4',
+                                    title: 'text-sm font-bold text-slate-800 mt-2',
+                                    htmlContainer: 'text-xs text-slate-500 font-medium my-2',
+                                    confirmButton: 'rounded-xl font-bold px-4 py-2 text-xs'
+                                }
+                            });
+                        } else {
+                            addToast(msg, 'success');
+                        }
+                    })"></div>
                     @endif
                     @if(session('error'))
                     <div x-init="$nextTick(() => { addToast('{{ addslashes(session('error')) }}', 'error') })"></div>
@@ -1088,9 +1139,9 @@
               title: @js(__('Audit Trail – Search & Filters')),
               text:  @js(__('Use the search input or session dropdown to filter activity logs and pinpoint specific compliance changes.')) },
             /* ── 24: Audit Trail Export ─────────────────────── */
-            { path: ROUTES.auditTrail, target: '#btn-export-csv',      icon: 'fa-download',          color: '#ea580c',
+            { path: ROUTES.auditTrail, target: '#btn-export-excel',      icon: 'fa-file-excel',          color: '#ea580c',
               title: @js(__('Audit Trail – Export Log')),
-              text:  @js(__('Click \'Export CSV\' to download the full audit log for offline review or to present as evidence during external certification audits.')) }
+              text:  @js(__('Click \'Export\' to download the full audit log for offline review or to present as evidence during external certification audits.')) }
         ];
         var current = 0;
 
@@ -1380,7 +1431,7 @@
                         $helpItems = [
                             ['icon' => 'fa-clock-rotate-left', 'color' => 'amber', 'text' => __('This page records all changes made to assessment controls in the system.')],
                             ['icon' => 'fa-calendar', 'color' => 'blue', 'text' => __('Use the date filter to narrow down activity for a specific period.')],
-                            ['icon' => 'fa-download', 'color' => 'emerald', 'text' => __('Export the log as CSV for offline review or compliance reporting.')],
+                            ['icon' => 'fa-file-excel', 'color' => 'emerald', 'text' => __('Export the log as Excel for offline review or compliance reporting.')],
                         ];
                         $helpLinks = [];
                     } else {
@@ -1435,6 +1486,57 @@
             </div>
         </div>
     </div>
+
+    <script>
+    (function() {
+        document.addEventListener("submit", function(e) {
+            const form = e.target;
+            if (form && form.method.toLowerCase() === 'get' && !form.hasAttribute('data-turbo-bypass')) {
+                e.preventDefault();
+                const url = new URL(form.action || window.location.href);
+                const formData = new FormData(form);
+                const params = new URLSearchParams();
+                
+                for (const [key, value] of formData.entries()) {
+                    if (value !== '') {
+                        params.append(key, value);
+                    }
+                }
+
+                url.search = params.toString();
+
+                if (typeof Turbo !== 'undefined') {
+                    Turbo.visit(url.toString(), { action: 'replace' });
+                } else {
+                    window.location.href = url.toString();
+                }
+            }
+        });
+    })();
+    
+    document.addEventListener('click', function (e) {
+        const link = e.target.closest('a');
+        if (link && (link.href.includes('export') || link.href.includes('download-pdf') || link.href.includes('download-excel'))) {
+            if (link.href.includes('export') || link.href.includes('download')) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '{{ __("Export Successful") }}',
+                    text: '{{ __("Your download file has been generated successfully.") }}',
+                    timer: 3000,
+                    timerProgressBar: true,
+                    width: '22rem',
+                    confirmButtonColor: '#4f46e5',
+                    customClass: {
+                        popup: 'rounded-2xl p-4',
+                        title: 'text-sm font-bold text-slate-800 mt-2',
+                        htmlContainer: 'text-xs text-slate-500 font-medium my-2',
+                        confirmButton: 'rounded-xl font-bold px-4 py-2 text-xs'
+                    }
+                });
+            }
+        }
+    });
+    </script>
 
     @stack('scripts')
 </body>

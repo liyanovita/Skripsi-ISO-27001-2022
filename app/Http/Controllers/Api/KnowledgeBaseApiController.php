@@ -395,6 +395,14 @@ class KnowledgeBaseApiController extends BaseApiController
     {
         try {
             $item = $this->knowledgeBaseService->findOrFail($id);
+
+            if (! $item->is_system) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'PDF download is only available for official system resources.'
+                ], 403);
+            }
+
             $item = $this->knowledgeBaseService->recordDownload($item);
             $html = $this->knowledgeBaseService->generatePdfContent($item);
             $pdf = Pdf::loadHTML($html);

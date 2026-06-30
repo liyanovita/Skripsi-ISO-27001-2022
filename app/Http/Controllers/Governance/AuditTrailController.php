@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Governance;
 use App\Http\Controllers\Controller;
 use App\Models\AuditTrail;
 use App\Models\AssessmentSession;
+use App\Services\ExcelExportService;
 use Illuminate\Http\Request;
 
 class AuditTrailController extends Controller
@@ -48,25 +49,30 @@ class AuditTrailController extends Controller
 
         $columns = ['Date & Time', 'User', 'Control Code', 'Field Changed', 'Old Value', 'New Value'];
 
-        $callback = function() use($trails, $columns) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, $columns);
+        $booleanFields = ['is_applicable'];
 
-            foreach ($trails as $trail) {
-                $row['Date & Time']  = $trail->created_at->format('Y-m-d H:i:s');
-                $row['User']         = $trail->user->name ?? 'System';
-                $row['Control Code'] = $trail->model?->standard?->code ?? 'N/A';
-                $row['Field Changed']= $trail->field_changed;
-                $row['Old Value']    = $trail->old_value;
-                $row['New Value']    = $trail->new_value;
+        $booleanFields = ['is_applicable'];
+        $rows = [];
 
-                fputcsv($file, [$row['Date & Time'], $row['User'], $row['Control Code'], $row['Field Changed'], $row['Old Value'], $row['New Value']]);
-            }
+        foreach ($trails as $trail) {
+            $isBool   = in_array($trail->field_changed, $booleanFields);
+            $oldRaw   = $trail->old_value;
+            $newRaw   = $trail->new_value;
+            $oldDisplay = !is_null($oldRaw) ? ($isBool ? ($oldRaw == '1' ? 'Yes' : 'No') : $oldRaw) : '-';
+            $newDisplay = !is_null($newRaw) ? ($isBool ? ($newRaw == '1' ? 'Yes' : 'No') : $newRaw) : '-';
 
-            fclose($file);
-        };
+            $rows[] = [
+                $trail->created_at->format('Y-m-d H:i:s'),
+                $trail->user->name ?? 'System',
+                $trail->model?->standard?->code ?? 'N/A',
+                $trail->field_changed,
+                $oldDisplay,
+                $newDisplay,
+            ];
+        }
 
-        return response()->stream($callback, 200, $headers);
+        $filename = 'Audit_Trail_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+        return ExcelExportService::download($filename, $columns, $rows, 'Audit Trail');
     }
 
     private function buildQuery($userId, $selectedId, $search)

@@ -30,19 +30,40 @@
                 <span class="flex items-center gap-1"><i class="fa-solid fa-clock"></i> Updated {{ $session->updated_at->diffForHumans() }}</span>
             </div>
         </div>
-        @php
-            $score = $session->overall_maturity_score;
-            $label = 'Initial';
-            if ($score >= 4.5) $label = 'Optimized';
-            elseif ($score >= 3.5) $label = 'Managed';
-            elseif ($score >= 2.5) $label = 'Defined';
-            elseif ($score >= 1.5) $label = 'Limited/Repeatable';
-        @endphp
-        <div class="text-center bg-slate-50 rounded-xl px-6 py-3 border border-slate-200">
-            <div class="text-3xl font-black {{ $session->overall_maturity_score >= 4 ? 'text-emerald-600' : ($session->overall_maturity_score >= 2.5 ? 'text-amber-600' : 'text-red-600') }}">
-                {{ number_format($session->overall_maturity_score, 2) }}
+        <div class="flex items-center gap-3 shrink-0">
+            @php
+                $complianceScore = $stats['applicable'] > 0 ? round(($stats['compliant'] / $stats['applicable']) * 100) : 0;
+            @endphp
+            <div class="text-center bg-slate-50 rounded-xl px-6 py-3 border border-slate-200">
+                <div class="text-3xl font-black {{ $complianceScore >= 80 ? 'text-emerald-600' : ($complianceScore >= 50 ? 'text-amber-600' : 'text-rose-600') }}">
+                    {{ $complianceScore }}%
+                </div>
+                <div class="text-[9px] text-slate-400 font-black uppercase tracking-wider">
+                    @if($complianceScore >= 80)
+                        Optimal Posture
+                    @elseif($complianceScore >= 50)
+                        Needs Improvement
+                    @else
+                        Critical Risk
+                    @endif
+                </div>
             </div>
-            <div class="text-[9px] text-slate-400 font-black uppercase tracking-wider">Maturity: {{ $label }}</div>
+
+            @php
+                $score = $session->overall_maturity_score;
+                $label = 'Non-existent (Level 0)';
+                if ($score >= 4.5) $label = 'Optimized (Level 5)';
+                elseif ($score >= 3.5) $label = 'Managed (Level 4)';
+                elseif ($score >= 2.5) $label = 'Defined (Level 3)';
+                elseif ($score >= 1.5) $label = 'Repeatable (Level 2)';
+                elseif ($score >= 0.5) $label = 'Initial (Level 1)';
+            @endphp
+            <div class="text-center bg-slate-50 rounded-xl px-6 py-3 border border-slate-200">
+                <div class="text-3xl font-black {{ $session->overall_maturity_score >= 4 ? 'text-purple-600' : ($session->overall_maturity_score >= 2.5 ? 'text-purple-500' : 'text-purple-400') }}">
+                    {{ number_format($session->overall_maturity_score, 2) }}
+                </div>
+                <div class="text-[9px] text-slate-400 font-black uppercase tracking-wider">Maturity: {{ $label }}</div>
+            </div>
         </div>
     </div>
 </div>

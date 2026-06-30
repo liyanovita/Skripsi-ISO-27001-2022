@@ -10,7 +10,41 @@
     $firstOpenId = $assessableResults->first(fn($r) => $r->maturity_rating === null)?->id
         ?? $assessableResults->first()?->id;
 @endphp
-<div x-data="{ showFinalizeModal: false, openId: {{ $firstOpenId ?? 'null' }}, missingScores: @json($missingCodes ?? []), finalizeMessage() { return this.missingScores.length > 0 ? 'There are ' + this.missingScores.length + ' controls without a score. Please score every control before finalizing.' : 'You are about to finalize this audit session. Evidence and notes are optional.'; }, submitFinalize() { this.$refs.finalizeForm.submit(); } }" class="max-w-7xl mx-auto space-y-8">
+<div x-data="{ 
+    showFinalizeModal: false, 
+    openId: {{ $firstOpenId ?? 'null' }}, 
+    missingScores: @json($missingCodes ?? []), 
+    results: [
+        @foreach($assessableResults as $r)
+        { id: {{ $r->id }}, code: '{{ $r->standard->code }}', is_applicable: {{ $r->is_applicable ? 'true' : 'false' }}, is_completed: {{ $r->status === 'completed' ? 'true' : 'false' }} },
+        @endforeach
+    ],
+    get totalApplicable() {
+        return this.results.filter(r => r.is_applicable).length;
+    },
+    get completedApplicable() {
+        return this.results.filter(r => r.is_applicable && r.is_completed).length;
+    },
+    get allCompleted() {
+        return this.totalApplicable > 0 && this.totalApplicable === this.completedApplicable;
+    },
+    get progressPercentage() {
+        return this.totalApplicable > 0 ? Math.round((this.completedApplicable / this.totalApplicable) * 100) : 0;
+    },
+    updateResultState(id, isApplicable, isCompleted) {
+        let r = this.results.find(res => res.id === id);
+        if (r) {
+            r.is_applicable = isApplicable;
+            r.is_completed = isCompleted;
+        }
+    },
+    finalizeMessage() { 
+        return this.missingScores.length > 0 ? 'There are ' + this.missingScores.length + ' applicable controls without a score. Please score every applicable control before finalizing.' : 'You are about to finalize this audit session. Evidence and notes are optional.'; 
+    }, 
+    submitFinalize() { 
+        this.$refs.finalizeForm.submit(); 
+    } 
+}" class="max-w-7xl mx-auto space-y-8">
     {{-- Sticky Header --}}
     <div class="sticky top-[4rem] z-30 bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between mb-8">
         <div class="flex items-center gap-4">
@@ -44,7 +78,14 @@
     {{-- Assessment Forms --}}
     <div class="space-y-6">
         @foreach($assessableResults as $result)
-        <div id="result-{{ $result->id }}" class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden scroll-mt-32 transition-all duration-200"
+        <div id="result-{{ $result->id }}" 
+             x-data="{ 
+                 rating: {{ $result->maturity_rating === null ? 'null' : $result->maturity_rating }}, 
+                 isApplicable: {{ $result->is_applicable ? 'true' : 'false' }}, 
+                 soaJustification: @js($result->soa_justification ?? ''), 
+                 labels: {0:'{{ __('Non-existent') }}', 1:'{{ __('Initial') }}', 2:'{{ __('Limited/Repeatable') }}', 3:'{{ __('Defined') }}', 4:'{{ __('Managed') }}', 5:'{{ __('Optimized') }}'} 
+             }"
+             class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden scroll-mt-32 transition-all duration-200"
              :class="openId === {{ $result->id }} ? 'border-blue-200 shadow-md' : 'hover:border-slate-200'">
 
             {{-- Accordion Header --}}
@@ -57,15 +98,17 @@
                         {{ $result->standard->code }}
                     </span>
                     <span class="text-sm font-bold text-slate-800 truncate">{{ __($result->standard->title) }}</span>
-                    @if($result->maturity_rating !== null)
-                    <span class="shrink-0 px-2 py-0.5 bg-slate-900 text-white rounded text-[9px] font-black uppercase tracking-widest">
-                        L{{ $result->maturity_rating }}
+                    
+                    {{-- Dynamic badges --}}
+                    <span x-show="!isApplicable" x-cloak class="shrink-0 px-2 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 rounded text-[9px] font-black uppercase tracking-widest">
+                        {{ __('Not Applicable') }}
                     </span>
-                    @else
-                    <span class="shrink-0 px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 rounded text-[9px] font-black uppercase tracking-widest">
+                    <span x-show="isApplicable && rating !== null" x-cloak class="shrink-0 px-2 py-0.5 bg-slate-900 text-white rounded text-[9px] font-black uppercase tracking-widest">
+                        L<span x-text="rating"></span>
+                    </span>
+                    <span x-show="isApplicable && rating === null" x-cloak class="shrink-0 px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 rounded text-[9px] font-black uppercase tracking-widest">
                         {{ __('Unscored') }}
                     </span>
-                    @endif
                 </div>
                 <i class="fa-solid fa-chevron-down text-slate-400 text-xs shrink-0 transition-transform duration-300"
                    :class="openId === {{ $result->id }} ? 'rotate-180' : ''"></i>
@@ -79,7 +122,7 @@
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100 translate-y-0"
                  x-transition:leave-end="opacity-0 -translate-y-1">
-            <form action="{{ route('results.update', $result->id) }}" method="POST" enctype="multipart/form-data" class="p-8" x-data="{ rating: {{ $result->maturity_rating === null ? 'null' : $result->maturity_rating }}, labels: {0:'Non-existent', 1:'Initial', 2:'Limited/Repeatable', 3:'Defined', 4:'Managed', 5:'Optimized'} }">
+            <form action="{{ route('results.update', $result->id) }}" method="POST" enctype="multipart/form-data" class="p-8">
                 @csrf
                 @method('POST')
 
@@ -92,7 +135,10 @@
                             </span>
                             <div class="flex items-center gap-2 mt-4 flex-wrap">
                                 <h3 class="text-xl font-bold text-slate-900 leading-tight">{{ __($result->standard->title) }}</h3>
-                                <template x-if="rating !== null">
+                                <span x-show="!isApplicable" x-cloak class="px-2 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 rounded text-[10px] font-bold uppercase tracking-widest ml-2 flex items-center gap-1">
+                                    <i class="fa-solid fa-ban text-[8px]"></i>{{ __('Not Applicable') }}
+                                </span>
+                                <template x-if="isApplicable && rating !== null">
                                     <div class="flex gap-2 items-center">
                                         <span class="px-2 py-0.5 bg-blue-600 text-white rounded text-[10px] font-bold uppercase tracking-widest ml-2">{{ __('Score L') }}<span x-text="rating"></span></span>
                                         <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold uppercase tracking-widest" x-text="labels[rating]"></span>
@@ -133,8 +179,86 @@
 
                     {{-- Assessment Interaction --}}
                     <div class="lg:w-2/3 space-y-8 lg:border-l lg:border-slate-100 lg:pl-12">
-                        {{-- Verification Questions --}}
-                        @if($result->standard->questions)
+                        {{-- Statement of Applicability --}}
+                        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
+                            <div class="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">{{ __('Statement of Applicability (SoA)') }}</h4>
+                                    <p class="text-[10px] text-slate-500 font-medium leading-snug mt-0.5">{{ __('Is this control applicable to your organization?') }}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="radio" name="is_applicable" value="1" :checked="isApplicable"
+                                            x-on:change="
+                                                isApplicable = true;
+                                                let form = $el.closest('form');
+                                                fetch(form.action, {
+                                                    method: 'POST',
+                                                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                                                    body: new FormData(form)
+                                                }).then(res => res.json()).then(data => {
+                                                    if(data.success) {
+                                                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Control set as Applicable!') }}', type: 'success' } }));
+                                                        updateResultState({{ $result->id }}, true, rating !== null);
+                                                    }
+                                                });
+                                            "
+                                            class="peer hidden">
+                                        <div class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-black uppercase tracking-widest text-slate-500 peer-checked:bg-slate-900 peer-checked:text-white peer-checked:border-slate-900 transition-all hover:bg-slate-100">
+                                            {{ __('Yes') }}
+                                        </div>
+                                    </label>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="radio" name="is_applicable" value="0" :checked="!isApplicable"
+                                            x-on:change="
+                                                isApplicable = false;
+                                                rating = null;
+                                                let form = $el.closest('form');
+                                                fetch(form.action, {
+                                                    method: 'POST',
+                                                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                                                    body: new FormData(form)
+                                                }).then(res => res.json()).then(data => {
+                                                    if(data.success) {
+                                                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Control set as Not Applicable!') }}', type: 'info' } }));
+                                                        missingScores = missingScores.filter(code => code !== '{{ $result->standard->code }}');
+                                                        updateResultState({{ $result->id }}, false, true);
+                                                    }
+                                                });
+                                            "
+                                            class="peer hidden">
+                                        <div class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-black uppercase tracking-widest text-slate-500 peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-rose-600 transition-all hover:bg-slate-100">
+                                            {{ __('No') }}
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            {{-- SoA Justification (Shown only if NOT applicable) --}}
+                            <div x-show="!isApplicable" x-transition class="pt-3 border-t border-slate-100">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">{{ __('Exclusion Justification') }} <span class="text-rose-500">*</span></label>
+                                <textarea name="soa_justification" rows="2" x-model="soaJustification"
+                                    x-on:blur="
+                                        let form = $el.closest('form');
+                                        fetch(form.action, {
+                                            method: 'POST',
+                                            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                                            body: new FormData(form)
+                                        }).then(res => res.json()).then(data => {
+                                            if(data.success) {
+                                                window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Justification auto-saved!') }}', type: 'success' } }));
+                                            }
+                                        });
+                                    "
+                                    placeholder="{{ __('Explain why this control is not applicable (e.g., outsourced processes, no physical premises)...') }}"
+                                    class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/5 transition-all"></textarea>
+                            </div>
+                        </div>
+
+                        {{-- Applicable Content Section --}}
+                        <div x-show="isApplicable" x-transition class="space-y-8">
+                            {{-- Verification Questions --}}
+                            @if($result->standard->questions)
                         <div>
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-4 ml-1">{{ __('Verification Checklist') }}</label>
                             <div class="space-y-3">
@@ -159,16 +283,16 @@
                             <div class="grid grid-cols-2 md:grid-cols-6 gap-2">
                                 @php
                                     $labels = [
-                                        0 => 'Non-existent',
-                                        1 => 'Initial',
-                                        2 => 'Limited/Repeatable',
-                                        3 => 'Defined',
-                                        4 => 'Managed',
-                                        5 => 'Optimized'
+                                        0 => ['title' => 'Non-existent', 'desc' => 'Lack of policies, procedures, controls, etc.'],
+                                        1 => ['title' => 'Initial', 'desc' => 'Development has just started and will require significant effort to meet the requirements.'],
+                                        2 => ['title' => 'Limited/Repeatable', 'desc' => 'Progress is reasonably good but not yet complete.'],
+                                        3 => ['title' => 'Defined', 'desc' => 'Development is more or less complete, although details are still lacking and/or it has not been fully implemented, enforced, and actively supported by management.'],
+                                        4 => ['title' => 'Managed', 'desc' => 'Development is complete, processes/controls have been implemented and are newly operational.'],
+                                        5 => ['title' => 'Optimized', 'desc' => 'Requirements are fully met, operating completely as expected, actively monitored and improved, and there is substantial evidence that can be provided to auditors.']
                                     ];
                                 @endphp
                                 @for($i = 0; $i <= 5; $i++)
-                                <label class="relative group cursor-pointer">
+                                <label class="relative group cursor-pointer" title="{{ __($labels[$i]['desc']) }}">
                                     <input type="radio" name="maturity_rating" value="{{ $i }}" x-model.number="rating" 
                                         x-on:change="
                                             let form = $el.closest('form');
@@ -181,13 +305,14 @@
                                                     window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Maturity Level') }} ' + $el.value + ' - ' + labels[$el.value] + ' {{ __('auto-saved!') }}', type: 'success' } }));
                                                     // Remove from missingScores if it exists
                                                     missingScores = missingScores.filter(code => code !== '{{ $result->standard->code }}');
+                                                    updateResultState({{ $result->id }}, true, true);
                                                 }
                                             });
                                         "
                                         class="peer hidden">
                                     <div class="flex flex-col items-center gap-1 p-3 rounded-xl border border-slate-100 text-slate-400 peer-checked:bg-slate-900 peer-checked:text-white peer-checked:border-slate-900 peer-checked:scale-110 peer-checked:ring-4 peer-checked:ring-slate-900/30 peer-checked:z-10 hover:border-blue-500 hover:-translate-y-1 hover:shadow-md transition-all duration-300 transform">
                                         <span class="text-lg font-bold">{{ $i }}</span>
-                                        <span class="text-[8px] font-bold uppercase tracking-tight text-center leading-none">{{ $labels[$i] }}</span>
+                                        <span class="text-[8px] font-bold uppercase tracking-tight text-center leading-none">{{ __($labels[$i]['title']) }}</span>
                                     </div>
                                 </label>
                                 @endfor
@@ -294,6 +419,7 @@
                                 {{ !empty($result->ai_recommendation) ? __('Save & Regenerate with AI') : __('Save & Analyze with AI') }}
                             </button>
                         </div>
+                        </div> {{-- /applicable content section --}}
                     </div>
                 </div>
             </form>
@@ -303,23 +429,17 @@
     </div>
 
     {{-- Finalize Audit Section --}}
-    @php
-        $totalControls = $assessableResults->count();
-        $completedControls = $assessableResults->where('status', 'completed')->count();
-        $allCompleted = $totalControls > 0 && $totalControls === $completedControls;
-    @endphp
-
     <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 mt-6">
         <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
             {{-- Progress Info --}}
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg {{ $allCompleted ? 'bg-emerald-600 shadow-emerald-600/20' : 'bg-slate-400 shadow-slate-400/10' }}">
-                    <i class="fa-solid {{ $allCompleted ? 'fa-flag-checkered' : 'fa-clipboard-list' }} text-xl"></i>
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg transition-all" :class="allCompleted ? 'bg-emerald-600 shadow-emerald-600/20' : 'bg-slate-400 shadow-slate-400/10'">
+                    <i class="fa-solid text-xl transition-all" :class="allCompleted ? 'fa-flag-checkered' : 'fa-clipboard-list'"></i>
                 </div>
                 <div>
                     <h3 class="text-lg font-black text-slate-900 tracking-tight uppercase">{{ __('Audit Completion') }}</h3>
-                    <p class="text-[10px] font-bold uppercase tracking-widest mt-0.5 {{ $allCompleted ? 'text-emerald-600' : 'text-slate-400' }}">
-                        {{ $completedControls }}/{{ $totalControls }} {{ __('controls scored') }}
+                    <p class="text-[10px] font-bold uppercase tracking-widest mt-0.5" :class="allCompleted ? 'text-emerald-600' : 'text-slate-400'">
+                        <span x-text="completedApplicable"></span>/<span x-text="totalApplicable"></span> {{ __('controls scored') }}
                     </p>
                 </div>
             </div>
@@ -327,16 +447,22 @@
             {{-- Progress Bar --}}
             <div class="flex-1 max-w-md w-full">
                 <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full rounded-full transition-all duration-500 {{ $allCompleted ? 'bg-emerald-500' : 'bg-blue-500' }}" style="width: {{ $totalControls > 0 ? round(($completedControls / $totalControls) * 100) : 0 }}%"></div>
+                    <div class="h-full rounded-full transition-all duration-500" :class="allCompleted ? 'bg-emerald-500' : 'bg-blue-500'" :style="'width: ' + progressPercentage + '%'"></div>
                 </div>
                 <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 text-right">
-                    {{ $totalControls > 0 ? round(($completedControls / $totalControls) * 100) : 0 }}% {{ __('Complete') }}
+                    <span x-text="progressPercentage"></span>% {{ __('Complete') }}
                 </p>
             </div>
 
-            {{-- Finalize Button --}}
-            @if($allCompleted && $session->status !== 'completed')
-                <form x-ref="finalizeForm" id="finalize-form" action="{{ route('sessions.finalize', $session->id) }}" method="POST">
+            {{-- Finalize Button / Locked Status --}}
+            @if($session->status === 'completed')
+                <div class="px-6 py-3 bg-emerald-50 text-emerald-700 text-xs font-black uppercase tracking-widest rounded-xl border border-emerald-200 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-check"></i>
+                    {{ __('Audit Completed') }}
+                </div>
+            @else
+                {{-- Shown only when all applicable controls are completed --}}
+                <form x-show="allCompleted" x-cloak x-transition x-ref="finalizeForm" id="finalize-form" action="{{ route('sessions.finalize', $session->id) }}" method="POST">
                     @csrf
                     <button type="button" x-on:click="showFinalizeModal = true" aria-label="Finalize Audit" title="{{ __('Finalize Audit') }}" 
                         class="px-8 py-3.5 bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/20 transition-all flex items-center gap-2 active:scale-95 shadow-md">
@@ -345,6 +471,13 @@
                     </button>
                 </form>
 
+                {{-- Shown when some controls are still missing --}}
+                <div x-show="!allCompleted" class="px-6 py-3 bg-slate-50 text-slate-400 text-xs font-black uppercase tracking-widest rounded-xl border border-slate-200 flex items-center gap-2 cursor-not-allowed select-none">
+                    <i class="fa-solid fa-lock"></i>
+                    {{ __('Score All Applicable Controls First') }}
+                </div>
+
+                {{-- Finalize Confirmation Modal --}}
                 <div x-show="showFinalizeModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" x-on:click="showFinalizeModal = false"></div>
                     <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-xl p-6 z-10" x-on:keydown.escape.window="showFinalizeModal = false">
@@ -380,16 +513,6 @@
                             </button>
                         </div>
                     </div>
-                </div>
-            @elseif($session->status === 'completed')
-                <div class="px-6 py-3 bg-emerald-50 text-emerald-700 text-xs font-black uppercase tracking-widest rounded-xl border border-emerald-200 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-check"></i>
-                    {{ __('Audit Completed') }}
-                </div>
-            @else
-                <div class="px-6 py-3 bg-slate-50 text-slate-400 text-xs font-black uppercase tracking-widest rounded-xl border border-slate-200 flex items-center gap-2 cursor-not-allowed">
-                    <i class="fa-solid fa-lock"></i>
-                    {{ __('Score All Controls First') }}
                 </div>
             @endif
         </div>

@@ -11,7 +11,7 @@
     </div>
     <a href="{{ route('admin.capa.export', array_filter(['status' => request('status'), 'risk' => request('risk')])) }}"
        class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold transition-all shadow-sm hover:shadow-md shrink-0">
-        <i class="fa-solid fa-file-csv"></i> Export CSV
+        <i class="fa-solid fa-file-excel"></i> Export Excel
     </a>
 </div>
 
@@ -66,13 +66,15 @@
 
 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
     <div class="p-4 border-b border-slate-200 bg-slate-50">
-        <form method="GET" action="{{ route('admin.capa.index') }}" class="flex flex-col sm:flex-row gap-3">
+        <form method="GET" action="{{ route('admin.capa.index') }}" x-data class="flex flex-col sm:flex-row gap-3">
             <div class="flex-1 relative">
                 <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search Clause/Control, User Name..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <input type="text" name="search" value="{{ request('search') }}"
+                    x-on:input.debounce.500ms="$el.closest('form').requestSubmit()"
+                    placeholder="Search Clause/Control, User Name..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
             </div>
             
-            <select name="status" class="px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white">
+            <select name="status" x-on:change="$el.closest('form').requestSubmit()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white">
                 <option value="">All Statuses</option>
                 <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending/Open/In Progress</option>
                 <option value="open" {{ request('status') == 'open' ? 'selected' : '' }}>Open</option>
@@ -80,7 +82,7 @@
                 <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
             </select>
 
-            <select name="risk" class="px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white">
+            <select name="risk" x-on:change="$el.closest('form').requestSubmit()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white">
                 <option value="">All Risks</option>
                 <option value="Critical" {{ request('risk') == 'Critical' ? 'selected' : '' }}>Critical</option>
                 <option value="High" {{ request('risk') == 'High' ? 'selected' : '' }}>High</option>
@@ -88,9 +90,6 @@
                 <option value="Low" {{ request('risk') == 'Low' ? 'selected' : '' }}>Low</option>
             </select>
 
-            <button type="submit" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-bold hover:bg-slate-700 transition-colors">
-                Filter
-            </button>
             @if(request()->hasAny(['search', 'status', 'risk']))
                 <a href="{{ route('admin.capa.index') }}" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors flex items-center justify-center">
                     Clear
@@ -128,12 +127,12 @@
                         </div>
                     </td>
                     <td class="px-6 py-4">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider
-                            {{ $capa->risk_priority == 'Critical' ? 'bg-red-100 text-red-800' : '' }}
-                            {{ $capa->risk_priority == 'High' ? 'bg-orange-100 text-orange-800' : '' }}
-                            {{ $capa->risk_priority == 'Medium' ? 'bg-yellow-100 text-yellow-800' : '' }}
-                            {{ $capa->risk_priority == 'Low' ? 'bg-green-100 text-green-800' : '' }}
-                            {{ !$capa->risk_priority ? 'bg-slate-100 text-slate-600' : '' }}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest
+                            {{ $capa->risk_priority == 'Critical' ? 'bg-rose-100 text-rose-700' : '' }}
+                            {{ $capa->risk_priority == 'High' ? 'bg-orange-100 text-orange-700' : '' }}
+                            {{ $capa->risk_priority == 'Medium' ? 'bg-amber-100 text-amber-700' : '' }}
+                            {{ $capa->risk_priority == 'Low' ? 'bg-emerald-100 text-emerald-700' : '' }}
+                            {{ !$capa->risk_priority ? 'bg-slate-100 text-slate-700' : '' }}
                         ">
                             {{ $capa->risk_priority ?: 'Low' }}
                         </span>

@@ -14,8 +14,7 @@ class SessionController extends Controller
         $search       = $request->input('search');
         $statusFilter = $request->input('status');
         $userFilter   = $request->input('user_id');
-        $dateFrom     = $request->input('date_from');
-        $dateTo       = $request->input('date_to');
+        $month        = $request->input('month');
 
         // Stats for KPI cards
         $totalSessions     = AssessmentSession::count();
@@ -28,10 +27,20 @@ class SessionController extends Controller
                 $query->where('name', 'like', "%{$search}%")
                       ->orWhereHas('user', fn($q) => $q->where('name', 'like', "%{$search}%"));
             })
-            ->when($statusFilter, fn($q) => $q->where('status', $statusFilter))
+            ->when($statusFilter, function ($q, $statusFilter) {
+                if ($statusFilter === 'archive') {
+                    return $q->onlyTrashed();
+                }
+                return $q->where('status', $statusFilter);
+            })
             ->when($userFilter, fn($q) => $q->where('user_id', $userFilter))
-            ->when($dateFrom, fn($q) => $q->whereDate('created_at', '>=', $dateFrom))
-            ->when($dateTo, fn($q) => $q->whereDate('created_at', '<=', $dateTo))
+            ->when($month, function ($q, $month) {
+                $parts = explode('-', $month);
+                if (count($parts) === 2) {
+                    $q->whereYear('created_at', $parts[0])
+                      ->whereMonth('created_at', $parts[1]);
+                }
+            })
             ->orderBy('updated_at', 'desc')
             ->paginate(15)
             ->withQueryString();
@@ -39,7 +48,7 @@ class SessionController extends Controller
         return view('admin.sessions.index', compact(
             'sessions', 'search', 'statusFilter', 'userFilter',
             'totalSessions', 'activeSessions', 'completedSessions',
-            'dateFrom', 'dateTo'
+            'month'
         ));
     }
 

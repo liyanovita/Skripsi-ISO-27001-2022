@@ -10,11 +10,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/@hotwired/turbo@7.3.0/dist/turbo.es2017-umd.js"></script>
+    @stack('head_scripts')
+    @stack('styles')
     
     <style>
         body { font-family: 'Inter', sans-serif; }
         [x-cloak] { display: none !important; }
+        .turbo-progress-bar { display: none !important; }
+        /* Hide browser-native reveal password buttons */
+        input::-ms-reveal,
+        input::-ms-clear {
+            display: none;
+        }
         @media print {
             aside, header { display: none !important; }
             .flex-1 { margin-left: 0 !important; }
@@ -137,6 +146,26 @@
                     <i class="fa-solid fa-circle-check"></i>
                     <span class="text-sm font-medium">{{ session('success') }}</span>
                 </div>
+                <script>
+                    (function() {
+                        const msg = '{{ addslashes(session('success')) }}';
+                        if (msg.toLowerCase().includes('import') || msg.toLowerCase().includes('export')) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '{{ __("Success") }}',
+                                text: msg,
+                                width: '22rem',
+                                confirmButtonColor: '#2563eb',
+                                customClass: {
+                                    popup: 'rounded-2xl p-4',
+                                    title: 'text-sm font-bold text-slate-800 mt-2',
+                                    htmlContainer: 'text-xs text-slate-500 font-medium my-2',
+                                    confirmButton: 'rounded-xl font-bold px-4 py-2 text-xs'
+                                }
+                            });
+                        }
+                    })();
+                </script>
             @endif
             @if(session('error'))
                 <div class="mb-6 bg-red-50 text-red-700 p-4 rounded-xl border border-red-200 flex items-center gap-3">
@@ -149,5 +178,84 @@
         </main>
     </div>
 
+    <script>
+    (function() {
+        let activeInputName = null;
+        let activeInputSelectionStart = null;
+        let activeInputSelectionEnd = null;
+
+        document.addEventListener("submit", function(e) {
+            const form = e.target;
+            if (form && form.method.toLowerCase() === 'get' && !form.hasAttribute('data-turbo-bypass')) {
+                e.preventDefault();
+                
+                // Record the active element's state to preserve focus and cursor position after Turbo visit
+                if (document.activeElement && document.activeElement.name) {
+                    activeInputName = document.activeElement.name;
+                    if (document.activeElement.tagName === 'INPUT') {
+                        activeInputSelectionStart = document.activeElement.selectionStart;
+                        activeInputSelectionEnd = document.activeElement.selectionEnd;
+                    }
+                }
+
+                const url = new URL(form.action || window.location.href);
+                const formData = new FormData(form);
+                const params = new URLSearchParams();
+                
+                for (const [key, value] of formData.entries()) {
+                    if (value !== '') {
+                        params.append(key, value);
+                    }
+                }
+
+                url.search = params.toString();
+
+                if (typeof Turbo !== 'undefined') {
+                    Turbo.visit(url.toString(), { action: 'replace' });
+                } else {
+                    window.location.href = url.toString();
+                }
+            }
+        });
+
+        document.addEventListener("turbo:render", function() {
+            if (activeInputName) {
+                const el = document.querySelector(`input[name="${activeInputName}"], select[name="${activeInputName}"], textarea[name="${activeInputName}"]`);
+                if (el) {
+                    el.focus();
+                    if (el.tagName === 'INPUT' && activeInputSelectionStart !== null) {
+                        try {
+                            el.setSelectionRange(activeInputSelectionStart, activeInputSelectionEnd);
+                        } catch (err) {}
+                    }
+                }
+                activeInputName = null;
+                activeInputSelectionStart = null;
+                activeInputSelectionEnd = null;
+            }
+        });
+    })();
+    
+    document.addEventListener('click', function (e) {
+        const link = e.target.closest('a');
+        if (link && (link.href.includes('export') || link.href.includes('download'))) {
+            Swal.fire({
+                icon: 'success',
+                title: '{{ __("Export Successful") }}',
+                text: '{{ __("Your download file has been generated successfully.") }}',
+                timer: 3000,
+                timerProgressBar: true,
+                width: '22rem',
+                confirmButtonColor: '#2563eb',
+                customClass: {
+                    popup: 'rounded-2xl p-4',
+                    title: 'text-sm font-bold text-slate-800 mt-2',
+                    htmlContainer: 'text-xs text-slate-500 font-medium my-2',
+                    confirmButton: 'rounded-xl font-bold px-4 py-2 text-xs'
+                }
+            });
+        }
+    });
+    </script>
 </body>
 </html>

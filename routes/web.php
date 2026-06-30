@@ -134,6 +134,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/update/{id}', 'update')->name('update');
         Route::post('/{id}/generate-ai', 'generateAiInsight')->name('generate-ai');
         Route::get('/{id}/ai-status', 'checkAiStatus')->name('ai-status');
+        Route::get('/{id}/evidence', 'viewEvidence')->name('evidence');
+        Route::delete('/{id}/evidence', 'deleteEvidence')->name('evidence.delete');
     });
 
     // Intelligence Domain - Analytics
@@ -188,6 +190,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{id}', 'update')->name('update');
         Route::delete('/{id}', 'destroy')->name('destroy');
         Route::get('/download/{id}', 'download')->name('download');
+        Route::get('/{id}', 'show')->name('show');
     });
 
     // Governance Domain - Profile
@@ -239,8 +242,8 @@ Route::middleware(['auth'])->group(function () {
         // Audit Sessions (Cross-User)
         Route::controller(\App\Http\Controllers\Admin\SessionController::class)->prefix('sessions')->name('sessions.')->group(function () {
             Route::get('/', 'index')->name('index');
-            Route::get('/{session}', 'show')->name('show');
-            Route::delete('/{session}', 'destroy')->name('destroy');
+            Route::get('/{session}', 'show')->name('show')->withTrashed();
+            Route::delete('/{session}', 'destroy')->name('destroy')->withTrashed();
         });
 
         // Community Moderation

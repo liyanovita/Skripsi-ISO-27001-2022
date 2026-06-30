@@ -42,7 +42,7 @@
 
                 {{-- Findings / Audit Notes (ReadOnly) --}}
                 <div>
-                    <label class="block text-sm font-bold text-slate-500 mb-1">Audit Findings & Notes</label>
+                    <label class="block text-sm font-bold text-slate-500 mb-1">Assessment Findings & Notes</label>
                     <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs h-[82px] overflow-y-auto leading-relaxed
                         [&::-webkit-scrollbar]:w-1.5
                         [&::-webkit-scrollbar-track]:bg-slate-100

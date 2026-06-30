@@ -11,8 +11,9 @@
         $focusTab = 'annex';
     }
     $assessableResults = $session->results->filter(fn($result) => is_array($result->standard?->questions) && count($result->standard->questions) > 0);
-    $assessedCount = $assessableResults->where('status', 'completed')->count();
-    $totalAssessable = $assessableResults->count();
+    $applicableResults = $assessableResults->where('is_applicable', true);
+    $assessedCount     = $applicableResults->where('status', 'completed')->count();
+    $totalAssessable   = $applicableResults->count();
 @endphp
 <div class="max-w-6xl mx-auto space-y-4 pb-8" 
      @open-ai-details.window="openAiDetails($event.detail)"
@@ -24,6 +25,7 @@
         totalAssessable: {{ $totalAssessable }},
         showAiModal: false,
         showFinalizeModal: false,
+        showGuidePanel: false,
         get isReadyToFinalize() {
             return this.assessedCount >= this.totalAssessable;
         },
@@ -43,6 +45,8 @@
         handleResultUpdated(detail) {
             if (!detail.wasCompleted && detail.status === 'completed') {
                 this.assessedCount++;
+            } else if (detail.wasCompleted && detail.status !== 'completed') {
+                this.assessedCount--;
             }
             this.updateProgress();
         },
@@ -73,7 +77,7 @@
                         <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">
                             {{ __('Score') }}: {{ number_format($session->overall_maturity_score, 1) }}/5
                         </span>
-                        @php $gapCount = $assessableResults->where('status', 'completed')->where('maturity_rating', '<', 4)->count(); @endphp
+                        @php $gapCount = $applicableResults->where('status', 'completed')->whereNotNull('maturity_rating')->where('maturity_rating', '<', 4)->count(); @endphp
                         @if($gapCount > 0)
                         <span class="text-slate-200">·</span>
                         <span class="text-[10px] font-bold text-rose-500 uppercase tracking-widest">
@@ -149,19 +153,28 @@
                                 </div>
                             @else
                                 <button @click="$dispatch('open-control', { id: {{ $result->id }} })" 
-                                    x-data="{ status: '{{ $result->status }}', rating: {{ $result->maturity_rating }} }"
-                                    @result-updated.window="if($event.detail.id === {{ $result->id }}) { status = $event.detail.status; rating = $event.detail.rating; }"
+                                    x-data="{ status: '{{ $result->status }}', rating: {{ $result->maturity_rating === null ? 'null' : $result->maturity_rating }}, isApplicable: {{ $result->is_applicable ? 'true' : 'false' }} }"
+                                    @result-updated.window="if($event.detail.id === {{ $result->id }}) { status = $event.detail.status; rating = $event.detail.rating; isApplicable = $event.detail.isApplicable; }"
                                     class="w-full text-left px-4 py-3 rounded-xl border transition-all flex items-center justify-between group ml-2 mt-1"
-                                    :class="status === 'completed' && rating < 4 ? 'bg-rose-50 border-rose-100 text-rose-700' : (status === 'completed' || rating >= 4 ? 'bg-blue-50 border-blue-100 text-blue-700' : 'bg-white border-slate-100 text-slate-500 hover:border-blue-300')"
+                                    :class="!isApplicable ? 'bg-slate-50 border-slate-100 text-slate-400' : (status === 'completed' && rating < 4 ? 'bg-rose-50 border-rose-100 text-rose-700' : (status === 'completed' || rating >= 4 ? 'bg-blue-50 border-blue-100 text-blue-700' : 'bg-white border-slate-100 text-slate-500 hover:border-blue-300'))"
                                     :aria-label="'Open control ' + '{{ $item->code }} + ': ' + '{{ __($item->title) }}'">
                                     <div class="min-w-0 pr-2">
                                         <p class="text-[10px] font-bold tracking-tight">{{ $item->code }}</p>
                                         <p class="text-[9px] font-medium truncate opacity-60">{{ __($item->title) }}</p>
                                     </div>
                                     <div class="flex items-center gap-1">
-                                        <template x-if="status === 'completed' && rating < 4"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span></template>
-                                        <template x-if="status === 'completed' || rating >= 4"><i class="fa-solid fa-circle-check text-[10px] text-blue-600"></i></template>
-                                        <template x-if="status !== 'completed' && rating === 0"><i class="fa-solid fa-circle text-[8px] text-slate-200"></i></template>
+                                        <template x-if="!isApplicable">
+                                            <i class="fa-solid fa-ban text-[9px] text-slate-400" title="{{ __('Not Applicable') }}"></i>
+                                        </template>
+                                        <template x-if="isApplicable && status === 'completed' && rating < 4">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                                        </template>
+                                        <template x-if="isApplicable && (status === 'completed' || rating >= 4)">
+                                            <i class="fa-solid fa-circle-check text-[10px] text-blue-600"></i>
+                                        </template>
+                                        <template x-if="isApplicable && status !== 'completed' && rating === null">
+                                            <i class="fa-solid fa-circle text-[8px] text-slate-200"></i>
+                                        </template>
                                     </div>
                                 </button>
                             @endif
@@ -174,12 +187,12 @@
         </aside>
 
         {{-- Main Item List --}}
-        <div class="flex-1 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[600px]">
+        <div class="flex-1 bg-white rounded-2xl border border-slate-100 shadow-sm min-h-[600px]">
             <div x-show="activeTab === 'clause'" x-transition>
                 @include('sessions._item_list', ['items' => $session->results->whereIn('standard.type', ['clause', 'clausa'])->sortBy('iso_standard_id')])
             </div>
             <div x-show="activeTab === 'annex'" x-transition>
-                @include('sessions._item_list', ['items' => $session->results->where('standard.type', 'control')->sortBy('iso_standard_id'), 'showGuide' => false])
+                @include('sessions._item_list', ['items' => $session->results->where('standard.type', 'control')->sortBy('iso_standard_id')])
             </div>
         </div>
     </div>

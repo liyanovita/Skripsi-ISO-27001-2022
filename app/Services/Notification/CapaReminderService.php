@@ -18,8 +18,9 @@ class CapaReminderService
         return AssessmentResult::with(['standard', 'session'])
             ->whereNotNull('treatment_due_date')
             ->where('treatment_due_date', '<=', $limitDate)
+            ->where('status', 'completed')
+            ->where('is_applicable', true)
             ->where('maturity_rating', '<', 4)
-            ->where('maturity_rating', '>', 0)
             ->where(function ($query) {
                 $query
                     ->whereNull('treatment_status')

@@ -93,6 +93,35 @@
             overflow-x: auto;
         }
 
+        .content-body table {
+            width: 100%;
+            margin: 18px 0;
+            border-collapse: collapse;
+            font-size: 11px;
+            color: #1f2937;
+        }
+
+        .content-body table th {
+            background-color: #f3f4f6;
+            font-weight: bold;
+            text-align: left;
+            border: 1px solid #e5e7eb;
+            padding: 8px 10px;
+        }
+
+        .content-body table td {
+            border: 1px solid #e5e7eb;
+            padding: 8px 10px;
+        }
+
+        .content-body blockquote {
+            border-left: 4px solid #4f46e5;
+            padding-left: 14px;
+            color: #4b5563;
+            font-style: italic;
+            margin: 14px 0;
+        }
+
         .footer {
             margin-top: 42px;
             font-size: 10px;
@@ -110,14 +139,25 @@
 
     <table class="meta">
         <tr>
-            <td><strong>Category</strong><br>{{ ucfirst((string) $item->category) }}</td>
+            <td><strong>Category</strong><br>{{ $item->category === 'sop' ? 'SOP' : ucfirst((string) $item->category) }}</td>
             <td><strong>Format</strong><br>PDF Export</td>
             <td><strong>Generated</strong><br>{{ $generatedDate }}</td>
         </tr>
     </table>
 
     <div class="content-body">
-        {!! Str::markdown(e($item->content)) !!}
+        @if(trim((string) $item->content) !== '')
+            @if($item->isHtml())
+                {!! $item->content !!}
+            @else
+                {!! Str::markdown(e($item->content)) !!}
+            @endif
+        @else
+            <div style="text-align: center; padding: 30px; background: #f9fafb; border: 1px dashed #e5e7eb; border-radius: 8px; color: #4b5563; font-size: 11px;">
+                <p style="font-weight: bold; margin-bottom: 5px;">Attachment-Only Document</p>
+                <p>This resource does not contain inline article text. Please access the application to download the original attached document ({{ $item->attachment_name ?: 'source file' }}).</p>
+            </div>
+        @endif
     </div>
 
     <div class="footer">OpenAudit-27001:2022 Knowledge Base Resource</div>

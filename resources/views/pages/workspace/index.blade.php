@@ -8,20 +8,20 @@
         'id' => $result->id,
         'code' => strtolower($result->standard->code ?? ''),
         'title' => strtolower($result->standard->title ?? ''),
-        'risk' => strtolower($result->risk_level ?? 'compliant'),
-        'maturityGap' => $result->status === 'completed' && $result->maturity_rating < 4,
-        'isGap' => $result->is_applicable && $result->status === 'completed' && $result->maturity_rating < 4,
+        'risk' => strtolower($result->risk_level ?? 'low'),
+        'maturityGap' => $result->is_applicable && $result->status === 'completed' && $result->maturity_rating !== null && $result->maturity_rating < 4,
+        'isGap' => $result->is_applicable && $result->status === 'completed' && $result->maturity_rating !== null && $result->maturity_rating < 4,
         'isApplicable' => (bool) $result->is_applicable,
         'treatmentStatus' => $result->treatment_status ?? 'open',
     ])->values();
     $gapFindings = $findings->map(fn($finding) => [
         'id' => $finding->id,
-        'risk' => $finding->risk_level ?? 'Compliant',
+        'risk' => $finding->risk_level ?? 'Low',
         'isCritical' => $finding->risk_level === 'Critical' || $finding->maturity_rating <= 1,
         'isApplicable' => (bool) $finding->is_applicable,
     ])->values();
 @endphp
-<div class="max-w-[1400px] mx-auto space-y-3 pb-6" x-data="{
+<div class="max-w-[1600px] mx-auto space-y-3 pb-6" x-data="{
     activeTab: '{{ $activeTab }}',
     filterOption: 'all',
     riskFilter: 'all',
@@ -46,6 +46,17 @@
     gapFindings: @js($gapFindings),
     showAiModal: false,
     activeAiDetails: { code: '', title: '', rec: '', plan: '', insight: '', priority: '', validation: '' },
+    showEvidenceModal: false,
+    activeEvidenceDetails: { code: '', title: '', notes: '', files: [] },
+    openEvidenceDetails(details) {
+        this.activeEvidenceDetails = {
+            code: details.code || '',
+            title: details.title || '',
+            notes: details.notes || '',
+            files: details.files || []
+        };
+        this.showEvidenceModal = true;
+    },
     get filteredControls() {
         return this.controls.filter((control) => (
             this.filterOption === 'all' ||
@@ -164,11 +175,10 @@
             </div>
         </div>
 
-        {{-- Session selector & Actions --}}
-        <div class="flex flex-wrap items-center gap-3">
+        {{-- Session selector --}}
+        <div class="flex items-center gap-3">
             <form action="{{ route('workspace.index') }}" method="GET" id="workspaceFilter" class="flex items-center gap-3">
-                <input type="hidden" name="tab" :value="activeTab">
-                <select name="session_id" onchange="document.getElementById('workspaceFilter').submit()"
+                <select name="session_id" onchange="document.getElementById('workspaceFilter').requestSubmit()"
                     class="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 outline-none focus:ring-4 focus:ring-indigo-600/5 transition-all min-w-[260px] cursor-pointer shadow-sm">
                     @if($sessions->isEmpty())
                         <option value="">{{ __('No sessions available') }}</option>
@@ -180,343 +190,160 @@
                     @endforeach
                 </select>
             </form>
-            @if($selectedSession)
-            <div class="flex flex-wrap gap-2" x-show="activeTab === 'workspace'">
-                <a href="{{ route('workspace.export-soa', $selectedSession->id) }}" class="px-3 py-2 bg-slate-900 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 shadow-md transition-all flex items-center gap-2 shrink-0">
-                    <i class="fa-solid fa-file-excel text-emerald-400"></i>{{ __('SoA Excel') }}</a>
-                <a href="{{ route('workspace.export-soa-pdf', $selectedSession->id) }}" class="px-3 py-2 bg-red-700 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-red-600 shadow-md transition-all flex items-center gap-2 shrink-0">
-                    <i class="fa-solid fa-file-pdf text-white"></i>{{ __('SoA PDF') }}</a>
-            </div>
-            <div class="flex flex-wrap gap-2" x-show="activeTab === 'gap-report'" x-cloak>
-                <a href="{{ route('reports.export-pdf', $selectedSession->id) }}" class="px-3 py-2 bg-white border border-slate-200 rounded-lg text-[9px] font-black uppercase tracking-widest text-slate-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all flex items-center gap-2 shrink-0">
-                    <i class="fa-solid fa-file-pdf text-red-500"></i>{{ __('PDF') }}</a>
-                <a href="{{ route('reports.export-excel', $selectedSession->id) }}" class="px-3 py-2 bg-white border border-slate-200 rounded-lg text-[9px] font-black uppercase tracking-widest text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all flex items-center gap-2 shrink-0">
-                    <i class="fa-solid fa-file-excel text-emerald-600"></i>{{ __('Excel') }}</a>
-            </div>
-            @endif
         </div>
     </div>
 
-    {{-- Tab Navigation --}}
-    <div class="flex items-center gap-1 bg-white p-1.5 rounded-xl border border-slate-100 shadow-sm w-fit">
-        <button @click="switchTab('gap-report')"
-            :class="activeTab === 'gap-report' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-500 hover:bg-slate-50'"
-            class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
-            <i class="fa-solid fa-chart-column text-xs"></i>
-            {{ __('Gap Report') }}
-        </button>
-        <button @click="switchTab('workspace')"
-            :class="activeTab === 'workspace' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-500 hover:bg-slate-50'"
-            class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
-            <i class="fa-solid fa-table-cells-large text-xs"></i>
-            {{ __('Workspace') }}
-        </button>
-    </div>
-
-
-    {{-- ================================================================ --}}
-    {{-- TAB: GAP REPORT                                                  --}}
-    {{-- ================================================================ --}}
-    <div x-show="activeTab === 'gap-report'" x-cloak>
     @if(!$selectedSession)
         <div class="bg-white rounded-lg border border-slate-100 p-16 text-center shadow-sm">
             <div class="w-16 h-16 bg-slate-50 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <i class="fa-solid fa-folder-open text-2xl text-slate-300"></i>
             </div>
             <h3 class="text-base font-bold text-slate-900">{{ __('No Assessment Data') }}</h3>
-            <p class="text-sm text-slate-400 font-medium mt-1">{{ __('Create an audit session first to see gap reports.') }}</p>
+            <p class="text-sm text-slate-400 font-medium mt-1">{{ __('Create an audit session first to manage compliance.') }}</p>
             <a href="{{ route('sessions.index') }}" class="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-600/20">
                 <i class="fa-solid fa-plus"></i> {{ __('Create Session') }}
             </a>
         </div>
     @else
 
-    {{-- Stats Cards --}}
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm">
-            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">{{ __('Total Gaps') }}</p>
-            <p class="text-3xl font-black text-rose-600" x-text="gapStats.totalGaps"></p>
-            <p class="text-[9px] font-bold text-slate-400 mt-1">{{ __('controls below target') }}</p>
-        </div>
-        <div class="bg-rose-50 p-4 rounded-lg border border-rose-100 shadow-sm">
-            <p class="text-[9px] font-bold text-rose-600 uppercase tracking-widest mb-1">{{ __('Critical') }}</p>
-            <p class="text-3xl font-black text-rose-700" x-text="gapStats.critical"></p>
-            <p class="text-[9px] font-bold text-rose-400 mt-1">{{ __('immediate action required') }}</p>
-        </div>
-        <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-100 shadow-sm">
-            <p class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mb-1">{{ __('Compliant') }}</p>
-            <p class="text-3xl font-black text-emerald-700" x-text="gapStats.compliant"></p>
-            <p class="text-[9px] font-bold text-emerald-400 mt-1">{{ __('of') }} <span x-text="gapStats.totalControls"></span> {{ __('controls') }}</p>
-        </div>
-        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 shadow-sm">
-            <p class="text-[9px] font-bold text-blue-600 uppercase tracking-widest mb-1">{{ __('Scored') }}</p>
-            <p class="text-3xl font-black text-blue-700" x-text="gapStats.scored"></p>
-            <p class="text-[9px] font-bold text-blue-400 mt-1"><span x-text="gapStats.totalControls - gapStats.scored"></span> {{ __('remaining') }}</p>
-        </div>
-    </div>
-
-
-    {{-- Session Comparison --}}
-    @if($comparison && isset($comparison['delta']))
-    <div class="bg-white p-5 rounded-lg border border-slate-100 shadow-sm">
-        <div class="flex items-center justify-between mb-4">
-            <div>
-                <h3 class="text-sm font-bold text-slate-900">{{ __('Session Comparison') }}</h3>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{{ __('Current vs Previous Cycle') }}</p>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="text-right">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Score') }}</p>
-                    <p class="text-2xl font-black text-slate-900">{{ number_format($comparison['latest_score'], 1) }}<span class="text-sm text-slate-400">/5</span></p>
+    {{-- Dashboard Overview (Unified Stats & Session Comparison) --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {{-- Stats Grid (Left 2 cols on LG) --}}
+        <div class="lg:col-span-2">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 items-start">
+                {{-- Total Controls --}}
+                <div class="bg-white rounded-xl p-3 border border-slate-100 shadow-sm hover:shadow transition-all group flex flex-col justify-between min-h-[90px]">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-tight">{{ __('Total Controls') }}</p>
+                            <p class="text-xl font-black text-slate-900 mt-1" x-text="workspaceStats.total"></p>
+                        </div>
+                        <div class="w-6.5 h-6.5 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center border border-slate-100 shrink-0">
+                            <i class="fa-solid fa-table-list text-[9px]"></i>
+                        </div>
+                    </div>
+                    <p class="text-[8px] font-bold text-slate-400 mt-2">{{ __('All ISO 27001:2022 controls') }}</p>
                 </div>
-                @if($comparison['delta'] != 0)
-                <span class="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-black {{ $comparison['delta'] > 0 ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100' }}">
-                    <i class="fa-solid {{ $comparison['delta'] > 0 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }}"></i>
-                    {{ $comparison['delta'] > 0 ? '+' : '' }}{{ number_format($comparison['delta'], 1) }}
-                </span>
-                @else
-                <span class="px-3 py-1.5 rounded-xl text-xs font-black bg-slate-50 text-slate-500 border border-slate-200">{{ __('No change') }}</span>
-                @endif
-            </div>
-        </div>
-        <div class="space-y-2.5">
-            @foreach($comparison['domains'] as $domain)
-            @php $pct = min(($domain['latest'] / 5) * 100, 100); @endphp
-            <div class="flex items-center gap-3">
-                <span class="text-[10px] font-bold text-slate-600 w-20 shrink-0">{{ $domain['label'] }}</span>
-                <div class="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
-                    <div class="h-full rounded-full transition-all {{ $domain['latest'] >= 4 ? 'bg-emerald-500' : ($domain['latest'] >= 3 ? 'bg-amber-400' : 'bg-rose-500') }}"
-                         style="width: {{ $pct }}%"></div>
-                </div>
-                <div class="flex items-center gap-2 shrink-0">
-                    <span class="text-[10px] font-black text-slate-700 w-6 text-right">{{ number_format($domain['latest'], 1) }}</span>
-                    @if($domain['delta'] != 0)
-                    <span class="text-[9px] font-bold {{ $domain['delta'] > 0 ? 'text-emerald-600' : 'text-rose-500' }}">
-                        {{ $domain['delta'] > 0 ? '+' : '' }}{{ number_format($domain['delta'], 1) }}
-                    </span>
-                    @endif
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-    @endif
 
+                {{-- Identified Gaps --}}
+                <div class="bg-rose-50 rounded-xl p-3 border border-rose-100 shadow-sm hover:shadow transition-all group flex flex-col justify-between min-h-[90px]">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[9px] font-bold text-rose-600 uppercase tracking-widest leading-tight">{{ __('Identified Gaps') }}</p>
+                            <div class="flex items-baseline gap-0.5 mt-1">
+                                <p class="text-xl font-black text-rose-700" x-text="workspaceStats.gaps"></p>
+                                <p class="text-[9px] font-bold text-rose-400">/ <span x-text="workspaceStats.total"></span></p>
+                            </div>
+                        </div>
+                        <div class="w-6.5 h-6.5 bg-rose-100/50 text-rose-600 rounded-lg flex items-center justify-center border border-rose-200 shrink-0">
+                            <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
+                        </div>
+                    </div>
+                    <p class="text-[8px] font-bold text-rose-400 mt-2"><span x-text="workspaceStats.total - workspaceStats.gaps"></span> {{ __('Compliant') }}</p>
+                </div>
 
-    {{-- Gap Findings Table --}}
-    <div class="bg-white rounded-lg border border-slate-100 shadow-sm overflow-hidden" x-data="{
-        gapRiskFilter: 'all',
-        get filteredGapFindings() {
-            return this.gapFindings.filter((finding) =>
-                finding.isApplicable && (this.gapRiskFilter === 'all' || finding.risk === this.gapRiskFilter)
-            );
-        },
-        isGapFindingVisible(resultId) {
-            return this.filteredGapFindings.some((finding) => finding.id === resultId);
-        }
-    }">
-        <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-                <h3 class="text-sm font-bold text-slate-900">{{ __('Gap Findings') }}</h3>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5"><span x-text="gapStats.totalGaps"></span> {{ __('controls requiring attention') }}</p>
+                {{-- Applicable Controls --}}
+                <div class="bg-emerald-50 rounded-xl p-3 border border-emerald-100 shadow-sm hover:shadow transition-all group flex flex-col justify-between min-h-[90px]">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest leading-tight">{{ __('Applicable') }}</p>
+                            <div class="flex items-baseline gap-0.5 mt-1">
+                                <p class="text-xl font-black text-emerald-700" x-text="workspaceStats.applicable"></p>
+                                <p class="text-[9px] font-bold text-emerald-400">/ <span x-text="workspaceStats.total"></span></p>
+                            </div>
+                        </div>
+                        <div class="w-6.5 h-6.5 bg-emerald-100/50 text-emerald-600 rounded-lg flex items-center justify-center border border-emerald-200 shrink-0">
+                            <i class="fa-solid fa-shield-check text-[9px]"></i>
+                        </div>
+                    </div>
+                    <p class="text-[8px] font-bold text-emerald-400 mt-2"><span x-text="workspaceStats.notApplicable"></span> {{ __('excluded') }}</p>
+                </div>
+
+                {{-- Treatments Closed --}}
+                <div class="bg-blue-50 rounded-xl p-3 border border-blue-100 shadow-sm hover:shadow transition-all group flex flex-col justify-between min-h-[90px]">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[9px] font-bold text-blue-600 uppercase tracking-widest leading-tight">{{ __('Treatments') }}</p>
+                            <div class="flex items-baseline gap-0.5 mt-1">
+                                <p class="text-xl font-black text-blue-700" x-text="workspaceStats.closed"></p>
+                                <p class="text-[9px] font-bold text-blue-400">/ <span x-text="workspaceStats.gaps"></span></p>
+                            </div>
+                        </div>
+                        <div class="w-6.5 h-6.5 bg-blue-100/50 text-blue-600 rounded-lg flex items-center justify-center border border-blue-200 shrink-0">
+                            <i class="fa-solid fa-circle-check text-[9px]"></i>
+                        </div>
+                    </div>
+                    <p class="text-[8px] font-bold text-blue-400 mt-2"><span x-text="Math.max(workspaceStats.gaps - workspaceStats.closed, 0)"></span> {{ __('remaining') }}</p>
+                </div>
             </div>
-            <div class="flex items-center gap-1.5">
-                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mr-1">{{ __('Risk:') }}</span>
-                @foreach(['all' => __('All'), 'Critical' => __('Critical'), 'High' => __('High'), 'Medium' => __('Medium')] as $val => $label)
-                <button @click="gapRiskFilter = '{{ $val }}'"
-                    :class="gapRiskFilter === '{{ $val }}' 
-                        ? ('{{ $val }}' === 'Critical' ? 'bg-rose-600 text-white shadow shadow-rose-600/20' 
-                          : '{{ $val }}' === 'High' ? 'bg-orange-500 text-white shadow shadow-orange-500/20' 
-                          : '{{ $val }}' === 'Medium' ? 'bg-amber-500 text-white shadow shadow-amber-500/20' 
-                          : 'bg-slate-900 text-white shadow') 
-                        : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'"
-                    class="px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">
-                    {{ $label }}
-                </button>
-                @endforeach
+
+            @if($selectedSession)
+            {{-- Export Report Buttons (Placed directly below the cards, buttons only) --}}
+            <div class="flex flex-wrap gap-2 mt-4 justify-start">
+                {{-- SoA Exports --}}
+                <a href="{{ route('workspace.export-soa', $selectedSession->id) }}" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow transition-all flex items-center gap-1.5 shrink-0" title="{{ __('Export Statement of Applicability Excel') }}">
+                    <i class="fa-solid fa-file-excel text-white"></i>{{ __('SoA Excel') }}</a>
+                <a href="{{ route('workspace.export-soa-pdf', $selectedSession->id) }}" class="px-3 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow transition-all flex items-center gap-1.5 shrink-0" title="{{ __('Export Statement of Applicability PDF') }}">
+                    <i class="fa-solid fa-file-pdf text-white"></i>{{ __('SoA PDF') }}</a>
+                
+                {{-- Gap Report Exports --}}
+                <a href="{{ route('reports.export-excel', $selectedSession->id) }}" class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow transition-all flex items-center gap-1.5 shrink-0" title="{{ __('Export Gap Report Excel') }}">
+                    <i class="fa-solid fa-file-excel text-white"></i>{{ __('Gap Excel') }}</a>
+                <a href="{{ route('reports.export-pdf', $selectedSession->id) }}" class="px-3 py-2 bg-rose-700 hover:bg-rose-800 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow transition-all flex items-center gap-1.5 shrink-0" title="{{ __('Export Gap Report PDF') }}">
+                    <i class="fa-solid fa-file-pdf text-white"></i>{{ __('Gap PDF') }}</a>
             </div>
+            @endif
         </div>
-        @if($findings->isEmpty())
-        <div class="p-12 text-center">
-            <div class="w-14 h-14 bg-emerald-50 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <i class="fa-solid fa-circle-check text-2xl text-emerald-400"></i>
-            </div>
-            <p class="text-sm font-bold text-slate-500">{{ __('No gaps found') }}</p>
-            <p class="text-xs text-slate-400 mt-1">{{ __('All scored controls meet the target maturity level.') }}</p>
-        </div>
-        @else
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead class="bg-slate-50/50 border-b border-slate-100">
-                    <tr>
-                        <th class="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ __('Control') }}</th>
-                        <th class="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ __('Risk Level') }}</th>
-                        <th class="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ __('Maturity') }}</th>
-                        <th class="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ __('Gap') }}</th>
-                        <th class="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ __('PIC') }}</th>
-                        <th class="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ __('Deadline') }}</th>
-                        <th class="px-4 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">{{ __('Action') }}</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
-                    @foreach($findings as $finding)
-                    @php
-                        $riskLevel  = $finding->risk_level ?? 'Compliant';
-                        $riskClass  = match(strtolower($riskLevel)) {
-                            'critical'  => 'bg-rose-100 text-rose-700',
-                            'high'      => 'bg-orange-100 text-orange-700',
-                            'medium'    => 'bg-amber-100 text-amber-700',
-                            'compliant' => 'bg-emerald-100 text-emerald-700',
-                            default     => 'bg-slate-100 text-slate-600',
-                        };
-                        $gapPct    = (5 - $finding->maturity_rating) * 20;
-                        $isOverdue = $finding->treatment_due_date && $finding->treatment_due_date->isPast();
-                    @endphp
-                    <tr class="hover:bg-slate-50/50 transition-colors"
-                        x-show="isGapFindingVisible({{ $finding->id }})">
-                        <td class="px-4 py-3">
-                            <span class="text-xs font-black text-slate-900">{{ $finding->standard->code }}</span>
-                            <p class="text-[10px] text-slate-500 font-medium mt-0.5 max-w-[200px] truncate">{{ $finding->standard->title }}</p>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest {{ $riskClass }}">{{ $riskLevel }}</span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm font-black text-slate-900">{{ $finding->maturity_rating }}</span>
-                                <span class="text-[9px] text-slate-400 font-bold">/5</span>
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                <div class="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                    <div class="bg-rose-500 h-full rounded-full" style="width: {{ $gapPct }}%"></div>
-                                </div>
-                                <span class="text-[9px] font-bold text-slate-500">{{ $gapPct }}%</span>
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">
-                            @if($finding->treatment_pic)
-                            <div class="flex items-center gap-1.5">
-                                <div class="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[7px] font-black shrink-0">
-                                    {{ strtoupper(substr($finding->treatment_pic, 0, 2)) }}
-                                </div>
-                                <span class="text-[10px] font-bold text-slate-700 truncate max-w-[80px]">{{ $finding->treatment_pic }}</span>
-                            </div>
-                            @else
-                            <span class="text-[9px] text-slate-300 italic">-</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-3">
-                            @if($finding->treatment_due_date)
-                            <span class="text-[10px] font-bold {{ $isOverdue ? 'text-rose-600' : 'text-slate-700' }}">
-                                {{ $finding->treatment_due_date->format('d M Y') }}
+
+        {{-- Session Comparison (Right 1 col on LG) --}}
+        <div class="lg:col-span-1">
+            @if($comparison && isset($comparison['delta']))
+            <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm h-full flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-900">{{ __('Session Comparison') }}</h3>
+                        <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{{ __('Current vs Previous Cycle') }}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="text-right">
+                            <p class="text-[7px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Score') }}</p>
+                            <p class="text-base font-black text-slate-900">{{ number_format($comparison['latest_score'], 1) }}<span class="text-[9px] text-slate-400">/5</span></p>
+                        </div>
+                        @if($comparison['delta'] != 0)
+                        <span class="flex items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] font-black {{ $comparison['delta'] > 0 ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100' }}">
+                            <i class="fa-solid {{ $comparison['delta'] > 0 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }}"></i>
+                            {{ $comparison['delta'] > 0 ? '+' : '' }}{{ number_format($comparison['delta'], 1) }}
+                        </span>
+                        @else
+                        <span class="px-2 py-1 rounded-lg text-[10px] font-black bg-slate-50 text-slate-500 border border-slate-200">{{ __('No change') }}</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    @foreach($comparison['domains'] as $domain)
+                    @php $pct = min(($domain['latest'] / 5) * 100, 100); @endphp
+                    <div class="flex items-center gap-2">
+                        <span class="text-[9px] font-bold text-slate-600 w-16 shrink-0 truncate">{{ $domain['label'] }}</span>
+                        <div class="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                            <div class="h-full rounded-full transition-all {{ $domain['latest'] >= 4 ? 'bg-emerald-500' : ($domain['latest'] >= 3 ? 'bg-amber-400' : 'bg-rose-500') }}"
+                                 style="width: {{ $pct }}%"></div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span class="text-[9px] font-black text-slate-700 w-5 text-right">{{ number_format($domain['latest'], 1) }}</span>
+                            @if($domain['delta'] != 0)
+                            <span class="text-[8px] font-bold {{ $domain['delta'] > 0 ? 'text-emerald-600' : 'text-rose-500' }}">
+                                {{ $domain['delta'] > 0 ? '+' : '' }}{{ number_format($domain['delta'], 1) }}
                             </span>
-                            @if($isOverdue)<p class="text-[8px] font-bold text-rose-400 uppercase tracking-widest">{{ __('Overdue') }}</p>@endif
-                            @else
-                            <span class="text-[9px] text-slate-300 italic">-</span>
                             @endif
-                        </td>
-                        <td class="px-4 py-3 text-right">
-                            <div class="flex items-center justify-end gap-1.5">
-                                @if(!empty($finding->ai_recommendation))
-                                @php
-                                    $aiGapBtnClass = match(strtolower($finding->risk_level ?? '')) {
-                                        'critical' => 'bg-rose-50 text-rose-700 border-rose-100 hover:bg-rose-600 hover:text-white',
-                                        'high'     => 'bg-orange-50 text-orange-700 border-orange-100 hover:bg-orange-500 hover:text-white',
-                                        'medium'   => 'bg-amber-50 text-amber-700 border-amber-100 hover:bg-amber-500 hover:text-white',
-                                        default    => 'bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-600 hover:text-white',
-                                    };
-                                    $aiGapPlan = is_array($finding->corrective_action_plan) ? implode("\n", $finding->corrective_action_plan) : ($finding->corrective_action_plan ?? '');
-                                    $aiGapInsight = is_array($finding->control_insight) ? ($finding->control_insight['gap'] ?? '') : ($finding->control_insight ?? '');
-                                @endphp
-                                <button @click="openAiDetails({
-                                        code: @js($finding->standard->code ?? ''),
-                                        title: @js(__($finding->standard->title ?? '')),
-                                        rec: @js($finding->ai_recommendation ?? ''),
-                                        plan: @js($aiGapPlan),
-                                        insight: @js($aiGapInsight),
-                                        priority: @js($finding->risk_priority ?? ''),
-                                        validation: @js($finding->evidence_validation ?? '')
-                                    })"
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1.5 border {{ $aiGapBtnClass }} rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shrink-0 shadow-sm hover:scale-105 active:scale-95 cursor-pointer"
-                                    title="{{ __('View AI Recommendation') }}">
-                                    <i class="fa-solid fa-robot text-[9px]"></i>{{ __('Detail AI') }}
-                                </button>
-                                @endif
-                                <button @click="switchTab('workspace'); $nextTick(() => { const el = document.getElementById('row-{{ $finding->id }}'); if(el) { el.scrollIntoView({behavior:'smooth', block:'center'}); el.style.boxShadow='0 0 0 3px #818cf8'; setTimeout(()=>el.style.boxShadow='',3000); } })"
-                                    class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-all"
-                                    title="{{ __('Edit in Workspace') }}">
-                                    <i class="fa-solid fa-pen-to-square text-[9px]"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
+                        </div>
+                    </div>
                     @endforeach
-                    <tr x-show="filteredGapFindings.length === 0" x-cloak>
-                        <td colspan="7" class="px-6 py-14 text-center">
-                            <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                                <i class="fa-solid fa-filter-circle-xmark text-xl text-slate-300"></i>
-                            </div>
-                            <p class="text-slate-500 font-black uppercase tracking-widest text-[10px]">{{ __('No matching gaps') }}</p>
-                            <p class="text-slate-400 font-medium text-xs mt-1">{{ __('Try selecting a different risk level.') }}</p>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                </div>
+            </div>
+            @endif
         </div>
-        @endif
     </div>
 
-    {{-- Quick link to Strategic --}}
-    <div class="flex flex-wrap gap-2">
-        <a href="{{ route('reports.strategic', ['session_id' => $selectedSession->id]) }}"
-           class="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-xl text-xs font-bold hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm">
-            <i class="fa-solid fa-chart-pie text-blue-500"></i> {{ __('Strategic Analytics') }}
-        </a>
-    </div>
-
-    @endif {{-- end if selectedSession --}}
-    </div> {{-- end gap-report tab --}}
-
-
-    {{-- ================================================================ --}}
-    {{-- TAB: WORKSPACE                                                   --}}
-    {{-- ================================================================ --}}
-    <div x-show="activeTab === 'workspace'" x-cloak>
-
-    {{-- Stats Cards --}}
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="bg-white rounded-lg p-4 border border-slate-100 shadow-sm">
-            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Total Controls') }}</p>
-            <p class="text-2xl font-black text-slate-900 mt-1" x-text="workspaceStats.total"></p>
-            <p class="text-[8px] font-bold text-slate-400 mt-1">{{ __('All ISO 27001:2022 controls') }}</p>
-        </div>
-        <div class="bg-rose-50 rounded-lg p-4 border border-rose-100 shadow-sm">
-            <p class="text-[9px] font-bold text-rose-600 uppercase tracking-widest">{{ __('Identified Gaps') }}</p>
-            <div class="flex items-baseline gap-1 mt-1">
-                <p class="text-2xl font-black text-rose-700" x-text="workspaceStats.gaps"></p>
-                <p class="text-sm font-bold text-rose-400">/ <span x-text="workspaceStats.total"></span></p>
-            </div>
-            <p class="text-[8px] font-bold text-rose-400 mt-1"><span x-text="workspaceStats.total - workspaceStats.gaps"></span> {{ __('Compliant') }}</p>
-        </div>
-        <div class="bg-emerald-50 rounded-lg p-4 border border-emerald-100 shadow-sm">
-            <p class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">{{ __('Applicable Controls') }}</p>
-            <div class="flex items-baseline gap-1 mt-1">
-                <p class="text-2xl font-black text-emerald-700" x-text="workspaceStats.applicable"></p>
-                <p class="text-sm font-bold text-emerald-400">/ <span x-text="workspaceStats.total"></span></p>
-            </div>
-            <p class="text-[8px] font-bold text-emerald-400 mt-1"><span x-text="workspaceStats.notApplicable"></span> {{ __('excluded') }}</p>
-        </div>
-        <div class="bg-blue-50 rounded-lg p-4 border border-blue-100 shadow-sm">
-            <p class="text-[9px] font-bold text-blue-600 uppercase tracking-widest">{{ __('Treatments Closed') }}</p>
-            <div class="flex items-baseline gap-1 mt-1">
-                <p class="text-2xl font-black text-blue-700" x-text="workspaceStats.closed"></p>
-                <p class="text-sm font-bold text-blue-400">/ <span x-text="workspaceStats.gaps"></span></p>
-            </div>
-            <p class="text-[8px] font-bold text-blue-400 mt-1"><span x-text="Math.max(workspaceStats.gaps - workspaceStats.closed, 0)"></span> {{ __('remaining') }}</p>
-        </div>
-    </div>
 
     {{-- Filters --}}
     <div class="flex flex-col xl:flex-row xl:items-center gap-3 bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
@@ -534,7 +361,7 @@
             <div class="w-px h-6 bg-slate-200 hidden md:block"></div>
             <div class="flex items-center gap-1">
                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mr-2">{{ __('Risk:') }}</span>
-                @foreach(['all' => __('All'), 'critical' => __('Critical'), 'high' => __('High'), 'medium' => __('Medium'), 'compliant' => __('Compliant')] as $val => $label)
+                @foreach(['all' => __('All'), 'critical' => __('Critical'), 'high' => __('High'), 'medium' => __('Medium'), 'compliant' => __('Low')] as $val => $label)
                 <button @click="riskFilter = '{{ $val }}'"
                     :class="riskFilter === '{{ $val }}' 
                         ? ('{{ $val }}' === 'critical' ? 'bg-rose-600 text-white shadow shadow-rose-600/20' 
@@ -588,28 +415,31 @@
     @if($selectedSession)
     <div class="bg-white rounded-lg border border-slate-100 overflow-hidden shadow-sm">
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse min-w-[1200px]">
+            <table class="w-full text-left border-collapse min-w-[1500px]">
                 <thead class="bg-slate-50 border-b border-slate-100">
                     <tr>
-                        <th class="px-3 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest w-20">{{ __('ID') }}</th>
-                        <th class="px-3 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest w-64">{{ __('Control Focus') }}</th>
+                        <th class="px-3 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest w-96">{{ __('Control') }}</th>
                         <th class="px-3 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest w-24 text-center">{{ __('Applicable') }}</th>
                         <th class="px-3 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest w-48">{{ __('SoA Justification') }}</th>
-                        <th class="px-3 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest w-20 text-center">{{ __('Score') }}</th>
+                        <th class="px-3 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest w-32 text-center">{{ __('Risk Level') }}</th>
+                        <th class="px-3 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest w-36 text-center">{{ __('Compliance Status') }}</th>
+                        <th class="px-3 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest w-24 text-center">{{ __('Maturity') }}</th>
+                        <th class="px-3 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest w-36 text-center">{{ __('Gap') }}</th>
                         <th class="px-3 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest w-32">{{ __('Treatment Due') }}</th>
-                        <th class="px-3 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest w-40">{{ __('PIC') }}</th>
-                        <th class="px-3 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest w-32">{{ __('Action Status') }}</th>
+                        <th class="px-3 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest w-72">{{ __('PIC') }}</th>
+                        <th class="px-3 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest w-48">{{ __('Action Status') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
                     @forelse($results as $result)
                     @php
                         $isScored     = $result->status === 'completed';
-                        $isGap        = $isScored && $result->maturity_rating < 4;
-                        $isApplicable = $result->is_applicable;
+                        $isClause     = in_array($result->standard->type ?? '', ['clause', 'clausa']);
+                        $isGap        = $isScored && $result->maturity_rating !== null && $result->maturity_rating < 4;
+                        $isApplicable = $isClause ? true : (bool) $result->is_applicable;
                         $dueDate      = $result->treatment_due_date ? $result->treatment_due_date->format('Y-m-d') : '';
                         $status       = $result->treatment_status ?? 'open';
-                        $riskLevel    = strtolower($result->risk_level ?? 'compliant');
+                        $riskLevel    = strtolower($result->risk_level ?? 'low');
                         $controlTitle = strtolower($result->standard->title ?? '');
                         $aiPlan       = is_array($result->corrective_action_plan) ? implode("\n", $result->corrective_action_plan) : ($result->corrective_action_plan ?? '');
                     @endphp
@@ -617,6 +447,7 @@
                         class="hover:bg-slate-50/50 transition-all group"
                         x-data="{
                             isApplicable: {{ $isApplicable ? 'true' : 'false' }},
+                            isClause: {{ $isClause ? 'true' : 'false' }},
                             justification: @js($result->soa_justification ?? ''),
                             dueDate: @js($dueDate),
                             pic: @js($result->treatment_pic ?? ''),
@@ -654,14 +485,38 @@
                         }"
                         x-show="isControlVisible({{ $result->id }})">
                         <td class="px-3 py-3">
-                            <span class="inline-flex items-center justify-center w-12 h-7 bg-slate-100 text-slate-800 font-black text-[9px] rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                                {{ $result->standard->code }}
-                            </span>
-                        </td>
-                        <td class="px-3 py-3">
                             <div class="flex flex-col">
-                                <div class="flex items-center justify-between gap-3">
-                                    <span class="text-[11px] font-bold text-slate-800 leading-tight">{{ __($result->standard->title) }}</span>
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-black text-slate-900 tracking-tight leading-snug">{{ $result->standard->code }}</span>
+                                        <span class="text-[11px] font-medium text-slate-500 leading-tight mt-0.5">{{ __($result->standard->title) }}</span>
+                                        @if(!empty($result->notes) || !empty($result->evidence_file))
+                                            @php
+                                                $evidenceFiles = is_array($result->evidence_file)
+                                                    ? $result->evidence_file
+                                                    : (empty($result->evidence_file) ? [] : [$result->evidence_file]);
+                                                $mappedFiles = [];
+                                                foreach ($evidenceFiles as $file) {
+                                                    $mappedFiles[] = [
+                                                        'name' => basename($file),
+                                                        'url' => route('results.evidence', [$result->id, 'file' => $file])
+                                                    ];
+                                                }
+                                            @endphp
+                                            <div class="mt-1.5 flex items-center">
+                                                <button @click="openEvidenceDetails({
+                                                        code: @js($result->standard->code),
+                                                        title: @js(__($result->standard->title)),
+                                                        notes: @js($result->notes ?? ''),
+                                                        files: @js($mappedFiles)
+                                                    })"
+                                                    class="inline-flex items-center gap-1.5 px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer">
+                                                    <i class="fa-solid fa-eye text-[9px]"></i>
+                                                    {{ __('Notes & Evidence') }}
+                                                </button>
+                                            </div>
+                                        @endif
+                                    </div>
                                     @if($isGap && !empty($result->ai_recommendation))
                                     @php
                                         $aiBtnClass = 'bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-600 hover:text-white shadow-indigo-600/5';
@@ -695,30 +550,89 @@
                             </div>
                         </td>
                         <td class="px-3 py-3 text-center">
-                            <button @click="toggleApplicable()"
-                                :class="isApplicable ? 'bg-emerald-600 text-white shadow-emerald-600/30 shadow' : 'bg-rose-100 text-rose-600 border border-rose-200'"
-                                class="px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all w-16">
+                        {{-- Applicable: read-only badge. Only show if assessed. Edit via Assessment page only. --}}
+                            @if(!$isClause && $isScored)
+                            <span :class="isApplicable ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-rose-50 text-rose-500 border border-rose-100'"
+                                class="px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest inline-block w-16 text-center cursor-default select-none">
                                 <span x-text="isApplicable ? 'Yes' : 'No'"></span>
-                            </button>
+                            </span>
+                            @endif
                         </td>
                         <td class="px-3 py-3">
-                            <div x-show="!editingJust" @click="editingJust = true"
-                                class="text-[9px] text-slate-600 font-medium cursor-text min-h-[26px] px-2 py-1 rounded-lg hover:bg-slate-100 transition-all border border-transparent hover:border-slate-200 flex items-center">
-                                <span x-text="justification || '-'" :class="!justification && 'text-slate-300 italic'"></span>
-                            </div>
-                            <div x-show="editingJust" x-cloak>
-                                <textarea x-model="justification" rows="2" @blur="save('soa_justification', justification); editingJust = false" @keydown.enter.prevent="$event.target.blur()"
-                                    placeholder="{{ __('Justification...') }}"
-                                    class="w-full text-[9px] font-medium border border-indigo-300 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-indigo-500/30 resize-none transition-all"></textarea>
+                            <div class="text-[9px] text-slate-600 font-medium min-h-[26px] px-2 py-1 flex items-center">
+                                <span x-text="justification || ''" :class="!justification && 'text-slate-300 italic'"></span>
                             </div>
                         </td>
                         <td class="px-3 py-3 text-center">
-                            @if($isScored)
-                            <div class="inline-flex items-center justify-center w-6 h-6 rounded-md font-black text-[10px] {{ $result->maturity_rating >= 4 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700' }}">
-                                {{ $result->maturity_rating }}
-                            </div>
+                            {{-- Risk Level --}}
+                            @if($isScored && $isApplicable)
+                                @if($isGap)
+                                    @php
+                                        $riskLevelLabel = $result->risk_level ?? 'Low';
+                                        $riskClass = match(strtolower($riskLevelLabel)) {
+                                            'critical'  => 'text-rose-700 bg-rose-50 border-rose-100',
+                                            'high'      => 'text-orange-700 bg-orange-50 border-orange-100',
+                                            'medium'    => 'text-amber-700 bg-amber-50 border-amber-100',
+                                            default     => 'text-emerald-700 bg-emerald-50 border-emerald-100',
+                                        };
+                                    @endphp
+                                    <span class="px-2.5 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wider inline-block text-center w-24 {{ $riskClass }}">
+                                        {{ $riskLevelLabel }}
+                                    </span>
+                                @else
+                                    <span class="px-2.5 py-1.5 rounded-lg border border-emerald-100 bg-emerald-50 text-emerald-700 text-[9px] font-black uppercase tracking-wider inline-block text-center w-24">
+                                        {{ __('Low') }}
+                                    </span>
+                                @endif
                             @else
-                            <span class="text-[9px] text-slate-300 font-bold italic">-</span>
+                                <span class="text-[9px] text-slate-300 font-bold italic">-</span>
+                            @endif
+                        </td>
+                        <td class="px-3 py-3 text-center">
+                            {{-- Compliance Status --}}
+                            @if($isScored && $isApplicable)
+                                @php
+                                    $complianceStatus = $result->compliance_status;
+                                    $complianceClass = match(strtolower($complianceStatus)) {
+                                        'compliant'           => 'text-emerald-700 bg-emerald-50 border-emerald-100',
+                                        'partially compliant' => 'text-amber-700 bg-amber-50 border-amber-100',
+                                        default               => 'text-rose-700 bg-rose-50 border-rose-100',
+                                    };
+                                @endphp
+                                <span class="px-2.5 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wider inline-block text-center w-32 {{ $complianceClass }}">
+                                    {{ $complianceStatus }}
+                                </span>
+                            @else
+                                <span class="text-[9px] text-slate-300 font-bold italic">-</span>
+                            @endif
+                        </td>
+                        <td class="px-3 py-3 text-center">
+                            {{-- Maturity --}}
+                            @if($isScored && $isApplicable && $result->maturity_rating !== null)
+                                <div class="inline-flex items-baseline justify-center">
+                                    <span class="text-sm font-black text-slate-900 leading-none">{{ $result->maturity_rating }}</span>
+                                    <span class="text-[10px] text-slate-400 font-bold ml-0.5">/5</span>
+                                </div>
+                            @else
+                                <span class="text-[9px] text-slate-300 font-bold italic">-</span>
+                            @endif
+                        </td>
+                        <td class="px-3 py-3">
+                            {{-- Gap --}}
+                            @if($isScored && $isApplicable)
+                                @php
+                                    $gapPct = $isGap ? (5 - $result->maturity_rating) * 20 : 0;
+                                @endphp
+                                <div class="flex items-center gap-2 justify-center">
+                                    <div class="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                        <div class="h-full rounded-full transition-all {{ $gapPct > 0 ? 'bg-rose-500' : 'bg-slate-200' }}" style="width: {{ $gapPct }}%"></div>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-slate-500 w-8">{{ $gapPct }}%</span>
+                                </div>
+                            @else
+                                <div class="text-center">
+                                    <span class="text-[9px] text-slate-300 font-bold italic">-</span>
+                                </div>
                             @endif
                         </td>
                         <td class="px-3 py-3">
@@ -746,7 +660,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-16 text-center">
+                        <td colspan="9" class="px-6 py-16 text-center">
                             <div class="w-14 h-14 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
                                 <i class="fa-solid fa-clipboard text-2xl text-slate-300"></i>
                             </div>
@@ -756,7 +670,7 @@
                     @endforelse
                     @if($results->isNotEmpty())
                     <tr x-show="filteredControls.length === 0" x-cloak>
-                        <td colspan="8" class="px-6 py-14 text-center">
+                        <td colspan="9" class="px-6 py-14 text-center">
                             <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
                                 <i class="fa-solid fa-magnifying-glass text-xl text-slate-300"></i>
                             </div>
@@ -769,19 +683,8 @@
             </table>
         </div>
     </div>
-    @else
-    <div class="bg-white rounded-lg border border-slate-100 p-16 text-center shadow-sm">
-        <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i class="fa-solid fa-folder-open text-3xl text-slate-300"></i>
-        </div>
-        <p class="text-slate-400 font-bold uppercase tracking-widest text-[10px]">{{ __('No assessment session found. Create a session first.') }}</p>
-        <a href="{{ route('sessions.index') }}" class="mt-4 inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-600/20">
-            <i class="fa-solid fa-plus"></i> {{ __('Create Session') }}
-        </a>
-    </div>
     @endif
-
-    </div> {{-- end workspace tab --}}
+    @endif
 
 
     {{-- AI Detail Modal (shared, lives in root Alpine scope) --}}
@@ -840,6 +743,86 @@
                         <p class="text-[10px] text-slate-600 font-medium mt-0.5 leading-relaxed" x-text="activeAiDetails.validation"></p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Evidence & Notes Detail Modal --}}
+    <div x-show="showEvidenceModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 scale-95"
+        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95"
+        x-cloak>
+        <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-md" @click="showEvidenceModal = false"></div>
+        <div class="relative bg-white rounded-xl border border-slate-100 w-full max-w-2xl p-6 md:p-8 shadow-2xl space-y-6 z-10 max-h-[90vh] overflow-y-auto"
+            @click.away="showEvidenceModal = false">
+            
+            {{-- Modal Header --}}
+            <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-50 text-indigo-700 rounded-lg flex items-center justify-center shadow-md">
+                        <i class="fa-solid fa-file-shield text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-1 bg-indigo-50 border border-indigo-100 text-indigo-700 text-[9px] font-black rounded-lg uppercase tracking-wider leading-none" x-text="activeEvidenceDetails.code"></span>
+                            <span class="text-[8px] text-indigo-500 font-bold uppercase tracking-widest leading-none">{{ __('Assessor Notes & Evidence') }}</span>
+                        </div>
+                        <h3 class="text-sm font-black text-slate-900 tracking-tight mt-1 leading-snug" x-text="activeEvidenceDetails.title"></h3>
+                    </div>
+                </div>
+                <button @click="showEvidenceModal = false" class="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-all flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            {{-- Modal Body --}}
+            <div class="space-y-5">
+                {{-- Audit Notes Section --}}
+                <div class="space-y-1.5">
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block"><i class="fa-solid fa-file-pen text-slate-400 mr-1"></i>{{ __('Audit Notes') }}</span>
+                    <div x-show="activeEvidenceDetails.notes" class="text-xs text-slate-850 font-medium leading-relaxed bg-amber-50/50 border border-amber-100/50 p-4 rounded-lg shadow-inner whitespace-pre-line" x-text="activeEvidenceDetails.notes"></div>
+                    <div x-show="!activeEvidenceDetails.notes" class="text-xs text-slate-400 font-medium italic p-4 bg-slate-50 rounded-lg border border-slate-100 text-center">{{ __('No audit notes have been provided for this control.') }}</div>
+                </div>
+
+                {{-- Evidence Files Section --}}
+                <div class="space-y-1.5">
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block"><i class="fa-solid fa-paperclip text-slate-400 mr-1"></i>{{ __('Attached Evidence Files') }}</span>
+                    
+                    {{-- Files List --}}
+                    <div x-show="activeEvidenceDetails.files && activeEvidenceDetails.files.length > 0" class="grid grid-cols-1 gap-2">
+                        <template x-for="(file, index) in activeEvidenceDetails.files" :key="index">
+                            <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200/60 rounded-xl hover:bg-slate-100/50 transition-all">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                        <i class="fa-solid fa-file-lines text-sm"></i>
+                                    </div>
+                                    <a :href="file.url" target="_blank" class="text-xs font-bold text-slate-700 truncate max-w-md hover:text-indigo-600 hover:underline" x-text="file.name"></a>
+                                </div>
+                                <a :href="file.url" target="_blank" class="px-3.5 py-1.5 bg-indigo-550 hover:bg-indigo-600 text-white rounded-lg text-[9px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1.5 hover:scale-102 transition-all">
+                                    {{ __('View File') }}
+                                    <i class="fa-solid fa-up-right-from-square text-[9px]"></i>
+                                </a>
+                            </div>
+                        </template>
+                    </div>
+
+                    {{-- Empty State --}}
+                    <div x-show="!activeEvidenceDetails.files || activeEvidenceDetails.files.length === 0" class="text-xs text-slate-400 font-medium italic p-4 bg-slate-50 rounded-lg border border-slate-100 text-center">
+                        {{ __('No evidence files have been attached to this control.') }}
+                    </div>
+                </div>
+            </div>
+
+            {{-- Modal Footer --}}
+            <div class="pt-4 border-t border-slate-100 flex justify-end">
+                <button @click="showEvidenceModal = false" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">
+                    {{ __('Close') }}
+                </button>
             </div>
         </div>
     </div>

@@ -17,6 +17,11 @@ class AiSummaryService
             throw new \Exception('Unauthorized: You do not have permission to generate summary for this session.');
         }
 
+        // Verify session status is completed
+        if ($session->status !== 'completed') {
+            throw new \Exception('You must finalize and complete this audit session before generating the AI summary.');
+        }
+
         // Clear existing summary to track new generation status
         $session->update(['ai_summary' => null]);
 

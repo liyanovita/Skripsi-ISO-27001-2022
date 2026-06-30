@@ -53,7 +53,7 @@
 
     {{-- Toolbar --}}
     <div class="p-5 border-b border-slate-200 bg-slate-50">
-        <form method="GET" action="{{ route('admin.users.index') }}"
+        <form method="GET" action="{{ route('admin.users.index') }}" x-data
               class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 flex-wrap">
             <div class="flex items-center gap-3 flex-1 flex-wrap">
                 <span class="text-xs font-bold text-slate-400 bg-white border border-slate-200 px-2.5 py-1 rounded-full shrink-0">
@@ -63,26 +63,23 @@
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                     <input type="text" name="search" value="{{ $search }}"
                         placeholder="Search name, email, org..."
+                        x-on:input.debounce.500ms="$el.closest('form').requestSubmit()"
                         class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white">
                 </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-                <select name="role" onchange="this.form.submit()"
+                <select name="role" onchange="this.form.requestSubmit()"
                     class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white font-semibold text-slate-700">
                     <option value="">All Roles</option>
                     <option value="admin" {{ $roleFilter === 'admin' ? 'selected' : '' }}>Admin</option>
                     <option value="user"  {{ $roleFilter === 'user'  ? 'selected' : '' }}>User</option>
                 </select>
-                <select name="status" onchange="this.form.submit()"
+                <select name="status" onchange="this.form.requestSubmit()"
                     class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white font-semibold text-slate-700">
                     <option value="">All Status</option>
                     <option value="active"    {{ $statusFilter === 'active'    ? 'selected' : '' }}>Active</option>
                     <option value="suspended" {{ $statusFilter === 'suspended' ? 'selected' : '' }}>Suspended</option>
                 </select>
-                <button type="submit"
-                    class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-bold hover:bg-slate-700 transition-colors">
-                    <i class="fa-solid fa-filter mr-1"></i> Filter
-                </button>
                 @if($search || $roleFilter || $statusFilter)
                 <a href="{{ route('admin.users.index') }}"
                     class="px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors flex items-center gap-1">
@@ -159,7 +156,7 @@
                     </td>
                     <td class="px-5 py-4 text-right">
                         @if($user->id !== auth()->id())
-                        <div class="flex items-center justify-end gap-1.5" x-data="{ showDeleteConfirm: false }">
+                        <div class="flex items-center justify-end gap-1.5">
                             <a href="{{ route('admin.users.show', $user) }}"
                                 class="w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 hover:bg-blue-50 border border-blue-200 bg-white transition-colors" title="View">
                                 <i class="fa-solid fa-eye text-xs"></i>
@@ -176,15 +173,36 @@
                                     <i class="fa-solid {{ $user->isActive() ? 'fa-ban' : 'fa-check' }} text-xs"></i>
                                 </button>
                             </form>
-                            <button @click="showDeleteConfirm = true" x-show="!showDeleteConfirm"
-                                class="w-8 h-8 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 border border-red-200 bg-white transition-colors" title="Delete">
-                                <i class="fa-solid fa-trash-can text-xs"></i>
-                            </button>
                             <form method="POST" action="{{ route('admin.users.destroy', $user) }}"
-                                x-show="showDeleteConfirm" class="flex gap-1" x-cloak>
+                                x-data
+                                @submit.prevent="
+                                    Swal.fire({
+                                        title: '{{ addslashes(__('Delete User?')) }}',
+                                        text: '{{ addslashes(__('Are you sure you want to delete user ":name"? This action cannot be undone.', ['name' => $user->name])) }}',
+                                        icon: 'warning',
+                                        showCancelButton: true,
+                                        confirmButtonColor: '#ef4444',
+                                        cancelButtonColor: '#64748b',
+                                        confirmButtonText: '{{ addslashes(__('Yes, Delete!')) }}',
+                                        cancelButtonText: '{{ addslashes(__('Cancel')) }}',
+                                        width: '22rem',
+                                        customClass: {
+                                            title: 'text-base font-bold text-slate-800',
+                                            htmlContainer: 'text-xs text-slate-500',
+                                            confirmButton: 'text-xs px-3 py-2 rounded-lg font-semibold',
+                                            cancelButton: 'text-xs px-3 py-2 rounded-lg font-semibold'
+                                        }
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            $el.submit();
+                                        }
+                                    });
+                                ">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition-colors">Confirm</button>
-                                <button type="button" @click="showDeleteConfirm = false" class="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200 transition-colors">Cancel</button>
+                                <button type="submit"
+                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 border border-red-200 bg-white transition-colors" title="Delete">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                </button>
                             </form>
                         </div>
                         @else

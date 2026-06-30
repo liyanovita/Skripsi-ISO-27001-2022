@@ -33,7 +33,7 @@
     {{-- Top Stats Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
         {{-- Card 1 --}}
-        <div class="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+        <a href="{{ route('admin.users.index') }}" class="block bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
             <div class="absolute -right-4 -top-4 w-20 h-20 bg-blue-500/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
             <div class="flex items-center justify-between mb-3 relative z-10">
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Users</h3>
@@ -44,14 +44,11 @@
             <div class="text-3xl font-black text-slate-900 tracking-tight relative z-10">{{ number_format($totalUsers) }}</div>
             <div class="mt-4 flex items-center justify-between relative z-10">
                 <span class="text-[10px] font-semibold text-slate-400">Registered Platform Accounts</span>
-                <a href="{{ route('admin.users.index') }}" class="text-[10px] text-blue-600 hover:text-blue-700 font-bold uppercase tracking-wider flex items-center gap-1">
-                    Manage <i class="fa-solid fa-arrow-right text-[8px]"></i>
-                </a>
             </div>
-        </div>
+        </a>
 
         {{-- Card 2 --}}
-        <div class="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+        <a href="{{ route('admin.sessions.index', ['status' => 'in_progress']) }}" class="block bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
             <div class="absolute -right-4 -top-4 w-20 h-20 bg-amber-500/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
             <div class="flex items-center justify-between mb-3 relative z-10">
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Sessions</h3>
@@ -62,14 +59,11 @@
             <div class="text-3xl font-black text-slate-900 tracking-tight relative z-10">{{ number_format($activeSessions) }}</div>
             <div class="mt-4 flex items-center justify-between relative z-10">
                 <span class="text-[10px] font-semibold text-slate-400">Out of {{ $totalSessions }} total sessions</span>
-                <a href="{{ route('admin.sessions.index') }}" class="text-[10px] text-amber-600 hover:text-amber-700 font-bold uppercase tracking-wider flex items-center gap-1">
-                    View <i class="fa-solid fa-arrow-right text-[8px]"></i>
-                </a>
             </div>
-        </div>
+        </a>
 
         {{-- Card 3 --}}
-        <div class="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+        <a href="{{ route('admin.sessions.index', ['status' => 'completed']) }}" class="block bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
             <div class="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
             <div class="flex items-center justify-between mb-3 relative z-10">
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Completed Sessions</h3>
@@ -80,11 +74,8 @@
             <div class="text-3xl font-black text-slate-900 tracking-tight relative z-10">{{ number_format($completedSessions) }}</div>
             <div class="mt-4 flex items-center justify-between relative z-10">
                 <span class="text-[10px] font-semibold text-slate-400">100% Finalized Audits</span>
-                <a href="{{ route('admin.sessions.index', ['status' => 'completed']) }}" class="text-[10px] text-emerald-600 hover:text-emerald-700 font-bold uppercase tracking-wider flex items-center gap-1">
-                    Export <i class="fa-solid fa-arrow-right text-[8px]"></i>
-                </a>
             </div>
-        </div>
+        </a>
 
         {{-- Card 4 --}}
         <div class="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
@@ -101,13 +92,13 @@
             <div class="mt-4 flex items-center justify-between relative z-10">
                 <span class="text-[10px] font-semibold text-slate-400">Global compliance level</span>
                 <span class="px-2 py-0.5 bg-purple-50 text-purple-600 rounded text-[9px] font-black uppercase tracking-widest">
-                    @if($averageScore >= 4.5) Optimized @elseif($averageScore >= 3.5) Managed @elseif($averageScore >= 2.5) Defined @elseif($averageScore >= 1.5) Limited/Repeatable @else Initial @endif
+                    @if($averageScore >= 4.5) Optimized (Level 5) @elseif($averageScore >= 3.5) Managed (Level 4) @elseif($averageScore >= 2.5) Defined (Level 3) @elseif($averageScore >= 1.5) Repeatable (Level 2) @elseif($averageScore >= 0.5) Initial (Level 1) @else Non-existent (Level 0) @endif
                 </span>
             </div>
         </div>
 
         {{-- Card 5: Suspended Users --}}
-        <div class="bg-white rounded-2xl border border-rose-100 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+        <a href="{{ route('admin.users.index', ['status' => 'suspended']) }}" class="block bg-white rounded-2xl border border-rose-100 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
             <div class="absolute -right-4 -top-4 w-20 h-20 bg-rose-500/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
             <div class="flex items-center justify-between mb-3 relative z-10">
                 <h3 class="text-[10px] font-black text-rose-400 uppercase tracking-widest">Suspended</h3>
@@ -118,11 +109,8 @@
             <div class="text-3xl font-black text-rose-600 tracking-tight relative z-10">{{ number_format(\App\Models\User::where('status', 'suspended')->count()) }}</div>
             <div class="mt-4 flex items-center justify-between relative z-10">
                 <span class="text-[10px] font-semibold text-slate-400">Blocked Platform Accounts</span>
-                <a href="{{ route('admin.users.index', ['status' => 'suspended']) }}" class="text-[10px] text-rose-600 hover:text-rose-700 font-bold uppercase tracking-wider flex items-center gap-1">
-                    View <i class="fa-solid fa-arrow-right text-[8px]"></i>
-                </a>
             </div>
-        </div>
+        </a>
     </div>
 
     {{-- CAPA Alert Banner --}}

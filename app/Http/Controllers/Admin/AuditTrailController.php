@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AuditTrail;
 use App\Models\User;
+use App\Services\ExcelExportService;
 use Illuminate\Http\Request;
 
 class AuditTrailController extends Controller
@@ -63,26 +64,29 @@ class AuditTrailController extends Controller
 
         $logs = AuditTrail::with('user')->orderByDesc('created_at')->get();
 
-        $callback = function () use ($logs) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, ['Timestamp', 'User', 'Action', 'Model', 'Model ID', 'Field Changed', 'Old Value', 'New Value']);
+        $booleanFields = ['is_applicable'];
+        $rows = [];
 
-            foreach ($logs as $log) {
-                fputcsv($file, [
-                    $log->created_at->format('Y-m-d H:i:s'),
-                    $log->user?->name ?? 'System',
-                    ucfirst($log->action),
-                    class_basename($log->model_type),
-                    $log->model_id,
-                    $log->field_changed,
-                    $log->old_value ?? '-',
-                    $log->new_value ?? '-',
-                ]);
-            }
+        foreach ($logs as $log) {
+            $isBool     = in_array($log->field_changed, $booleanFields);
+            $oldValue   = $log->old_value ?? null;
+            $newValue   = $log->new_value ?? null;
+            $oldDisplay = !is_null($oldValue) ? ($isBool ? ($oldValue == '1' ? 'Yes' : 'No') : $oldValue) : '-';
+            $newDisplay = !is_null($newValue) ? ($isBool ? ($newValue == '1' ? 'Yes' : 'No') : $newValue) : '-';
 
-            fclose($file);
-        };
+            $rows[] = [
+                $log->created_at->format('Y-m-d H:i:s'),
+                $log->user?->name ?? 'System',
+                ucfirst($log->action),
+                class_basename($log->model_type),
+                $log->model_id,
+                $log->field_changed,
+                $oldDisplay,
+                $newDisplay,
+            ];
+        }
 
-        return response()->stream($callback, 200, $headers);
+        $filename = 'audit_trail_' . date('Y-m-d') . '.xlsx';
+        return ExcelExportService::download($filename, ['Timestamp', 'User', 'Action', 'Model', 'Model ID', 'Field Changed', 'Old Value', 'New Value'], $rows, 'System Logs');
     }
 }

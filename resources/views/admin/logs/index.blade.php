@@ -11,8 +11,8 @@
         <h2 class="text-xl font-black text-slate-800">System Logs / Audit Trail</h2>
         <p class="text-sm text-slate-500">Track every data change, update, and activity across the system.</p>
     </div>
-    <a href="{{ route('admin.logs.export') }}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center gap-2 self-start">
-        <i class="fa-solid fa-file-csv"></i> Export CSV
+    <a href="{{ route('admin.logs.export') }}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center gap-2 self-start">
+        <i class="fa-solid fa-file-excel"></i> Export Excel
     </a>
 </div>
 
@@ -51,15 +51,16 @@
 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
     {{-- Filters --}}
     <div class="p-4 border-b border-slate-200 bg-slate-50">
-        <form method="GET" action="{{ route('admin.logs.index') }}" class="flex flex-col sm:flex-row gap-3 flex-wrap">
+        <form method="GET" action="{{ route('admin.logs.index') }}" x-data class="flex flex-col sm:flex-row gap-3 flex-wrap">
             <div class="flex-1 min-w-[200px] relative">
                 <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                 <input type="text" name="search" value="{{ request('search') }}"
+                    x-on:input.debounce.500ms="$el.closest('form').requestSubmit()"
                     placeholder="Search field, value, or user..."
                     class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
             </div>
 
-            <select name="user_id" class="px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white">
+            <select name="user_id" x-on:change="$el.closest('form').requestSubmit()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white">
                 <option value="">All Users</option>
                 @foreach($users as $user)
                     <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
@@ -68,7 +69,7 @@
                 @endforeach
             </select>
 
-            <select name="action" class="px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white">
+            <select name="action" x-on:change="$el.closest('form').requestSubmit()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white">
                 <option value="">All Actions</option>
                 <option value="created"  {{ request('action') == 'created'  ? 'selected' : '' }}>Created</option>
                 <option value="updated"  {{ request('action') == 'updated'  ? 'selected' : '' }}>Updated</option>
@@ -76,11 +77,8 @@
             </select>
 
             <input type="date" name="date" value="{{ request('date') }}"
+                x-on:change="$el.closest('form').requestSubmit()"
                 class="px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white">
-
-            <button type="submit" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-bold hover:bg-slate-700 transition-colors">
-                <i class="fa-solid fa-filter mr-1"></i> Filter
-            </button>
 
             @if(request()->hasAny(['search', 'user_id', 'action', 'date']))
                 <a href="{{ route('admin.logs.index') }}"
@@ -154,11 +152,33 @@
                     <td class="px-5 py-3.5 font-semibold text-slate-700 text-xs">
                         {{ $log->field_changed ?? '-' }}
                     </td>
-                    <td class="px-5 py-3.5 text-xs max-w-[140px] truncate text-slate-500" title="{{ $log->old_value }}">
-                        {{ $log->old_value ?? '-' }}
+                    @php
+                        $booleanFields = ['is_applicable'];
+                        $isBoolLog = in_array($log->field_changed, $booleanFields);
+                        $oldLogDisplay = (!is_null($log->old_value) && $log->old_value !== '')
+                            ? ($isBoolLog ? ($log->old_value == '1' ? 'Yes' : 'No') : $log->old_value)
+                            : null;
+                        $newLogDisplay = (!is_null($log->new_value) && $log->new_value !== '')
+                            ? ($isBoolLog ? ($log->new_value == '1' ? 'Yes' : 'No') : $log->new_value)
+                            : null;
+                    @endphp
+                    <td class="px-5 py-3.5 text-xs max-w-[140px] truncate" title="{{ $oldLogDisplay ?? '-' }}">
+                        @if($isBoolLog && !is_null($oldLogDisplay))
+                            <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest {{ $oldLogDisplay === 'Yes' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500' }}">
+                                {{ $oldLogDisplay }}
+                            </span>
+                        @else
+                            <span class="text-slate-500">{{ $oldLogDisplay ?? '-' }}</span>
+                        @endif
                     </td>
-                    <td class="px-5 py-3.5 text-xs max-w-[140px] truncate font-semibold text-indigo-600" title="{{ $log->new_value }}">
-                        {{ $log->new_value ?? '-' }}
+                    <td class="px-5 py-3.5 text-xs max-w-[140px] truncate" title="{{ $newLogDisplay ?? '-' }}">
+                        @if($isBoolLog && !is_null($newLogDisplay))
+                            <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest {{ $newLogDisplay === 'Yes' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500' }}">
+                                {{ $newLogDisplay }}
+                            </span>
+                        @else
+                            <span class="font-semibold text-indigo-600">{{ $newLogDisplay ?? '-' }}</span>
+                        @endif
                     </td>
                 </tr>
                 @empty

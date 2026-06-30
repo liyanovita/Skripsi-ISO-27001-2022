@@ -166,7 +166,7 @@ class AnalyticsService
     {
         $score = $this->filterApplicableResults($this->filterAssessableResults($session->results))
             ->where('status', 'completed')
-            ->where('maturity_rating', '>', 0)
+            ->where('maturity_rating', '>=', 0)
             ->avg('maturity_rating') ?? 0;
 
         return round((float) $score, 2);

@@ -1,114 +1,220 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit Knowledge Base Item')
-@section('header_title', 'Edit Knowledge Base Item')
+@section('title', __('Edit Knowledge Base Item'))
+@section('header_title', __('Edit Knowledge Base Item'))
+
+@push('styles')
+<style>
+    .ck-editor__editable_inline {
+        min-height: 350px !important;
+        border-color: #e2e8f0 !important;
+        border-bottom-left-radius: 0.75rem !important;
+        border-bottom-right-radius: 0.75rem !important;
+        background-color: #f8fafc !important;
+        color: #334155 !important;
+    }
+    .ck.ck-editor__main>.ck-editor__editable:not(.ck-focused) {
+        border-color: #e2e8f0 !important;
+    }
+    .ck.ck-editor__main>.ck-editor__editable.ck-focused {
+        border-color: #94a3b8 !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 0 0 4px rgba(30, 41, 59, 0.05) !important;
+    }
+    .ck.ck-toolbar {
+        border-color: #e2e8f0 !important;
+        border-top-left-radius: 0.75rem !important;
+        border-top-right-radius: 0.75rem !important;
+        background-color: #f8fafc !important;
+    }
+</style>
+@endpush
+
+@push('head_scripts')
+<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+@endpush
 
 @section('content')
 <div class="mb-6">
     <a href="{{ route('admin.knowledge.index') }}" class="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors">
-        <i class="fa-solid fa-arrow-left"></i> Back to Knowledge Base
+        <i class="fa-solid fa-arrow-left"></i> {{ __('Back to Knowledge Base') }}
     </a>
 </div>
 
-<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden max-w-4xl">
+<div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden max-w-5xl" x-data="{
+    content: @js(old('content', $knowledge->content)),
+    categoryVal: @js(old('category', $knowledge->category)),
+    previewHtml: '',
+    easyMDE: null,
+    init() {
+        this.refreshPreview();
+        const textarea = document.getElementById('content-textarea');
+        if (textarea && typeof ClassicEditor !== 'undefined') {
+            class Base64UploadAdapter {
+                constructor(loader) {
+                    this.loader = loader;
+                }
+                upload() {
+                    return this.loader.file
+                        .then(file => new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                                resolve({ default: reader.result });
+                            };
+                            reader.onerror = error => {
+                                reject(error);
+                            };
+                            reader.readAsDataURL(file);
+                        }));
+                }
+                abort() {}
+            }
+
+            ClassicEditor
+                .create(textarea, {
+                    placeholder: @js(__('Enter the full policy text, SOP steps, or guide content here...')),
+                    extraPlugins: [
+                        function(editor) {
+                            editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+                                return new Base64UploadAdapter(loader);
+                            };
+                        }
+                    ],
+                    toolbar: [
+                        'heading', '|',
+                        'bold', 'italic', 'link', '|',
+                        'bulletedList', 'numberedList', 'outdent', 'indent', '|',
+                        'blockQuote', 'insertTable', 'uploadImage', '|',
+                        'undo', 'redo'
+                    ]
+                })
+                .then(editor => {
+                    this.easyMDE = editor;
+                    editor.setData(this.content || '');
+                    
+                    editor.model.document.on('change:data', () => {
+                        this.content = editor.getData();
+                        this.refreshPreview();
+                    });
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        }
+    },
+    refreshPreview() {
+        this.previewHtml = this.content || '<p class=\'text-slate-400 italic\'>' + @js(__('Start typing to preview this resource...')) + '</p>';
+    }
+}">
     <div class="p-6 border-b border-slate-200 bg-slate-50">
-        <h2 class="text-xl font-black text-slate-800">Edit Document or Article</h2>
-        <p class="text-sm text-slate-500">Update the contents or replace the file attachment.</p>
+        <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">{{ __('Edit Document or Article') }}</h2>
+        <p class="text-xs text-slate-500 mt-1 uppercase tracking-widest font-bold">{{ __('Knowledge Base Administration') }}</p>
     </div>
 
-    <form method="POST" action="{{ route('admin.knowledge.update', $knowledge) }}" enctype="multipart/form-data" class="p-6">
+    <form method="POST" action="{{ route('admin.knowledge.update', $knowledge) }}" enctype="multipart/form-data" class="p-6 space-y-6">
         @csrf
         @method('PUT')
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {{-- Title & Category --}}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {{-- Title --}}
-            <div class="md:col-span-2">
-                <label class="block text-sm font-bold text-slate-700 mb-1">Title <span class="text-red-500">*</span></label>
-                <input type="text" name="title" value="{{ old('title', $knowledge->title) }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required>
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Title') }} <span class="text-red-500">*</span></label>
+                <input type="text" name="title" value="{{ old('title', $knowledge->title) }}" placeholder="{{ __('e.g. ISO 27001 Internal Audit Guide') }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:bg-white outline-none focus:ring-4 focus:ring-slate-800/5 focus:border-slate-400 transition-all shadow-sm" required>
                 @error('title') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
             </div>
 
             {{-- Category --}}
-            <div>
-                <label class="block text-sm font-bold text-slate-700 mb-1">Category <span class="text-red-500">*</span></label>
-                <input type="text" list="categories" name="category" value="{{ old('category', $knowledge->category) }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required>
-                <datalist id="categories">
-                    <option value="Audit Guides">
-                    <option value="Templates">
-                    <option value="Policies">
-                    <option value="General Information">
-                </datalist>
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Category') }} <span class="text-red-500">*</span></label>
+                <select name="category" required x-model="categoryVal"
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:bg-white outline-none focus:ring-4 focus:ring-slate-800/5 focus:border-slate-400 transition-all shadow-sm cursor-pointer"
+                    :class="categoryVal === '' ? 'text-slate-400' : 'text-slate-700'">
+                    <option value="" disabled hidden class="text-slate-400">-- {{ __('Select Category') }} --</option>
+                    <option value="guides" class="text-slate-700">{{ __('Implementation Guides') }}</option>
+                    <option value="templates" class="text-slate-700">{{ __('Policy Templates') }}</option>
+                    <option value="sop" class="text-slate-700">{{ __('Standard Operating Procedures') }}</option>
+                    <option value="evidence" class="text-slate-700">{{ __('Evidence Examples') }}</option>
+                </select>
                 @error('category') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-            </div>
-
-            {{-- Icon --}}
-            <div>
-                <label class="block text-sm font-bold text-slate-700 mb-1">Icon (FontAwesome Class)</label>
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0" id="icon-preview">
-                        <i class="{{ old('icon', $knowledge->icon ?? 'fa-solid fa-file-lines') }}"></i>
-                    </div>
-                    <input type="text" name="icon" id="icon-input" value="{{ old('icon', $knowledge->icon) }}" class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="e.g. fa-solid fa-file-pdf">
-                </div>
-                <p class="text-[10px] text-slate-500 mt-1">Type a FontAwesome class to update preview.</p>
-                @error('icon') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-            </div>
-
-            {{-- Description --}}
-            <div class="md:col-span-2">
-                <label class="block text-sm font-bold text-slate-700 mb-1">Short Description <span class="text-red-500">*</span></label>
-                <textarea name="description" rows="2" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required>{{ old('description', $knowledge->description) }}</textarea>
-                @error('description') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-            </div>
-
-            {{-- Content --}}
-            <div class="md:col-span-2">
-                <label class="block text-sm font-bold text-slate-700 mb-1">Full Content / Article <span class="text-red-500">*</span></label>
-                <textarea name="content" rows="8" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required>{{ old('content', $knowledge->content) }}</textarea>
-                <p class="text-[10px] text-slate-500 mt-1"><i class="fa-brands fa-markdown"></i> Markdown is supported &mdash; use <code class="bg-slate-100 px-1 rounded">**bold**</code>, <code class="bg-slate-100 px-1 rounded"># Heading</code>, <code class="bg-slate-100 px-1 rounded">- list item</code></p>
-                @error('content') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-            </div>
-
-            {{-- File Attachment --}}
-            <div class="md:col-span-2">
-                <label class="block text-sm font-bold text-slate-700 mb-1">Replace File Attachment (Optional)</label>
-                
-                @if($knowledge->attachment_path)
-                <div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-file-contract text-2xl text-blue-500"></i>
-                        <div>
-                            <p class="text-sm font-bold text-slate-800">Current File: {{ $knowledge->attachment_name }}</p>
-                            <p class="text-xs text-slate-500">{{ $knowledge->size }}</p>
-                        </div>
-                    </div>
-                    <span class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded">Uploaded</span>
-                </div>
-                @endif
-
-                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-lg bg-slate-50 relative group hover:border-blue-400 transition-colors">
-                    <div class="space-y-1 text-center">
-                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 group-hover:text-blue-500 transition-colors"></i>
-                        <div class="flex text-sm text-slate-600 justify-center">
-                            <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none px-1">
-                                <span>Upload a new file to replace</span>
-                                <input id="file-upload" name="attachment" type="file" class="sr-only" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png">
-                            </label>
-                            <p class="pl-1">or drag and drop</p>
-                        </div>
-                        <p class="text-xs text-slate-500">PDF, DOCX, XLSX, JPG up to 10MB</p>
-                    </div>
-                </div>
-                <div id="file-name-display" class="mt-2 text-sm font-bold text-emerald-600 hidden"></div>
-                <p class="text-[10px] text-slate-500 mt-1"><i class="fa-solid fa-info-circle"></i> If you upload a new file, the old file will be automatically deleted from the server.</p>
-                @error('attachment') <p class="text-xs text-red-500 mt-1 font-bold">{{ $message }}</p> @enderror
             </div>
         </div>
 
-        <div class="flex justify-end gap-3 mt-8 pt-6 border-t border-slate-200">
-            <a href="{{ route('admin.knowledge.index') }}" class="px-6 py-2.5 rounded-lg font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">Cancel</a>
-            <button type="submit" class="px-6 py-2.5 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors flex items-center gap-2">
-                <i class="fa-solid fa-save"></i> Update Item
+        {{-- Description --}}
+        <div class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Short Description') }} <span class="text-red-500">*</span></label>
+            <textarea name="description" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 focus:bg-white outline-none focus:ring-4 focus:ring-slate-800/5 focus:border-slate-400 transition-all shadow-sm resize-y" placeholder="{{ __('Brief summary of this document...') }}" required>{{ old('description', $knowledge->description) }}</textarea>
+            @error('description') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+        </div>
+
+        {{-- File Attachment --}}
+        <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 space-y-3">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('File Attachment') }}</label>
+                    <p class="text-xs text-slate-500 font-medium mt-1">{{ __('Optional. Upload the source file if users should download DOCX, XLSX, PDF, TXT, MD, or CSV directly.') }}</p>
+                </div>
+                @if($knowledge->attachment_path)
+                <span class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600">
+                    <i class="fa-solid fa-paperclip text-indigo-500"></i>
+                    {{ $knowledge->attachment_name }} ({{ $knowledge->size }})
+                </span>
+                @endif
+            </div>
+
+            <label for="file-upload" class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-200 border-dashed rounded-2xl bg-white relative group hover:border-blue-400 transition-colors cursor-pointer block">
+                <div class="space-y-1 text-center">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 group-hover:text-blue-500 transition-colors"></i>
+                    <div class="flex text-sm text-slate-600 justify-center">
+                        <span class="font-bold text-blue-600 group-hover:text-blue-500 transition-colors">{{ __('Upload a new file to replace') }}</span>
+                        <input id="file-upload" name="attachment" type="file" class="sr-only" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png,.csv,.txt,.md">
+                        <p class="pl-1">{{ __('or drag and drop') }}</p>
+                    </div>
+                    <p class="text-xs text-slate-500 font-medium">{{ __('PDF, DOCX, XLSX, JPG, CSV up to 10MB') }}</p>
+                </div>
+            </label>
+            <div id="file-name-display" class="text-xs font-bold text-emerald-600 hidden"></div>
+            @if($knowledge->attachment_path)
+            <p class="text-[10px] text-slate-400 font-medium"><i class="fa-solid fa-info-circle"></i> {{ __('If you upload a new file, the old file will be automatically deleted from the server.') }}</p>
+            @endif
+            @error('attachment') <p class="text-xs text-red-500 mt-1 font-bold">{{ $message }}</p> @enderror
+        </div>
+
+        {{-- Content --}}
+        <div class="space-y-2">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between">
+                <span>{{ __('Knowledge Base Content') }}</span>
+                <span class="text-indigo-500 font-bold">{{ __('Word-like editor (will be exported to PDF)') }}</span>
+            </label>
+
+            {{-- PDF Generation Warning Banner --}}
+            <div class="p-3 bg-amber-50/70 border border-amber-200 rounded-xl flex items-start gap-2.5">
+                <div class="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-circle-exclamation text-xs"></i>
+                </div>
+                <div class="text-[11px] leading-normal font-medium text-amber-900">
+                    <span class="font-bold">{{ __('PDF Export Notice:') }}</span> {{ __('The content written in this editor will be compiled directly into the official PDF download. Please ensure alignment, lists, and tables are structured neatly for a professional printout.') }}
+                </div>
+            </div>
+
+            <textarea id="content-textarea" name="content" rows="12" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono text-slate-700 focus:bg-white outline-none focus:ring-4 focus:ring-slate-800/5 focus:border-slate-400 transition-all shadow-sm resize-y custom-scrollbar" placeholder="{{ __('Enter the full policy text, SOP steps, or guide content here...') }}">{{ old('content', $knowledge->content) }}</textarea>
+            @error('content') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+        </div>
+
+        {{-- Preview --}}
+        <div class="space-y-2">
+            <div class="flex items-center justify-between">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Content Preview') }}</label>
+                <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">{{ __('Live preview') }}</span>
+            </div>
+            <div class="prose prose-sm prose-slate max-w-none min-h-32 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700" x-html="previewHtml"></div>
+        </div>
+
+        {{-- Submit buttons --}}
+        <div class="flex justify-end gap-3 pt-6 border-t border-slate-200">
+            <a href="{{ route('admin.knowledge.index') }}" class="px-6 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors text-xs uppercase tracking-wider">{{ __('Cancel') }}</a>
+            <button type="submit" class="px-6 py-2.5 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] text-xs uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-save"></i> {{ __('Update Item') }}
             </button>
         </div>
     </form>
@@ -118,20 +224,11 @@
     document.getElementById('file-upload').addEventListener('change', function(e) {
         const display = document.getElementById('file-name-display');
         if (this.files && this.files[0]) {
-            display.textContent = 'Selected replacement file: ' + this.files[0].name;
+            display.textContent = @js(__('Selected replacement file:')) + ' ' + this.files[0].name;
             display.classList.remove('hidden');
         } else {
             display.classList.add('hidden');
         }
     });
-
-    // Live icon preview
-    const iconInput = document.getElementById('icon-input');
-    const iconPreview = document.getElementById('icon-preview');
-    if (iconInput && iconPreview) {
-        iconInput.addEventListener('input', function() {
-            iconPreview.innerHTML = '<i class="' + this.value + '"></i>';
-        });
-    }
 </script>
 @endsection

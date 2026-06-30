@@ -7,6 +7,7 @@ use App\Models\AssessmentSession;
 use App\Models\AssessmentResult;
 use App\Models\IsoStandard;
 use App\Models\User;
+use App\Services\ExcelExportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -30,68 +31,40 @@ class ReportController extends Controller
 
     public function exportCsv()
     {
-        $headers = [
-            "Content-type"        => "text/csv",
-            "Content-Disposition" => "attachment; filename=iso27001_compliance_report_" . date('Y-m-d') . ".csv",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
-        ];
-
-        // Fetch all assessment results
         $results = AssessmentResult::with(['session.user', 'standard'])
             ->orderBy('session_id')
             ->get();
 
-        $callback = function() use($results) {
-            $file = fopen('php://output', 'w');
-            
-            // Write CSV headers
-            fputcsv($file, [
-                'Session Name', 
-                'User Name', 
-                'User Email', 
-                'Business Sector', 
-                'Organization Scale',
-                'ISO Code', 
-                'ISO Title', 
-                'Type',
-                'Maturity Rating', 
-                'Is Applicable',
-                'Implementation Status',
-                'Risk Priority',
-                'CAPA Status',
-                'CAPA PIC',
-                'CAPA Due Date',
-                'Audit Date'
-            ]);
+        $headers = [
+            'Session Name', 'User Name', 'User Email', 'Business Sector', 'Organization Scale',
+            'ISO Code', 'ISO Title', 'Type', 'Maturity Rating', 'Is Applicable',
+            'Implementation Status', 'Risk Priority', 'CAPA Status', 'CAPA PIC', 'CAPA Due Date', 'Audit Date'
+        ];
 
-            // Write data rows
-            foreach ($results as $row) {
-                fputcsv($file, [
-                    $row->session->name,
-                    $row->session->user->name,
-                    $row->session->user->email,
-                    $row->session->user->business_sector ?: 'N/A',
-                    $row->session->user->organization_scale ?: 'N/A',
-                    $row->standard->code,
-                    $row->standard->title,
-                    $row->standard->type,
-                    $row->maturity_rating,
-                    $row->is_applicable ? 'Yes' : 'No',
-                    $row->implementation_status ?: 'N/A',
-                    $row->risk_priority ?: 'N/A',
-                    $row->treatment_status ?: 'N/A',
-                    $row->treatment_pic ?: 'N/A',
-                    $row->treatment_due_date ? $row->treatment_due_date->format('Y-m-d') : 'N/A',
-                    $row->updated_at->format('Y-m-d H:i:s')
-                ]);
-            }
+        $rows = [];
+        foreach ($results as $row) {
+            $rows[] = [
+                $row->session->name,
+                $row->session->user->name,
+                $row->session->user->email,
+                $row->session->user->business_sector ?: 'N/A',
+                $row->session->user->organization_scale ?: 'N/A',
+                $row->standard->code,
+                $row->standard->title,
+                $row->standard->type,
+                $row->maturity_rating,
+                $row->is_applicable ? 'Yes' : 'No',
+                $row->implementation_status ?: 'N/A',
+                $row->risk_priority ?: 'N/A',
+                $row->treatment_status ?: 'N/A',
+                $row->treatment_pic ?: 'N/A',
+                $row->treatment_due_date ? $row->treatment_due_date->format('Y-m-d') : 'N/A',
+                $row->updated_at->format('Y-m-d H:i:s'),
+            ];
+        }
 
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        $filename = 'iso27001_compliance_report_' . date('Y-m-d') . '.xlsx';
+        return ExcelExportService::download($filename, $headers, $rows, 'Compliance Report');
     }
 
     private function getReportData()

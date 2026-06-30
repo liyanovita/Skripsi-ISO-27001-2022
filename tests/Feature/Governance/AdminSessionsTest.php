@@ -138,7 +138,7 @@ class AdminSessionsTest extends TestCase
         $this->assertDatabaseMissing('assessment_sessions', ['id' => $session->id]);
     }
 
-    public function test_admin_can_filter_sessions_by_date_range(): void
+    public function test_admin_can_filter_sessions_by_month(): void
     {
         $admin = $this->adminUser();
         $user  = $this->regularUser();
@@ -161,11 +161,10 @@ class AdminSessionsTest extends TestCase
             'status'  => 'in_progress',
         ]);
 
-        // Filter: only today
+        // Filter: only today's month
         $this->actingAs($admin)
             ->get(route('admin.sessions.index', [
-                'date_from' => now()->toDateString(),
-                'date_to'   => now()->toDateString(),
+                'month' => now()->format('Y-m'),
             ]))
             ->assertOk()
             ->assertSee('Today Session')

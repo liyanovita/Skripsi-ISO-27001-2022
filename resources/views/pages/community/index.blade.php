@@ -129,10 +129,16 @@
                     </div>
                     
                     {{-- Search Form --}}
-                    <form action="{{ route('community.index') }}" method="GET" class="relative w-full sm:w-64">
+                    <form action="{{ route('community.index') }}" method="GET" class="relative w-full sm:w-64" x-data>
                         <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]"></i>
                         <input type="text" name="search" id="search-input" value="{{ $search ?? '' }}" placeholder="{{ __('Search templates...') }}" 
-                            class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/30 transition-all placeholder:text-slate-400">
+                            x-on:input.debounce.500ms="$el.closest('form').requestSubmit()"
+                            class="w-full pl-8 {{ !empty($search) ? 'pr-8' : 'pr-3' }} py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/30 transition-all placeholder:text-slate-400">
+                        @if(!empty($search))
+                            <a href="{{ route('community.index', array_merge(request()->except(['search', 'page']))) }}" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                                <i class="fa-solid fa-circle-xmark text-xs"></i>
+                            </a>
+                        @endif
                     </form>
                 </div>
                 <div id="community-template-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
