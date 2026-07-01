@@ -135,7 +135,7 @@
                     {{-- Control Metadata --}}
                     <div class="lg:w-1/3 space-y-6">
                         <div>
-                            <span class="px-2.5 py-1 {{ in_array($result->standard->type, ['clause', 'clausa']) ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-indigo-50 text-indigo-600 border-indigo-100' }} text-[10px] font-bold rounded-lg uppercase border tracking-widest">
+                            <span class="px-2.5 py-1 {{ in_array($result->standard->type, ['clause', 'clausa']) ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-indigo-50 text-indigo-600 border-indigo-100' }} text-xs font-bold rounded-lg uppercase border tracking-widest">
                                 {{ $result->standard->type }} {{ $result->standard->code }}
                             </span>
                             <div class="flex items-center gap-2 mt-4 flex-wrap">
@@ -154,28 +154,28 @@
 
                         <div class="grid grid-cols-2 gap-3">
                             <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                <h4 class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">{{ __('Level') }}</h4>
-                                <p class="text-[10px] font-bold text-slate-700 uppercase">{{ $result->standard->level }}</p>
+                                <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">{{ __('Level') }}</h4>
+                                <p class="text-xs font-bold text-slate-700 uppercase">{{ $result->standard->level }}</p>
                             </div>
                             <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                <h4 class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">{{ __('Category') }}</h4>
-                                <p class="text-[10px] font-bold text-slate-700 truncate" title="{{ __($result->standard->parent->title ?? 'Top Level') }}">
+                                <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">{{ __('Category') }}</h4>
+                                <p class="text-xs font-bold text-slate-700 truncate" title="{{ __($result->standard->parent->title ?? 'Top Level') }}">
                                     {{ __($result->standard->parent->title ?? 'Top Level') }}
                                 </p>
                             </div>
                         </div>
 
                         <div class="p-5 bg-slate-50 rounded-2xl border border-slate-100">
-                            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">{{ __('Description') }}</h4>
-                            <p class="text-xs text-slate-600 leading-relaxed">{{ __($result->standard->description) }}</p>
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">{{ __('Description') }}</h4>
+                            <p class="text-sm text-slate-600 leading-relaxed">{{ __($result->standard->description) }}</p>
                         </div>
 
                         @if($result->standard->implementation_guidance)
                         <div class="p-5 bg-blue-50/30 rounded-2xl border border-blue-100">
-                            <h4 class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2 flex items-center gap-2">
+                            <h4 class="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2 flex items-center gap-2">
                                 <i class="fa-solid fa-lightbulb"></i> {{ __('Guidance') }}
                             </h4>
-                            <p class="text-[11px] text-slate-600 leading-relaxed font-medium">
+                            <p class="text-sm text-slate-600 leading-relaxed font-medium">
                                 {{ __($result->standard->implementation_guidance) }}
                             </p>
                         </div>
@@ -188,8 +188,8 @@
                         <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
                             <div class="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
                                 <div>
-                                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">{{ __('Statement of Applicability (SoA)') }}</h4>
-                                    <p class="text-[10px] text-slate-500 font-medium leading-snug mt-0.5">{{ __('Is this control applicable to your organization?') }}</p>
+                                    <h4 class="text-sm font-bold text-slate-800 uppercase tracking-wider">{{ __('Statement of Applicability (SoA)') }}</h4>
+                                    <p class="text-xs text-slate-500 font-medium leading-snug mt-0.5">{{ __('Is this control applicable to your organization?') }}</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <label class="relative inline-flex items-center cursor-pointer">
@@ -265,14 +265,14 @@
                             {{-- Verification Questions --}}
                             @if($result->standard->questions)
                         <div>
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-4 ml-1">{{ __('Verification Checklist') }}</label>
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-4 ml-1">{{ __('Verification Checklist') }}</label>
                             <div class="space-y-3">
                                 @foreach($result->standard->questions as $index => $question)
                                 <div class="flex items-start gap-4 p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
                                     <div class="mt-0.5 w-5 h-5 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
                                         <i class="fa-solid fa-list-check text-[10px]"></i>
                                     </div>
-                                    <p class="text-xs text-slate-700 font-medium leading-relaxed">{{ __($question) }}</p>
+                                    <p class="text-sm text-slate-700 font-medium leading-relaxed">{{ __($question) }}</p>
                                 </div>
                                 @endforeach
                             </div>
@@ -282,8 +282,8 @@
                         {{-- Maturity Scale --}}
                         <div>
                             <div class="flex items-center justify-between mb-4">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">{{ __('Maturity Level (Likert 0-5)') }}</label>
-                                <span class="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase tracking-wider">{{ __('Affects Overall Score') }}</span>
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">{{ __('Maturity Level (Likert 0-5)') }}</label>
+                                <span class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase tracking-wider">{{ __('Affects Overall Score') }}</span>
                             </div>
                             <div class="grid grid-cols-2 md:grid-cols-6 gap-2">
                                 @php
@@ -317,7 +317,7 @@
                                         class="peer hidden">
                                     <div class="flex flex-col items-center gap-1 p-3 rounded-xl border border-slate-100 text-slate-400 peer-checked:bg-slate-900 peer-checked:text-white peer-checked:border-slate-900 peer-checked:scale-110 peer-checked:ring-4 peer-checked:ring-slate-900/30 peer-checked:z-10 hover:border-blue-500 hover:-translate-y-1 hover:shadow-md transition-all duration-300 transform">
                                         <span class="text-lg font-bold">{{ $i }}</span>
-                                        <span class="text-[8px] font-bold uppercase tracking-tight text-center leading-none">{{ __($labels[$i]['title']) }}</span>
+                                        <span class="text-[10px] font-bold uppercase tracking-tight text-center leading-none">{{ __($labels[$i]['title']) }}</span>
                                     </div>
                                 </label>
                                 @endfor
@@ -326,7 +326,7 @@
 
                         {{-- Evidence Notes --}}
                         <div>
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-3 ml-1">Evidence & Observations</label>
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-3 ml-1">Evidence & Observations</label>
                             <textarea name="notes" rows="4" placeholder="{{ __('Describe implementation status, evidence observed, or gaps identified...') }}" 
                                 class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all">{{ $result->notes }}</textarea>
                         </div>
@@ -411,8 +411,8 @@
                                             <i class="fa-solid fa-robot text-xs"></i>
                                         </div>
                                         <div class="leading-none">
-                                            <h4 class="text-[11px] font-black text-white tracking-tight uppercase">{{ __('AI Compliance Synthesis') }}</h4>
-                                            <p class="text-[8px] text-indigo-200 font-bold uppercase tracking-widest mt-0.5">{{ __('AI Expert Recommendation') }}</p>
+                                            <h4 class="text-xs font-black text-white tracking-tight uppercase">{{ __('AI Compliance Synthesis') }}</h4>
+                                            <p class="text-[10px] text-indigo-200 font-bold uppercase tracking-widest mt-0.5">{{ __('AI Expert Recommendation') }}</p>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
@@ -445,8 +445,8 @@
                                                 </div>
 
                                                 <div class="min-w-0">
-                                                    <p class="text-[11px] font-black text-slate-800 uppercase tracking-wide leading-none">{{ $section['label'] }}</p>
-                                                    <p class="text-[9px] {{ $c['text'] }} font-semibold mt-0.5 leading-none">{{ $section['desc'] }}</p>
+                                                    <p class="text-xs font-black text-slate-800 uppercase tracking-wide leading-none">{{ $section['label'] }}</p>
+                                                    <p class="text-[11px] {{ $c['text'] }} font-semibold mt-0.5 leading-none">{{ $section['desc'] }}</p>
                                                 </div>
                                             </div>
 
@@ -473,9 +473,9 @@
                                             <div class="px-5 pb-5">
                                                 <div class="bg-white rounded-2xl border {{ $c['border'] }} shadow-inner p-4 mt-1">
                                                     @if($section['type'] === 'pre')
-                                                    <div class="text-xs text-slate-700 font-medium leading-relaxed whitespace-pre-line">{{ $section['body'] }}</div>
+                                                    <div class="text-sm text-slate-700 font-medium leading-relaxed whitespace-pre-line">{{ $section['body'] }}</div>
                                                     @else
-                                                    <p class="text-xs text-slate-700 font-medium leading-relaxed">{{ $section['body'] }}</p>
+                                                    <p class="text-sm text-slate-700 font-medium leading-relaxed">{{ $section['body'] }}</p>
                                                     @endif
                                                 </div>
                                             </div>
@@ -537,8 +537,8 @@
                                  </div>
 
                                  <div class="space-y-1 relative z-10">
-                                     <h4 class="text-xs font-black text-slate-900 uppercase tracking-wider">{{ __('AI Compliance Synthesis Active') }}</h4>
-                                     <p class="text-[10px] text-slate-500 font-medium">{{ __('AI is currently analyzing your evidence and drafting strategic recommendations...') }}</p>
+                                     <h4 class="text-sm font-black text-slate-900 uppercase tracking-wider">{{ __('AI Compliance Synthesis Active') }}</h4>
+                                     <p class="text-xs text-slate-500 font-medium">{{ __('AI is currently analyzing your evidence and drafting strategic recommendations...') }}</p>
                                  </div>
 
                                  <div class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-[8px] font-black uppercase tracking-widest text-indigo-700 animate-pulse relative z-10">

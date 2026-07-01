@@ -86,7 +86,12 @@ class ResultService
         $newHash = hash('sha256', $newPayload);
 
         if (isset($data['trigger_ai']) && $data['trigger_ai'] == '1') {
-            if ($result->ai_recommendation && $result->ai_data_hash === $newHash) {
+            $hasFullAiData = $result->ai_recommendation
+                && $result->ai_data_hash === $newHash
+                && $result->impact_interpretation !== null
+                && $result->corrective_action_plan !== null
+                && $result->risk_priority !== null;
+            if ($hasFullAiData) {
                 throw new \Exception('NO_DATA_CHANGE');
             }
         }
@@ -192,8 +197,16 @@ class ResultService
             $updateData['corrective_action_plan'] = is_array($actionPlan) ? $actionPlan : ['action' => $actionPlan];
         }
 
-        // 3. Impact Interpretation
-        $impactInterpretation = $data['impact_interpretation'] ?? $data['impact'] ?? $data['impact_analysis'] ?? $data['interpretation'] ?? null;
+        // 3. Impact Interpretation — accept all common n8n key variations
+        $impactInterpretation = $data['impact_interpretation'] ?? $data['impact'] ?? $data['impact_analysis'] ?? $data['interpretation'] ?? $data['impact_insight'] ?? $data['consequence'] ?? null;
+        Log::info("n8n field mapping — impact_interpretation", [
+            'result_id'              => $resultId,
+            'impact_interpretation'  => $data['impact_interpretation'] ?? 'NOT_FOUND',
+            'impact'                 => $data['impact'] ?? 'NOT_FOUND',
+            'impact_analysis'        => $data['impact_analysis'] ?? 'NOT_FOUND',
+            'interpretation'         => $data['interpretation'] ?? 'NOT_FOUND',
+            'resolved_to'            => $impactInterpretation,
+        ]);
         if ($impactInterpretation !== null) {
             $updateData['impact_interpretation'] = $impactInterpretation;
         }
@@ -216,33 +229,27 @@ class ResultService
             }
         }
 
-        // 5. Control Insight / Evidence Validation
-        $hasNewKeys = isset($data['strategic_recommendation']) || 
-                      isset($data['prioritization_level']) || 
-                      isset($data['impact_interpretation']) || 
-                      isset($data['evidence_validation']) ||
-                      isset($data['impact']) ||
-                      isset($data['priority']);
-
-        $controlInsight = $data['control_insight'] ?? $data['insight'] ?? $data['gap'] ?? null;
+        // 5. Control Insight (gap analysis) — always maps to control_insight column
+        $controlInsight = $data['control_insight'] ?? $data['insight'] ?? $data['gap'] ?? $data['gap_analysis'] ?? null;
         if ($controlInsight !== null) {
-            if ($hasNewKeys) {
-                $updateData['evidence_validation'] = $controlInsight;
-            } else {
-                $currentInsight = $result->control_insight ?? [];
-                if (is_array($currentInsight)) {
-                    $currentInsight['gap'] = $controlInsight;
-                } else {
-                    $currentInsight = ['gap' => $controlInsight];
-                }
-                $updateData['control_insight'] = $currentInsight;
+            // If control_insight from prioritization_level already set, don't overwrite
+            if (!isset($updateData['control_insight'])) {
+                $updateData['control_insight'] = is_array($controlInsight)
+                    ? $controlInsight
+                    : ['gap' => $controlInsight];
             }
         }
 
-        $evidenceValidation = $data['evidence_validation'] ?? $data['validation'] ?? null;
+        // 6. Evidence Validation — always maps to evidence_validation column
+        $evidenceValidation = $data['evidence_validation'] ?? $data['validation'] ?? $data['evidence_review'] ?? $data['evidence_summary'] ?? null;
         if ($evidenceValidation !== null) {
             $updateData['evidence_validation'] = $evidenceValidation;
         }
+
+        Log::info("n8n webhook — updateData to be saved", array_merge(
+            ['result_id' => $resultId],
+            array_map(fn($v) => is_array($v) ? json_encode($v) : $v, $updateData)
+        ));
 
         $result->update($updateData);
 
@@ -313,20 +320,23 @@ class ResultService
                     'scope' => auth()->user()->isms_scope ?? 'N/A',
                 ],
                 'control' => [
-                    'code'  => $result->standard->code,
-                    'title' => $result->standard->title,
+                    'code'        => $result->standard->code,
+                    'title'       => $result->standard->title,
                     'description' => $result->standard->description,
-                    'guidance' => $result->standard->implementation_guidance,
+                    'guidance'    => $result->standard->implementation_guidance,
                 ],
                 'assessment' => [
-                    'maturity_rating' => $result->maturity_rating,
-                    'answers' => $result->answers,
-                    'notes' => $result->notes,
-                    'risk_level' => $result->risk_level,
-                    'compliance_status' => $result->compliance_status,
+                    'maturity_rating'    => $result->maturity_rating,
+                    'answers'            => $result->answers,
+                    'notes'              => $result->notes,
+                    'evidence'           => !empty($result->evidence_file)
+                        ? implode(', ', array_map(fn($f) => basename($f), (array) $result->evidence_file))
+                        : null,
+                    'risk_level'         => $result->risk_level,
+                    'compliance_status'  => $result->compliance_status,
                 ],
-                'locale'        => app()->getLocale(),
-                'timestamp'     => now()->toDateTimeString(),
+                'locale'    => app()->getLocale(),
+                'timestamp' => now()->toDateTimeString(),
             ]);
 
             if ($response->failed()) {
