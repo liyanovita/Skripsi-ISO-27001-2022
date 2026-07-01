@@ -8,6 +8,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class ResultService
 {
@@ -86,6 +87,10 @@ class ResultService
         $newHash = hash('sha256', $newPayload);
 
         if (isset($data['trigger_ai']) && $data['trigger_ai'] == '1') {
+            if (Cache::get("result_{$id}_ai_status") === 'processing') {
+                throw new \Exception('PROCESSING');
+            }
+
             $hasFullAiData = $result->ai_recommendation
                 && $result->ai_data_hash === $newHash
                 && $result->impact_interpretation !== null
@@ -99,6 +104,7 @@ class ResultService
         $result->update($updateData);
 
         if (isset($data['trigger_ai']) && $data['trigger_ai'] == '1') {
+            Cache::put("result_{$id}_ai_status", 'processing', 300);
             $result->update([
                 'ai_recommendation' => null,
                 'corrective_action_plan' => null,
@@ -124,11 +130,25 @@ class ResultService
             throw new \Exception('Unauthorized: You do not have permission to generate insights for this assessment.');
         }
 
-        // Guard: block regenerate if assessment data has not changed since last AI generation
+        // Guard: block regenerate if currently processing
+        if (Cache::get("result_{$id}_ai_status") === 'processing') {
+            throw new \Exception('PROCESSING');
+        }
+
+        // Guard: block regenerate if assessment data has not changed since last AI generation and we have all AI fields
         $currentHash = $this->computeResultHash($result);
-        if ($result->ai_data_hash && $result->ai_recommendation && $result->ai_data_hash === $currentHash) {
+        $hasFullAiData = $result->ai_recommendation
+            && $result->ai_data_hash === $currentHash
+            && $result->impact_interpretation !== null
+            && $result->corrective_action_plan !== null
+            && $result->risk_priority !== null;
+
+        if ($hasFullAiData) {
             throw new \Exception('NO_DATA_CHANGE');
         }
+
+        // Set status to processing
+        Cache::put("result_{$id}_ai_status", 'processing', 300);
 
         $result->update([
             'ai_recommendation'      => null,
@@ -253,6 +273,8 @@ class ResultService
 
         $result->update($updateData);
 
+        Cache::forget("result_{$resultId}_ai_status");
+
         return true;
     }
 
@@ -309,6 +331,7 @@ class ResultService
             if (!$webhookUrl) {
                 Log::warning("N8N_WEBHOOK_URL not configured, fallback to generating mock AI insight for Result ID: {$result->id}");
                 $this->generateMockAiInsight($result);
+                Cache::forget("result_{$result->id}_ai_status");
                 return;
             }
             
@@ -341,10 +364,12 @@ class ResultService
 
             if ($response->failed()) {
                 Log::error("n8n Webhook failed for Result ID: {$result->id}");
+                Cache::forget("result_{$result->id}_ai_status");
             }
             
         } catch (\Exception $e) {
             Log::error("n8n Connection Error: " . $e->getMessage());
+            Cache::forget("result_{$result->id}_ai_status");
         }
     }
 

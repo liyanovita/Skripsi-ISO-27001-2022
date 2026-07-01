@@ -1165,5 +1165,10 @@
     "ESC": "ESC",
     "Quick Navigation": "Navigasi Cepat",
     "Navigate": "Navigasi",
-    "Open": "Buka"
+    "Open": "Buka",
+    "AI is currently analyzing this control.": "AI sedang menganalisis kontrol ini.",
+    "AI Processing Active": "Proses AI Sedang Aktif",
+    "AI is currently synthesizing compliance recommendations for this control. Please wait.": "AI sedang menyusun rekomendasi kepatuhan untuk kontrol ini. Silakan tunggu.",
+    "AI analysis is currently processing.": "Analisis AI sedang diproses.",
+    "Generate AI": "Hasilkan AI"
 }

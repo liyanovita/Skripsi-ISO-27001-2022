@@ -259,6 +259,12 @@ class AssessmentResultApiController extends BaseApiController
                 'AI insight generation triggered successfully.'
             );
         } catch (\Exception $e) {
+            if ($e->getMessage() === 'PROCESSING') {
+                return $this->errorResponse(__('AI analysis is currently processing.'), 429);
+            }
+            if ($e->getMessage() === 'NO_DATA_CHANGE') {
+                return $this->errorResponse(__('No data has changed'), 409);
+            }
             return $this->errorResponse('Failed to generate AI insight: ' . $e->getMessage(), 500);
         }
     }

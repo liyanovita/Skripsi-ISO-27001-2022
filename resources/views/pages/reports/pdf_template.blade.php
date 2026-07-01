@@ -206,13 +206,22 @@
                     </tr>
                 </table>
                 <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
+                    @if(!empty(trim($result->notes ?? '')))
                     <div style="margin-bottom: 15px;">
                         <div style="font-size: 8px; font-weight: bold; color: #b45309; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">{{ __('Audit Notes') }}</div>
                         <div style="padding: 12px; background: #fffbeb; border-radius: 8px; border: 1px solid #fef3c7; font-size: 10px; color: #92400e; line-height: 1.5;">
-                            @if(!empty($result->notes))
-                                {!! nl2br(e($result->notes)) !!}
+                            {!! nl2br(e($result->notes)) !!}
+                        </div>
+                    </div>
+                    @endif
+
+                    <div style="margin-bottom: 15px;">
+                        <div style="font-size: 8px; font-weight: bold; color: #be123c; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">{{ __('Impact Interpretation') }}</div>
+                        <div style="padding: 15px; background: #fff1f2; border-radius: 8px; border: 1px solid #ffe4e6; font-size: 10px; color: #9f1239; line-height: 1.5;">
+                            @if(!empty($result->impact_interpretation))
+                                {!! \Illuminate\Support\Str::markdown(e($result->impact_interpretation)) !!}
                             @else
-                                <span style="color: #94a3b8; font-style: italic;">{{ __('No audit notes provided.') }}</span>
+                                <span style="color: #94a3b8; font-style: italic;">{{ __('AI impact interpretation not yet generated.') }}</span>
                             @endif
                         </div>
                     </div>

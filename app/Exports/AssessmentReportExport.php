@@ -64,6 +64,7 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
             'AI Strategic Recommendation',
             'AI Audit Insight (Gap)',
             'Corrective Action Plan (CAP)',
+            'AI Impact Interpretation',
         ];
     }
 
@@ -89,8 +90,6 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
             $insight = 'AI insight not yet generated.';
         }
         
-
-
         $cap = is_array($result->corrective_action_plan) ? implode("\n", $result->corrective_action_plan) : ($result->corrective_action_plan ?? '');
         $cap = trim($cap);
         if (empty($cap)) {
@@ -98,13 +97,15 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
         }
         
         $notes = trim($result->notes ?? '');
-        if (empty($notes)) {
-            $notes = 'No audit notes provided.';
-        }
 
         $recommendation = trim($result->ai_recommendation ?? '');
         if (empty($recommendation)) {
             $recommendation = 'AI recommendation not yet generated.';
+        }
+
+        $impact = trim($result->impact_interpretation ?? '');
+        if (empty($impact)) {
+            $impact = 'AI impact interpretation not yet generated.';
         }
 
         return [
@@ -119,6 +120,7 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
             $recommendation,
             $insight,
             $cap,
+            $impact,
         ];
     }
 

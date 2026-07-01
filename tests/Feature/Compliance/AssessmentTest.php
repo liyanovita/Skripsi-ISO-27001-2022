@@ -119,6 +119,55 @@ class AssessmentTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_generate_ai_insight_route_guards_and_data_preservation(): void
+    {
+        [$user, $session, $result] = $this->createAssessmentFixture();
+
+        // 1. Initial state: no AI recommendation, trigger generate-ai
+        $response = $this
+            ->actingAs($user)
+            ->postJson(route('results.generate-ai', $result->id));
+
+        $response->assertOk();
+
+        // Populate with completed AI recommendation
+        $result->refresh();
+        $result->update([
+            'ai_recommendation' => 'Original AI recommendation',
+            'corrective_action_plan' => ['action' => 'Original action plan'],
+            'impact_interpretation' => 'Original impact',
+            'risk_priority' => 'Medium',
+        ]);
+
+        // 2. Second request without changes should fail with 409
+        $response = $this
+            ->actingAs($user)
+            ->postJson(route('results.generate-ai', $result->id));
+
+        $response->assertStatus(409);
+        $response->assertJsonPath('no_change', true);
+        $response->assertJsonPath('message', __('No data has changed'));
+
+        // Verify that the existing AI insights are preserved (not overwritten with null)
+        $result->refresh();
+        $this->assertSame('Original AI recommendation', $result->ai_recommendation);
+        $this->assertSame('Original action plan', $result->corrective_action_plan['action'] ?? null);
+        $this->assertSame('Original impact', $result->impact_interpretation);
+
+        // 3. Simulating processing state (using Cache) should fail with 429
+        \Illuminate\Support\Facades\Cache::put("result_{$result->id}_ai_status", 'processing', 300);
+
+        $response = $this
+            ->actingAs($user)
+            ->postJson(route('results.generate-ai', $result->id));
+
+        $response->assertStatus(429);
+        $response->assertJsonPath('is_processing', true);
+        
+        // Clean up Cache
+        \Illuminate\Support\Facades\Cache::forget("result_{$result->id}_ai_status");
+    }
+
     private function createAssessmentFixture(): array
     {
         $user = User::factory()->create();

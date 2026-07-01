@@ -104,7 +104,7 @@ class WebhookApiTest extends TestCase
         $this->assertEquals('Alias action steps.', $result->corrective_action_plan['action']);
         $this->assertEquals('Medium', $result->risk_priority);
         $this->assertEquals('Alias impact interpretation.', $result->impact_interpretation);
-        $this->assertEquals('Alias insight.', $result->evidence_validation);
+        $this->assertEquals('Alias insight.', $result->control_insight['gap'] ?? null);
     }
 
     /**

@@ -585,6 +585,22 @@
                                                 });
                                                 btn.disabled = false;
                                                 btn.innerHTML = originalHtml;
+                                            } else if (res.status === 429 || (data && data.is_processing)) {
+                                                Swal.fire({
+                                                    icon: 'info',
+                                                    title: `{{ __('AI Processing Active') }}`,
+                                                    text: `{{ __('AI is currently synthesizing compliance recommendations for this control. Please wait.') }}`,
+                                                    confirmButtonColor: '#3b82f6',
+                                                    width: '24rem',
+                                                    customClass: {
+                                                        popup: 'rounded-2xl p-4',
+                                                        title: 'text-sm font-bold text-slate-800 mt-2',
+                                                        htmlContainer: 'text-xs text-slate-500 font-medium my-2',
+                                                        confirmButton: 'rounded-xl font-bold px-4 py-2 text-xs'
+                                                    }
+                                                });
+                                                btn.disabled = false;
+                                                btn.innerHTML = originalHtml;
                                             } else if (!res.ok) {
                                                 throw new Error(data.message || 'Something went wrong');
                                             } else {

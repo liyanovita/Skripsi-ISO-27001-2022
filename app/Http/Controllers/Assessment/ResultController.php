@@ -64,6 +64,17 @@ class ResultController extends Controller
                 'last_updated_id' => $result->id
             ]);
         } catch (\Exception $e) {
+            if ($e->getMessage() === 'PROCESSING') {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success'   => false,
+                        'is_processing' => true,
+                        'message'   => __('AI analysis is currently processing.'),
+                    ], 429);
+                }
+                return redirect()->back()->with('warning', __('AI analysis is currently processing.'));
+            }
+
             if ($e->getMessage() === 'NO_DATA_CHANGE') {
                 if ($request->ajax() || $request->wantsJson()) {
                     return response()->json([
@@ -92,11 +103,18 @@ class ResultController extends Controller
                 __('AI insight generation triggered successfully.')
             );
         } catch (\Exception $e) {
+            if ($e->getMessage() === 'PROCESSING') {
+                return response()->json([
+                    'success'   => false,
+                    'is_processing' => true,
+                    'message'   => __('AI analysis is currently processing.'),
+                ], 429);
+            }
             if ($e->getMessage() === 'NO_DATA_CHANGE') {
                 return response()->json([
                     'success'   => false,
                     'no_change' => true,
-                    'message'   => __('No data change detected.'),
+                    'message'   => __('No data has changed'),
                 ], 409);
             }
             throw ApiException::internalError($e->getMessage());

@@ -223,6 +223,26 @@
                         });
                         const data = await res.json();
 
+                        // Guard: already processing
+                        if (res.status === 429 || (data && data.is_processing)) {
+                            this.aiLoading = false;
+                            const statusRes = await fetch('{{ route('results.ai-status', $result->id) }}');
+                            const statusData = await statusRes.json();
+                            const aiResult = statusData.data || statusData.result || statusData;
+                            if (aiResult.has_ai) {
+                                this.aiRec        = aiResult.ai_recommendation || '';
+                                this.aiPlan       = (typeof aiResult.corrective_action_plan === 'object' && aiResult.corrective_action_plan !== null)
+                                                     ? (aiResult.corrective_action_plan.action || (Array.isArray(aiResult.corrective_action_plan) ? aiResult.corrective_action_plan.join('\n') : JSON.stringify(aiResult.corrective_action_plan)))
+                                                     : (aiResult.corrective_action_plan || '');
+                                this.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null) ? (aiResult.control_insight.gap || '') : (aiResult.control_insight || '');
+                                this.aiPriority   = aiResult.risk_priority || '';
+                                this.aiValidation = aiResult.evidence_validation || '';
+                                this.aiImpact     = aiResult.impact_interpretation || '';
+                            }
+                            window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('AI is currently analyzing this control.') }}', type: 'info' } }));
+                            return;
+                        }
+
                         // Guard: no data change since last AI generation
                         if (res.status === 409 && data.no_change) {
                             this.aiLoading = false;
@@ -242,9 +262,9 @@
                             }
                             Swal.fire({
                                 icon: 'info',
-                                title: '{{ __('No Changes Detected') }}',
-                                html: '<p class=\'text-sm text-slate-600 leading-relaxed\'>{{ addslashes(__('The assessment data for this control has not changed since the last AI analysis was generated.')) }}</p>' +
-                                      '<p class=\'text-xs text-slate-400 mt-2\'>{{ addslashes(__('Regeneration is only required after modifying the maturity score, answers, or audit notes.')) }}</p>',
+                                title: '{{ __('No data has changed') }}',
+                                html: '<p class=\'text-sm text-slate-600 leading-relaxed\'>{{ addslashes(__('The assessment data for this control has not changed since the last AI generation.')) }}</p>' +
+                                      '<p class=\'text-xs text-slate-400 mt-2\'>{{ addslashes(__('Regeneration is only required after modifying maturity scores or audit notes in any control.')) }}</p>',
                                 confirmButtonText: '{{ __('Understood') }}',
                                 confirmButtonColor: '#4f46e5',
                                 width: '26rem',
@@ -629,7 +649,7 @@
                                 <button type="button" @click="generateAi()" :disabled="aiLoading"
                                         class="px-4 py-2 bg-white border border-slate-200 hover:border-indigo-400 hover:text-indigo-600 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 text-slate-600">
                                     <i class="fa-solid fa-wand-magic-sparkles" :class="aiLoading && 'animate-spin text-indigo-500'"></i>
-                                    <span x-text="aiLoading ? '{{ __('Synthesizing...') }}' : '{{ __('Trigger AI') }}'"></span>
+                                    <span x-text="aiLoading ? '{{ __('Synthesizing...') }}' : '{{ __('Generate AI') }}'"></span>
                                 </button>
                             </template>
                         </div>
