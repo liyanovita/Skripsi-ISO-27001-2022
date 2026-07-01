@@ -11,7 +11,7 @@ class AssessmentSession extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['user_id', 'name', 'status', 'overall_maturity_score', 'ai_summary'];
+    protected $fillable = ['user_id', 'name', 'status', 'overall_maturity_score', 'ai_summary', 'ai_summary_hash'];
 
     protected $casts = [
         'overall_maturity_score' => 'float',

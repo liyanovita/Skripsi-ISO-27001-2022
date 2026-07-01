@@ -260,7 +260,7 @@
                     </button>
                     <div x-show="openSection === 'rec'" x-collapse.duration.250ms>
                         <div class="px-4 py-3 bg-white">
-                            <p class="text-xs text-slate-700 font-medium leading-relaxed" x-text="activeAiDetails.rec"></p>
+                            <p class="text-xs text-slate-700 font-medium leading-relaxed" x-html="formatMarkdown(activeAiDetails.rec)"></p>
                         </div>
                     </div>
                 </div>
@@ -275,7 +275,7 @@
                             <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors"
                                  :class="openSection === 'cap' ? 'bg-emerald-600' : 'bg-slate-100'">
                                 <i class="fa-solid fa-list-check text-[9px]"
-                                   :class="openSection === 'cap' ? 'text-white' : 'text-slate-400'"></i>
+                                    :class="openSection === 'cap' ? 'text-white' : 'text-slate-400'"></i>
                             </div>
                             <span class="text-[10px] font-black uppercase tracking-widest"
                                   :class="openSection === 'cap' ? 'text-emerald-700' : 'text-slate-600'">
@@ -288,7 +288,7 @@
                     <div x-show="openSection === 'cap'" x-collapse.duration.250ms>
                         <div class="px-4 py-3 bg-white">
                             <p class="text-xs text-slate-700 font-medium leading-relaxed whitespace-pre-line"
-                               x-text="activeAiDetails.plan || '{{ __('No specific action plan drafted.') }}'"></p>
+                               x-html="formatMarkdown(activeAiDetails.plan) || '{{ __('No specific action plan drafted.') }}'"></p>
                         </div>
                     </div>
                 </div>
@@ -303,7 +303,7 @@
                             <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors"
                                  :class="openSection === 'gap' ? 'bg-violet-600' : 'bg-slate-100'">
                                 <i class="fa-solid fa-magnifying-glass-chart text-[9px]"
-                                   :class="openSection === 'gap' ? 'text-white' : 'text-slate-400'"></i>
+                                    :class="openSection === 'gap' ? 'text-white' : 'text-slate-400'"></i>
                             </div>
                             <span class="text-[10px] font-black uppercase tracking-widest"
                                   :class="openSection === 'gap' ? 'text-violet-700' : 'text-slate-600'">
@@ -316,7 +316,7 @@
                     <div x-show="openSection === 'gap'" x-collapse.duration.250ms>
                         <div class="px-4 py-3 bg-white">
                             <p class="text-xs text-slate-700 font-medium leading-relaxed"
-                               x-text="activeAiDetails.insight || '{{ __('Control shows solid operational alignment.') }}'"></p>
+                               x-html="formatMarkdown(activeAiDetails.insight) || '{{ __('Control shows solid operational alignment.') }}'"></p>
                         </div>
                     </div>
                 </div>
@@ -331,7 +331,7 @@
                             <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors"
                                  :class="openSection === 'impact' ? 'bg-rose-600' : 'bg-slate-100'">
                                 <i class="fa-solid fa-triangle-exclamation text-[9px]"
-                                   :class="openSection === 'impact' ? 'text-white' : 'text-slate-400'"></i>
+                                    :class="openSection === 'impact' ? 'text-white' : 'text-slate-400'"></i>
                             </div>
                             <span class="text-[10px] font-black uppercase tracking-widest"
                                   :class="openSection === 'impact' ? 'text-rose-700' : 'text-slate-600'">
@@ -343,7 +343,7 @@
                     </button>
                     <div x-show="openSection === 'impact'" x-collapse.duration.250ms>
                         <div class="px-4 py-3 bg-rose-50/30">
-                            <p class="text-xs text-slate-700 font-medium leading-relaxed" x-text="activeAiDetails.impact || '{{ __('No impact interpretation available. Please click Regenerate AI to update this analysis.') }}'"></p>
+                            <p class="text-xs text-slate-700 font-medium leading-relaxed" x-html="formatMarkdown(activeAiDetails.impact) || '{{ __('No impact interpretation available. Please click Regenerate AI to update this analysis.') }}'"></p>
                         </div>
                     </div>
                 </div>
@@ -361,7 +361,7 @@
                     <i class="fa-solid fa-circle-check text-indigo-500 text-xs mt-0.5"></i>
                     <div class="text-left">
                         <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">{{ __('Evidence Validation') }}</span>
-                        <p class="text-[10px] text-slate-600 font-medium mt-0.5 leading-relaxed" x-text="activeAiDetails.validation"></p>
+                        <p class="text-[10px] text-slate-600 font-medium mt-0.5 leading-relaxed" x-html="formatMarkdown(activeAiDetails.validation)"></p>
                     </div>
                 </div>
             </div>

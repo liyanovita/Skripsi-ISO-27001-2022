@@ -23,11 +23,40 @@ class AiSummaryService
             throw new \Exception('You must finalize and complete this audit session before generating the AI summary.');
         }
 
+        // Guard: block regenerate if session results data has not changed since last AI summary generation
+        $currentHash = $this->computeSessionHash($session);
+        if ($session->ai_summary_hash && $session->ai_summary && $session->ai_summary_hash === $currentHash) {
+            throw new \Exception('NO_DATA_CHANGE');
+        }
+
+        // Save hash snapshot before triggering (so repeated rapid clicks are also blocked)
+        $session->update(['ai_summary_hash' => $currentHash]);
+
         // Track generation status in Cache instead of setting DB summary to null
         Cache::put("session_{$sessionId}_summary_status", 'processing', 300); // 5 minutes timeout
 
         $this->triggerN8nSummary($session);
         return $session->fresh();
+    }
+
+    /**
+     * Compute a SHA-256 hash of the session's aggregated results data.
+     * Only changes to maturity_rating or notes on any result should allow a regeneration.
+     */
+    public function computeSessionHash(AssessmentSession $session): string
+    {
+        $parts = $session->results
+            ->sortBy('id')
+            ->map(fn($r) => implode(':', [
+                (string) $r->id,
+                (string) $r->maturity_rating,
+                $r->is_applicable ? '1' : '0',
+                (string) ($r->notes ?? ''),
+            ]))
+            ->values()
+            ->implode('|');
+
+        return hash('sha256', $parts);
     }
 
     /**

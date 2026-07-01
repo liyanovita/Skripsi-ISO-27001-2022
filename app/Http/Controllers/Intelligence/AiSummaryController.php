@@ -27,6 +27,13 @@ class AiSummaryController extends Controller
                 'AI summary generation triggered. Result will be available shortly via webhook.'
             );
         } catch (\Exception $e) {
+            if ($e->getMessage() === 'NO_DATA_CHANGE') {
+                return response()->json([
+                    'success'   => false,
+                    'no_change' => true,
+                    'message'   => 'No data change detected.',
+                ], 409);
+            }
             throw ApiException::internalError($e->getMessage());
         }
     }
@@ -134,7 +141,7 @@ class AiSummaryController extends Controller
 
         if (!empty($parsed['assessment_confidence'])) {
             $html .= '<div class="summary-section">'
-                   . '<div class="summary-section-title"><i class="fa-solid fa-shield-check"></i> Assessment Confidence</div>'
+                   . '<div class="summary-section-title"><i class="fa-solid fa-circle-check"></i> Assessment Confidence</div>'
                    . '<p class="summary-section-body">' . e($parsed['assessment_confidence']) . '</p>'
                    . '</div>';
         }

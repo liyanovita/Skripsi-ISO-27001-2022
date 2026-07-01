@@ -104,17 +104,40 @@ class ResultService
             throw new \Exception('Unauthorized: You do not have permission to generate insights for this assessment.');
         }
 
+        // Guard: block regenerate if assessment data has not changed since last AI generation
+        $currentHash = $this->computeResultHash($result);
+        if ($result->ai_data_hash && $result->ai_recommendation && $result->ai_data_hash === $currentHash) {
+            throw new \Exception('NO_DATA_CHANGE');
+        }
+
         $result->update([
-            'ai_recommendation' => null,
+            'ai_recommendation'      => null,
             'corrective_action_plan' => null,
-            'control_insight' => null,
-            'risk_priority' => null,
-            'evidence_validation' => null,
+            'control_insight'        => null,
+            'risk_priority'          => null,
+            'evidence_validation'    => null,
+            'ai_data_hash'           => $currentHash, // snapshot data at generation time
         ]);
 
         $this->sendToN8n($result);
 
         return true;
+    }
+
+    /**
+     * Compute a SHA-256 hash of the assessment data fields that are sent to the AI.
+     * Only changes to these fields should allow a regeneration.
+     */
+    public function computeResultHash(AssessmentResult $result): string
+    {
+        $payload = implode('|', [
+            (string) $result->maturity_rating,
+            $result->is_applicable ? '1' : '0',
+            (string) ($result->notes ?? ''),
+            json_encode($result->answers ?? []),
+        ]);
+
+        return hash('sha256', $payload);
     }
 
     public function receiveN8nWebhook(array $data): bool
@@ -144,72 +167,64 @@ class ResultService
 
         $updateData = [];
 
-        // Check if new payload structure is detected (by presence of strategic_recommendation)
-        if ($strategicRecommendation !== null) {
-            $updateData['ai_recommendation'] = $strategicRecommendation;
+        // 1. Recommendation
+        $updateData['ai_recommendation'] = $targetRecommendation;
 
-            // Prioritization level handling (object)
-            $prioritizationLevel = $data['prioritization_level'] ?? null;
-            $priority = null;
-            $justification = null;
-            if (is_array($prioritizationLevel)) {
-                $priority = $prioritizationLevel['level'] ?? null;
-                $justification = $prioritizationLevel['justification'] ?? null;
+        // 2. Action Plan / Corrective Action Plan
+        $actionPlan = $data['action_plan'] ?? null;
+        if ($actionPlan !== null) {
+            $updateData['corrective_action_plan'] = is_array($actionPlan) ? $actionPlan : ['action' => $actionPlan];
+        }
+
+        // 3. Impact Interpretation
+        $impactInterpretation = $data['impact_interpretation'] ?? null;
+        if ($impactInterpretation !== null) {
+            $updateData['impact_interpretation'] = $impactInterpretation;
+        }
+
+        // 4. Prioritization Level / Risk Priority
+        $prioritizationLevel = $data['prioritization_level'] ?? null;
+        $riskPriority = $data['risk_priority'] ?? null;
+        $targetPriority = $prioritizationLevel ?? $riskPriority;
+
+        if ($targetPriority !== null) {
+            if (is_array($targetPriority)) {
+                $updateData['risk_priority'] = $targetPriority['level'] ?? null;
+                if (!empty($targetPriority['justification'])) {
+                    $updateData['control_insight'] = ['gap' => $targetPriority['justification']];
+                }
             } else {
-                $priority = $prioritizationLevel;
+                $updateData['risk_priority'] = $targetPriority;
             }
+        }
 
-            if ($priority !== null) {
-                $updateData['risk_priority'] = $priority;
-            }
+        // 5. Control Insight / Evidence Validation
+        // If it is the new structure (determined by having strategic_recommendation or prioritization_level or impact_interpretation or evidence_validation),
+        // we map control_insight to evidence_validation.
+        // Otherwise (old structure), we map control_insight to control_insight['gap'].
+        $hasNewKeys = isset($data['strategic_recommendation']) || 
+                      isset($data['prioritization_level']) || 
+                      isset($data['impact_interpretation']) || 
+                      isset($data['evidence_validation']);
 
-            if ($justification !== null) {
-                $updateData['control_insight'] = ['gap' => $justification];
-            }
-
-            // Action plan (wrap in corrective_action_plan schema: ['action' => $actionPlan])
-            $actionPlan = $data['action_plan'] ?? null;
-            if ($actionPlan !== null) {
-                $updateData['corrective_action_plan'] = is_array($actionPlan) ? $actionPlan : ['action' => $actionPlan];
-            }
-
-            // Control insight (corresponds to evidence validation in DB/UI)
-            $controlInsight = $data['control_insight'] ?? null;
-            if ($controlInsight !== null) {
+        $controlInsight = $data['control_insight'] ?? null;
+        if ($controlInsight !== null) {
+            if ($hasNewKeys) {
                 $updateData['evidence_validation'] = $controlInsight;
-            }
-
-            // Impact interpretation
-            $impactInterpretation = $data['impact_interpretation'] ?? null;
-            if ($impactInterpretation !== null) {
-                $updateData['impact_interpretation'] = $impactInterpretation;
-            }
-        } else {
-            // Fallback to old payload structure keys
-            $updateData['ai_recommendation'] = $aiRecommendation;
-
-            if (isset($data['action_plan'])) {
-                $actionPlan = $data['action_plan'];
-                $updateData['corrective_action_plan'] = is_array($actionPlan) ? $actionPlan : ['action' => $actionPlan];
-            }
-            if (isset($data['control_insight'])) {
+            } else {
                 $currentInsight = $result->control_insight ?? [];
                 if (is_array($currentInsight)) {
-                    $currentInsight['gap'] = $data['control_insight'];
+                    $currentInsight['gap'] = $controlInsight;
                 } else {
-                    $currentInsight = ['gap' => $data['control_insight']];
+                    $currentInsight = ['gap' => $controlInsight];
                 }
                 $updateData['control_insight'] = $currentInsight;
             }
-            if (isset($data['evidence_validation'])) {
-                $updateData['evidence_validation'] = $data['evidence_validation'];
-            }
-            if (isset($data['impact_interpretation'])) {
-                $updateData['impact_interpretation'] = $data['impact_interpretation'];
-            }
-            if (isset($data['risk_priority'])) {
-                $updateData['risk_priority'] = $data['risk_priority'];
-            }
+        }
+
+        $evidenceValidation = $data['evidence_validation'] ?? null;
+        if ($evidenceValidation !== null) {
+            $updateData['evidence_validation'] = $evidenceValidation;
         }
 
         $result->update($updateData);

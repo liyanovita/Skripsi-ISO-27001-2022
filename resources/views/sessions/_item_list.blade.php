@@ -1,4 +1,4 @@
-﻿@if(!($wizard ?? false) && ($showGuide ?? true))
+@if(!($wizard ?? false) && ($showGuide ?? true))
 {{-- Sticky Combined Audit Execution Protocol & Maturity Scale --}}
 <div x-data="{ showGuide: true }" 
      class="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-slate-100 p-6 shadow-sm transition-all duration-300 rounded-t-2xl">
@@ -211,6 +211,7 @@
                     this.aiInsight = '';
                     this.aiPriority = '';
                     this.aiValidation = '';
+                    this.aiImpact = '';
                     try {
                         const res = await fetch('{{ route('results.generate-ai', $result->id) }}', {
                             method: 'POST',
@@ -221,10 +222,45 @@
                             }
                         });
                         const data = await res.json();
+
+                        // Guard: no data change since last AI generation
+                        if (res.status === 409 && data.no_change) {
+                            this.aiLoading = false;
+                            // Restore existing AI data since we aborted
+                            const statusRes = await fetch('{{ route('results.ai-status', $result->id) }}');
+                            const statusData = await statusRes.json();
+                            const aiResult = statusData.data || statusData.result || statusData;
+                            if (aiResult.has_ai) {
+                                this.aiRec        = aiResult.ai_recommendation || '';
+                                this.aiPlan       = (typeof aiResult.corrective_action_plan === 'object' && aiResult.corrective_action_plan !== null)
+                                                     ? (aiResult.corrective_action_plan.action || (Array.isArray(aiResult.corrective_action_plan) ? aiResult.corrective_action_plan.join('\n') : JSON.stringify(aiResult.corrective_action_plan)))
+                                                     : (aiResult.corrective_action_plan || '');
+                                this.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null) ? (aiResult.control_insight.gap || '') : (aiResult.control_insight || '');
+                                this.aiPriority   = aiResult.risk_priority || '';
+                                this.aiValidation = aiResult.evidence_validation || '';
+                                this.aiImpact     = aiResult.impact_interpretation || '';
+                            }
+                            Swal.fire({
+                                icon: 'info',
+                                title: '{{ __('No Changes Detected') }}',
+                                html: `<p class="text-sm text-slate-600 leading-relaxed">{{ __('The assessment data for this control has not changed since the last AI analysis was generated.') }}</p>
+                                       <p class="text-xs text-slate-400 mt-2">{{ __('Regeneration is only required after modifying the maturity score, answers, or audit notes.') }}</p>`,
+                                confirmButtonText: '{{ __('Understood') }}',
+                                confirmButtonColor: '#4f46e5',
+                                width: '26rem',
+                                customClass: {
+                                    title: 'text-base font-bold text-slate-800',
+                                    htmlContainer: 'text-left px-2',
+                                    confirmButton: 'text-xs font-bold uppercase tracking-widest px-5 py-2.5 rounded-lg'
+                                }
+                            });
+                            return;
+                        }
+
                         if (data.success) {
-                            window.dispatchEvent(new CustomEvent('notify', { detail: { message: 'Menghubungi n8n... Menunggu analisis AI.', type: 'success' } }));
+                            window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Connecting to n8n... Waiting for AI analysis.') }}', type: 'success' } }));
                             
-                            // Mulai polling untuk menunggu webhook membalas
+                            // Start polling to wait for webhook response
                             let pollCount = 0;
                             let pollInterval = setInterval(async () => {
                                 pollCount++;
@@ -235,20 +271,20 @@
                                     
                                     if (aiResult.has_ai) {
                                         clearInterval(pollInterval);
-                                        this.aiRec = aiResult.ai_recommendation;
-                                        this.aiPlan = (typeof aiResult.corrective_action_plan === 'object' && aiResult.corrective_action_plan !== null)
-                                             ? (aiResult.corrective_action_plan.action || (Array.isArray(aiResult.corrective_action_plan) ? aiResult.corrective_action_plan.join('\n') : JSON.stringify(aiResult.corrective_action_plan)))
-                                             : (aiResult.corrective_action_plan || '');
-                                        this.aiInsight = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null) ? (aiResult.control_insight.gap || '') : (aiResult.control_insight || '');
-                                        this.aiPriority = aiResult.risk_priority || '';
+                                        this.aiRec        = aiResult.ai_recommendation;
+                                        this.aiPlan       = (typeof aiResult.corrective_action_plan === 'object' && aiResult.corrective_action_plan !== null)
+                                                             ? (aiResult.corrective_action_plan.action || (Array.isArray(aiResult.corrective_action_plan) ? aiResult.corrective_action_plan.join('\n') : JSON.stringify(aiResult.corrective_action_plan)))
+                                                             : (aiResult.corrective_action_plan || '');
+                                        this.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null) ? (aiResult.control_insight.gap || '') : (aiResult.control_insight || '');
+                                        this.aiPriority   = aiResult.risk_priority || '';
                                         this.aiValidation = aiResult.evidence_validation || '';
-                                        this.aiImpact = aiResult.impact_interpretation || '';
-                                        this.aiLoading = false;
-                                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: 'Analisis AI n8n berhasil diterima!', type: 'success' } }));
+                                        this.aiImpact     = aiResult.impact_interpretation || '';
+                                        this.aiLoading    = false;
+                                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('AI analysis received successfully!') }}', type: 'success' } }));
                                     } else if (pollCount > 24) { // Timeout after ~60 seconds (24 * 2.5s)
                                         clearInterval(pollInterval);
                                         this.aiLoading = false;
-                                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: 'Timeout menunggu respon n8n.', type: 'error' } }));
+                                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Timeout waiting for AI response.') }}', type: 'error' } }));
                                     }
                                 } catch(e) {
                                     console.error('Polling error', e);

@@ -13,6 +13,7 @@ class AssessmentResult extends Model
         'corrective_action_plan', 'risk_priority', 'control_insight',
         'evidence_validation', 'impact_interpretation', 'is_applicable', 'soa_justification', 'implementation_status',
         'treatment_due_date', 'treatment_pic', 'treatment_status',
+        'ai_data_hash',
     ];
 
     protected $casts = [

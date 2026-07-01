@@ -81,6 +81,13 @@ class ResultController extends Controller
                 'AI insight generation triggered successfully.'
             );
         } catch (\Exception $e) {
+            if ($e->getMessage() === 'NO_DATA_CHANGE') {
+                return response()->json([
+                    'success'   => false,
+                    'no_change' => true,
+                    'message'   => 'No data change detected.',
+                ], 409);
+            }
             throw ApiException::internalError($e->getMessage());
         }
     }

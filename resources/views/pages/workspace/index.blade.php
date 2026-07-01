@@ -744,7 +744,7 @@
                     </button>
                     <div x-show="openSection === 'rec'" x-collapse.duration.250ms>
                         <div class="px-4 py-3 bg-white">
-                            <p class="text-xs text-slate-700 font-medium leading-relaxed" x-text="activeAiDetails.rec"></p>
+                            <p class="text-xs text-slate-700 font-medium leading-relaxed" x-html="formatMarkdown(activeAiDetails.rec)"></p>
                         </div>
                     </div>
                 </div>
@@ -772,7 +772,7 @@
                     <div x-show="openSection === 'cap'" x-collapse.duration.250ms>
                         <div class="px-4 py-3 bg-white">
                             <p class="text-xs text-slate-700 font-medium leading-relaxed whitespace-pre-line"
-                               x-text="activeAiDetails.plan || '{{ __('No specific action plan drafted.') }}'"></p>
+                               x-html="formatMarkdown(activeAiDetails.plan) || '{{ __('No specific action plan drafted.') }}'"></p>
                         </div>
                     </div>
                 </div>
@@ -800,13 +800,13 @@
                     <div x-show="openSection === 'gap'" x-collapse.duration.250ms>
                         <div class="px-4 py-3 bg-white">
                             <p class="text-xs text-slate-700 font-medium leading-relaxed"
-                               x-text="activeAiDetails.insight || '{{ __('Control shows solid operational alignment.') }}'"></p>
+                               x-html="formatMarkdown(activeAiDetails.insight) || '{{ __('Control shows solid operational alignment.') }}'"></p>
                         </div>
                     </div>
                 </div>
 
                 {{-- Section 4: Impact Interpretation --}}
-                <div class="rounded-xl border border-slate-100 overflow-hidden" x-show="activeAiDetails.impact" x-cloak>
+                <div class="rounded-xl border border-slate-100 overflow-hidden" x-cloak>
                     <button type="button"
                         @click="openSection = openSection === 'impact' ? null : 'impact'"
                         class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
@@ -827,7 +827,7 @@
                     </button>
                     <div x-show="openSection === 'impact'" x-collapse.duration.250ms>
                         <div class="px-4 py-3 bg-rose-50/30">
-                            <p class="text-xs text-slate-700 font-medium leading-relaxed" x-text="activeAiDetails.impact"></p>
+                            <p class="text-xs text-slate-700 font-medium leading-relaxed" x-html="formatMarkdown(activeAiDetails.impact) || '{{ __('No impact interpretation available. Please click Regenerate AI to update this analysis.') }}'"></p>
                         </div>
                     </div>
                 </div>
@@ -842,7 +842,7 @@
                     <i class="fa-solid fa-circle-check text-indigo-500 text-xs mt-0.5"></i>
                     <div class="text-left">
                         <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">{{ __('Evidence Validation') }}</span>
-                        <p class="text-[10px] text-slate-600 font-medium mt-0.5 leading-relaxed" x-text="activeAiDetails.validation"></p>
+                        <p class="text-[10px] text-slate-600 font-medium mt-0.5 leading-relaxed" x-html="formatMarkdown(activeAiDetails.validation)"></p>
                     </div>
                 </div>
             </div>

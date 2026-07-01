@@ -11,7 +11,7 @@
 @php
     $trendSessions = $maturityTrends ?? collect();
 @endphp
-<div class="max-w-6xl mx-auto space-y-6 pb-16" x-data="strategicAnalytics({{ $selectedId ?: 'null' }})" x-init="initSummary()">
+<div class="max-w-6xl mx-auto space-y-6 pb-16" x-data="strategicAnalytics({{ $selectedId ?: 'null' }}, {{ $isAiProcessing ? 'true' : 'false' }}, {{ ($latestSession && $latestSession->ai_summary) ? 'true' : 'false' }})" x-init="initSummary()">
     
     {{-- Header with Session Filter --}}
     <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300">
@@ -241,7 +241,7 @@
 
                                         @if(!empty($parsedSummary['assessment_confidence']))
                                             <div class="summary-section">
-                                                <div class="summary-section-title"><i class="fa-solid fa-shield-check"></i> Assessment Confidence</div>
+                                                <div class="summary-section-title"><i class="fa-solid fa-circle-check"></i> Assessment Confidence</div>
                                                 <p class="summary-section-body">{{ $parsedSummary['assessment_confidence'] }}</p>
                                             </div>
                                         @endif
@@ -359,7 +359,7 @@
 @endphp
 <script>
 document.addEventListener('alpine:init', () => {
-    Alpine.data('strategicAnalytics', (initialSessionId) => ({
+    Alpine.data('strategicAnalytics', (initialSessionId, isProcessing, hasSummary) => ({
         riskFilter: 'all',
         selectedSession: initialSessionId,
         isGenerating: false,
@@ -367,9 +367,22 @@ document.addEventListener('alpine:init', () => {
         summaryHtml: null,
         showIncompleteModal: false,
         async initSummary() {
-            // On page load: auto-check if summary already exists or is still processing.
-            // This eliminates needing to click Generate again after navigating away.
             if (!this.selectedSession) return;
+
+            // If server indicates it is processing, start polling immediately
+            if (isProcessing) {
+                this.isGenerating = true;
+                this.summaryHtml = `<div class="text-center py-4 opacity-70"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-indigo-500"></i><p>{{ __('Analyzing and synthesizing session data...') }}</p></div>`;
+                this.startPolling();
+                return;
+            }
+
+            // If summary is already generated, trust the Blade-rendered server output and do not overwrite it
+            if (hasSummary) {
+                return;
+            }
+
+            // Otherwise, check status to see if it recently started processing in another window/tab
             try {
                 const statusRes = await fetch(`/reports/ai-summary/${this.selectedSession}/status`, {
                     headers: { 'Accept': 'application/json' }
@@ -377,22 +390,13 @@ document.addEventListener('alpine:init', () => {
                 const statusData = await statusRes.json().catch(() => ({}));
                 if (!statusRes.ok || !statusData.success) return;
 
-                if (statusData.data.status === 'completed') {
-                    const html = statusData.data.summary_html || statusData.data.summary;
-                    if (html) {
-                        // Summary exists in DB — display it immediately without generating
-                        this.summaryHtml = `<div class='ai-prose space-y-2'>${statusData.data.summary_html || html}</div>`;
-                    }
-                    // If html is empty, Blade fallback will handle display
-                } else if (statusData.data.status === 'processing') {
-                    // Still being generated from a previous trigger — resume polling
+                if (statusData.data.status === 'processing') {
                     this.isGenerating = true;
                     this.summaryHtml = `<div class="text-center py-4 opacity-70"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-indigo-500"></i><p>{{ __('Analyzing and synthesizing session data...') }}</p></div>`;
                     this.startPolling();
                 }
-                // status === 'idle' → let Blade-rendered placeholder show (no ai_summary yet)
             } catch (e) {
-                // Fail silently — Blade fallback will show
+                // Fail silently
             }
         },
         startPolling() {
@@ -461,14 +465,36 @@ document.addEventListener('alpine:init', () => {
                     }
                 });
                 const data = await response.json().catch(() => ({}));
+
+                // Guard: no data change since last AI summary generation
+                if (response.status === 409 && data.no_change) {
+                    this.summaryHtml = null;
+                    this.isGenerating = false;
+                    Swal.fire({
+                        icon: 'info',
+                        title: '{{ __('No Changes Detected') }}',
+                        html: `<p class="text-sm text-slate-600 leading-relaxed">{{ __('The assessment scores and notes have not changed since the last executive summary was generated.') }}</p>
+                               <p class="text-xs text-slate-400 mt-2">{{ __('Regeneration is only required after modifying maturity scores or audit notes in any control.') }}</p>`,
+                        confirmButtonText: '{{ __('Understood') }}',
+                        confirmButtonColor: '#4f46e5',
+                        width: '28rem',
+                        customClass: {
+                            title: 'text-base font-bold text-slate-800',
+                            htmlContainer: 'text-left px-2',
+                            confirmButton: 'text-xs font-bold uppercase tracking-widest px-5 py-2.5 rounded-lg'
+                        }
+                    });
+                    return;
+                }
+
                 if (!response.ok || !data.success) {
-                    throw new Error(data.message || 'Synthesis Failed');
+                    throw new Error(data.message || '{{ __('Synthesis Failed') }}');
                 }
                 this.startPolling();
             } catch (e) {
                 this.summaryHtml = null;
                 this.isGenerating = false;
-                window.dispatchEvent(new CustomEvent('notify', { detail: { message: e.message || 'Synthesis Failed', type: 'error' } }));
+                window.dispatchEvent(new CustomEvent('notify', { detail: { message: e.message || '{{ __('Synthesis Failed') }}', type: 'error' } }));
             }
         }
     }));

@@ -13,6 +13,18 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/@hotwired/turbo@7.3.0/dist/turbo.es2017-umd.js"></script>
+    <script>
+        window.formatMarkdown = function(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;")
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        };
+    </script>
     {{-- Chart.js hanya di-load jika halaman membutuhkannya --}}
     @stack('head_scripts')
     @stack('styles')
