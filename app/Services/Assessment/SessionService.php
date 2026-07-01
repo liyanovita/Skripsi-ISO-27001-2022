@@ -153,7 +153,7 @@ class SessionService
             ->findOrFail($id);
         
         return [
-            'app' => 'OpenAudit-27001:2022',
+            'app' => 'AuditGuard',
             'version' => '1.0.0',
             'exported_at' => now()->toIso8601String(),
             'session' => [
@@ -187,7 +187,7 @@ class SessionService
     public function importSessionFromJson(array $data, int $userId, ?string $name = null): AssessmentSession
     {
         if (!isset($data['session'])) {
-            throw new \Exception('Invalid JSON file format or not an OpenAudit export.');
+            throw new \Exception('Invalid JSON file format or not an AuditGuard export.');
         }
 
         return DB::transaction(function () use ($data, $userId, $name) {

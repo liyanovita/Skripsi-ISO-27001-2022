@@ -114,6 +114,7 @@
                 aiInsight: @js(is_array($result->control_insight) ? ($result->control_insight['gap'] ?? '') : ($result->control_insight ?? '')),
                 aiPriority: @js($result->risk_priority ?? ''),
                 aiValidation: @js($result->evidence_validation ?? ''),
+                aiImpact: @js($result->impact_interpretation ?? ''),
                 nextId: {{ $nextId ?? 'null' }},
                 evidenceFiles: @js(is_array($result->evidence_file) ? $result->evidence_file : (empty($result->evidence_file) ? [] : [$result->evidence_file])),
                 
@@ -239,6 +240,7 @@
                                         this.aiInsight = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null) ? (aiResult.control_insight.gap || '') : (aiResult.control_insight || '');
                                         this.aiPriority = aiResult.risk_priority || '';
                                         this.aiValidation = aiResult.evidence_validation || '';
+                                        this.aiImpact = aiResult.impact_interpretation || '';
                                         this.aiLoading = false;
                                         window.dispatchEvent(new CustomEvent('notify', { detail: { message: 'Analisis AI n8n berhasil diterima!', type: 'success' } }));
                                     } else if (pollCount > 24) { // Timeout after ~60 seconds (24 * 2.5s)
@@ -554,7 +556,8 @@
                                             plan: aiPlan,
                                             insight: aiInsight,
                                             priority: aiPriority,
-                                            validation: aiValidation
+                                            validation: aiValidation,
+                                            impact: aiImpact
                                         }}))"
                                         class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shadow-md shadow-indigo-600/20">
                                         <i class="fa-solid fa-eye mr-1"></i>{{ __('View Result') }}</button>

@@ -39,10 +39,38 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>ISO 27001 Compliance Audit Report</h1>
-        <p>Global System Agregates & Analytics</p>
-        <p>Generated on: {{ $date }} | Administrator Mode</p>
+    @php
+        $logoPath = public_path('images/logo.jpg');
+        $logoBase64 = '';
+        if (file_exists($logoPath)) {
+            $logoData = base64_encode(file_get_contents($logoPath));
+            $logoBase64 = 'data:image/jpeg;base64,' . $logoData;
+        }
+    @endphp
+    <div style="margin-bottom: 25px; border-bottom: 2px solid #008B9B; padding-bottom: 12px;">
+        <table style="width: 100%; border: none; margin-bottom: 0;">
+            <tr>
+                <td style="width: 50px; border: none; padding: 0; vertical-align: middle;">
+                    @if($logoBase64)
+                        <img src="{{ $logoBase64 }}" style="height: 45px; width: 45px; border-radius: 8px;">
+                    @endif
+                </td>
+                <td style="border: none; padding: 0 0 0 10px; vertical-align: middle; text-align: left;">
+                    <div style="font-size: 20px; font-weight: bold; line-height: 1.1;">
+                        <span style="color: #0B2545;">Audit</span><span style="color: #008B9B;">Guard</span>
+                    </div>
+                    <div style="font-size: 7px; font-weight: 900; color: #64748b; letter-spacing: 2px; margin-top: 2px; text-transform: uppercase;">
+                        ASSESS &bull; ANALYZE &bull; ASSURE
+                    </div>
+                </td>
+                <td style="border: none; padding: 0; text-align: right; vertical-align: middle; color: #475569;">
+                    <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">ISO 27001 Compliance Audit Report</div>
+                    <div style="font-size: 8px; margin-top: 2px; color: #64748b;">
+                        Global System Aggregates & Analytics | Generated: {{ $date }}
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div class="section-title">Core Performance Metrics</div>
@@ -157,7 +185,7 @@
     </table>
 
     <div class="footer">
-        ISO 27001 Compliance Dashboard Report | Internal Self-Assessment Report
+        AuditGuard &copy; {{ date('Y') }} | ISO 27001 Compliance Dashboard Report
     </div>
 </body>
 </html>

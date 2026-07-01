@@ -12,6 +12,7 @@ use App\Services\Notification\CapaReminderService;
 use App\Services\Notification\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 
 class WebhookController extends Controller
 {
@@ -39,9 +40,11 @@ class WebhookController extends Controller
             }
 
             $result->update([
-                'ai_recommendation' => $request->ai_recommendation,
-                'corrective_action_plan' => $request->action_plan,
-                'control_insight' => $request->control_insight,
+                'ai_recommendation'     => $request->ai_recommendation,
+                'corrective_action_plan'=> $request->action_plan,
+                'control_insight'       => $request->control_insight,
+                'evidence_validation'   => $request->evidence_validation,
+                'impact_interpretation' => $request->impact_interpretation,
             ]);
 
             return ApiResponse::success(
@@ -68,6 +71,8 @@ class WebhookController extends Controller
             $session->update([
                 'ai_summary' => $request->summary,
             ]);
+
+            Cache::forget("session_{$session->id}_summary_status");
 
             return ApiResponse::success(
                 null,

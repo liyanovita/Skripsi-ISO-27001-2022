@@ -28,9 +28,35 @@
 </head>
 <body>
     <div class="page">
-        <div class="header">
-            <h1>{{ __('Statement of Applicability') }}</h1>
-            <p>{{ __('ISO/IEC 27001:2022 SoA for Audit Session') }}</p>
+        @php
+            $logoPath = public_path('images/logo.jpg');
+            $logoBase64 = '';
+            if (file_exists($logoPath)) {
+                $logoBase64 = 'data:image/jpeg;base64,' . base64_encode(file_get_contents($logoPath));
+            }
+        @endphp
+        <div style="margin-bottom: 14px; border-bottom: 2px solid #008B9B; padding-bottom: 10px;">
+            <table style="width: 100%; border: none; margin-bottom: 0;">
+                <tr>
+                    <td style="width: 50px; border: none; padding: 0; vertical-align: middle;">
+                        @if($logoBase64)
+                            <img src="{{ $logoBase64 }}" style="height: 42px; width: 42px; border-radius: 8px;">
+                        @endif
+                    </td>
+                    <td style="border: none; padding: 0 0 0 10px; vertical-align: middle; text-align: left;">
+                        <div style="font-size: 18px; font-weight: bold; line-height: 1.1;">
+                            <span style="color: #0B2545;">Audit</span><span style="color: #008B9B;">Guard</span>
+                        </div>
+                        <div style="font-size: 7px; font-weight: 900; color: #64748b; letter-spacing: 2px; margin-top: 2px; text-transform: uppercase;">
+                            ASSESS &bull; ANALYZE &bull; ASSURE
+                        </div>
+                    </td>
+                    <td style="border: none; padding: 0; text-align: right; vertical-align: middle; color: #475569;">
+                        <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">{{ __('Statement of Applicability') }}</div>
+                        <div style="font-size: 8px; margin-top: 3px; color: #64748b;">{{ __('ISO/IEC 27001:2022 SoA for Audit Session') }}</div>
+                    </td>
+                </tr>
+            </table>
         </div>
 
         <div class="meta">
@@ -175,7 +201,7 @@
             @endforeach
         @endif
 
-        <div class="footer">ISO 27001:2022 Statement of Applicability | Internal Self-Assessment Report</div>
+        <div class="footer">AuditGuard &copy; {{ date('Y') }} | ISO 27001:2022 Statement of Applicability</div>
     </div>
 </body>
 </html>

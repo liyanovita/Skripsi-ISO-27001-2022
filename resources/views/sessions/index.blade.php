@@ -286,7 +286,7 @@
                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">{{ __('Select JSON Template File') }}</label>
                     <input type="file" name="json_file" required accept=".json,.txt"
                         class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-slate-600 transition-all">
-                    <p class="text-[10px] text-slate-400 mt-2 font-medium italic">{{ __('Make sure the file was exported from OpenAudit-27001:2022.') }}</p>
+                    <p class="text-[10px] text-slate-400 mt-2 font-medium italic">{{ __('Make sure the file was exported from AuditGuard.') }}</p>
                 </div>
                 
                 <div class="flex gap-3 pt-1">

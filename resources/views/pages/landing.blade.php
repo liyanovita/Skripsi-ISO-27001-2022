@@ -4,22 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="canonical" href="{{ url('/') }}">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232563eb'/><text y='.9em' font-size='55' font-family='sans-serif' font-weight='bold' fill='white' x='50%' text-anchor='middle'>{{ __('ISO') }}</text></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232563eb'/><text y='.9em' font-size='55' font-family='sans-serif' font-weight='bold' fill='white' x='50%' text-anchor='middle'>AG</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" as="style">
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
-    <meta name="description" content="Free, open-source ISO 27001:2022 self-assessment tool with AI-powered recommendations, professional reports, and community templates. No registration required.">
-    <meta name="keywords" content="ISO 27001:2022, ISO 27001:2022, compliance, ISMS, security assessment, open source, free tool, gap analysis">
+    <meta name="description" content="AuditGuard — AI-powered ISO 27001:2022 compliance assessment platform with gap analysis, professional reports, and community templates.">
+    <meta name="keywords" content="AuditGuard, ISO 27001:2022, compliance, ISMS, security assessment, AI audit, gap analysis">
     <meta name="robots" content="index, follow">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="ISO 27001:2022 Self-Assessment | Free Open Source Tool">
-    <meta property="og:description" content="Free, open-source ISO 27001:2022 self-assessment with AI recommendations and professional reports.">
+    <meta property="og:title" content="AuditGuard | ISO 27001:2022 Compliance Assessment Platform">
+    <meta property="og:description" content="AI-powered ISO 27001:2022 compliance platform with gap analysis and professional reports.">
     <meta property="og:url" content="{{ url('/') }}">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="ISO 27001:2022 Self-Assessment | Free Open Source Tool">
-    <meta name="twitter:description" content="Free ISO 27001:2022 self-assessment tool with AI-powered gap analysis.">
-    <title>ISO 27001:2022 Self-Assessment | Open Source Tool</title>
+    <meta name="twitter:title" content="AuditGuard | ISO 27001:2022 Compliance Assessment">
+    <meta name="twitter:description" content="AI-powered ISO 27001:2022 compliance assessment with gap analysis and reporting.">
+    <title>AuditGuard | ISO 27001:2022 Compliance Assessment Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -50,10 +50,12 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-2">
-                    <div class="w-9 h-9 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center font-bold text-white shadow-lg">{{ __('ISO') }}</div>
+                    <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-9 h-9 rounded-lg shrink-0 shadow-lg object-contain bg-white p-0.5">
                     <div>
-                        <div class="font-bold text-base text-gray-900 leading-none">ISO 27001:2022</div>
-                        <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-semibold">{{ __('Self-Assessment Tool') }}</div>
+                        <div class="font-bold text-base leading-none">
+                            <span style="color: #0B2545;">Audit</span><span style="color: #008B9B;">Guard</span>
+                        </div>
+                        <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-semibold">ISO 27001:2022 Platform</div>
                     </div>
                 </div>
                 <div class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
@@ -94,7 +96,7 @@
 
         <!-- Headline -->
         <h1 class="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-5 animate-fade-in-up delay-1">
-            Simplify Your <span class="gradient-text">ISO 27001:2022</span><br>Compliance Assessment
+            Simplify Your <span class="gradient-text">ISO 27001:2022</span><br>Compliance Journey with <span class="gradient-text">AuditGuard</span>
         </h1>
 
         <!-- Subheadline -->
@@ -144,7 +146,9 @@
                             <div class="h-5 w-48 bg-gray-300 rounded-md mb-2 animate-pulse"></div>
                             <div class="h-3 w-32 bg-gray-200 rounded-md animate-pulse"></div>
                         </div>
-                        <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center text-white text-xs font-bold shadow">ISO</div>
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black shadow overflow-hidden bg-white p-0.5">
+                            <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-full h-full object-contain">
+                        </div>
                     </div>
                     <div class="grid grid-cols-3 gap-4 mb-5">
                         <div class="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
@@ -643,10 +647,12 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div>
                     <div class="flex items-center gap-2 mb-3">
-                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center font-bold text-white text-sm">ISO</div>
-                        <span class="font-bold text-white text-lg">{{ __('ISO 27001:2022 Audit Tool') }}</span>
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg overflow-hidden"><img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-full h-full object-contain bg-white p-0.5"></div>
+                        <span class="font-bold text-lg">
+                            <span style="color: #f8fafc;">Audit</span><span style="color: #2dd4bf;">Guard</span>
+                        </span>
                     </div>
-                    <p class="text-sm leading-normal mb-3">{{ __('Audit decision support system for ISO 27001:2022 compliance.') }}</p>
+                    <p class="text-sm leading-normal mb-3">{{ __('AI-powered audit decision support system for ISO 27001:2022 compliance.') }}</p>
                 </div>
                 <div>
                     <h4 class="font-bold text-white mb-2 text-xs uppercase tracking-widest">{{ __('Platform') }}</h4>
@@ -669,7 +675,7 @@
             </div>
             <div class="border-t border-gray-800 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
                 <p class="text-xs text-gray-600 font-medium">
-                    &copy; {{ date('Y') }} ISO 27001:2022 Audit & Compliance Assessment System.
+                    &copy; {{ date('Y') }} AuditGuard &mdash; ISO 27001:2022 Compliance Assessment Platform.
                 </p>
                 <p class="text-xs text-gray-700">{{ __('Built with Laravel · Powered by AI') }}</p>
             </div>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'OpenAudit-27001:2022') | ISO 27001:2022 Compliance</title>
+    <title>@yield('title', 'AuditGuard') | ISO 27001:2022 Compliance</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -244,11 +244,13 @@
                 '-translate-x-full': !sidebarOpen && window.innerWidth < 1024
             }">
             
-            <div class="h-20 flex items-center px-5 gap-3 shrink-0 border-b border-blue-800/50">
-                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-600/30 shrink-0 font-bold text-lg">{{ __('ISO') }}</div>
+            <div class="h-20 flex items-center px-4 gap-3 shrink-0 border-b border-blue-800/50">
+                <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-10 h-10 rounded-xl shrink-0 shadow-lg object-contain bg-white p-0.5">
                 <div x-show="sidebarOpen" x-transition.opacity.duration.500ms class="overflow-hidden flex-1">
-                    <p class="font-bold text-white text-base leading-none tracking-tight">27001:2022</p>
-                    <p class="text-[8px] text-blue-300 font-bold mt-1 uppercase tracking-widest whitespace-nowrap">{{ __('Self-Assessment') }}</p>
+                    <p class="font-black text-base leading-none tracking-tight">
+                        <span style="color: #f8fafc;">Audit</span><span style="color: #2dd4bf;">Guard</span>
+                    </p>
+                    <p class="text-[8px] text-blue-300 font-bold mt-1 uppercase tracking-widest whitespace-nowrap">{{ __('ISO 27001:2022') }}</p>
                 </div>
                 <button @click="toggleSidebar()" class="hidden lg:flex w-8 h-8 rounded-lg items-center justify-center text-blue-300 hover:bg-white/10 hover:text-white transition-all outline-none">
                     <i class="fa-solid" :class="sidebarOpen ? 'fa-angle-left' : 'fa-angle-right'"></i>
@@ -796,7 +798,7 @@
                 </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto bg-[#F8FAFC] p-6 custom-scrollbar">
+            <div id="main-content" class="flex-1 overflow-y-auto bg-[#F8FAFC] p-6 custom-scrollbar" style="transition: opacity 0.3s ease;">
                 <div class="w-full">
                     {{-- Global Alerts (Triggering Alpine Toasts) --}}
                     @if(session('success'))
@@ -867,7 +869,7 @@
                         <div class="flex items-center gap-2 mb-2">
                             <span class="px-2 py-0.5 bg-white/20 text-white text-[9px] font-black uppercase tracking-widest rounded-lg border border-white/20">{{ __('Platform Guide') }}</span>
                         </div>
-                        <h2 class="text-xl font-black text-white tracking-tight">{{ __('Welcome to OpenAudit-27001!') }}</h2>
+                        <h2 class="text-xl font-black text-white tracking-tight">{{ __('Welcome to AuditGuard!') }}</h2>
                         <p class="text-blue-100 text-xs font-medium mt-1">{{ __('Here is a quick overview of the key modules to help you get started.') }}</p>
                     </div>
                     <button @click="dismissGuide()" class="w-8 h-8 bg-white/10 hover:bg-white/20 text-white rounded-xl flex items-center justify-center shrink-0 transition-all border border-white/20">

@@ -63,8 +63,6 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
             'Audit Notes',
             'AI Strategic Recommendation',
             'AI Audit Insight (Gap)',
-            'Evidence File',
-            'AI Evidence Validation',
             'Corrective Action Plan (CAP)',
         ];
     }
@@ -91,18 +89,7 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
             $insight = 'AI insight not yet generated.';
         }
         
-        if (!empty($result->evidence_file)) {
-            $evidenceFiles = is_array($result->evidence_file)
-                ? $result->evidence_file
-                : [$result->evidence_file];
-            $evidenceFileNames = implode(', ', array_map('basename', $evidenceFiles));
-            $evidenceValidation = !empty($result->evidence_validation)
-                ? $result->evidence_validation
-                : 'AI validation not yet generated.';
-        } else {
-            $evidenceFileNames = 'No evidence provided.';
-            $evidenceValidation = 'No evidence provided.';
-        }
+
 
         $cap = is_array($result->corrective_action_plan) ? implode("\n", $result->corrective_action_plan) : ($result->corrective_action_plan ?? '');
         $cap = trim($cap);
@@ -131,8 +118,6 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
             $notes,
             $recommendation,
             $insight,
-            $evidenceFileNames,
-            $evidenceValidation,
             $cap,
         ];
     }

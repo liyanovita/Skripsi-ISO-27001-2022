@@ -90,7 +90,16 @@
 
             {{-- Accordion Header --}}
             <button type="button"
-                x-on:click="openId = (openId === {{ $result->id }}) ? null : {{ $result->id }}"
+                x-on:click="
+                    openId = (openId === {{ $result->id }}) ? null : {{ $result->id }};
+                    if (openId === {{ $result->id }}) {
+                        $nextTick(() => {
+                            setTimeout(() => {
+                                document.getElementById('result-{{ $result->id }}').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            }, 300);
+                        });
+                    }
+                "
                 class="w-full flex items-center justify-between gap-4 px-6 py-4 text-left transition-colors"
                 :class="openId === {{ $result->id }} ? 'bg-slate-50 border-b border-slate-100' : 'hover:bg-slate-50/50'">
                 <div class="flex items-center gap-3 min-w-0">
@@ -115,13 +124,9 @@
             </button>
 
             {{-- Accordion Body --}}
-            <div x-show="openId === {{ $result->id }}"
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0 -translate-y-1"
-                 x-transition:enter-end="opacity-100 translate-y-0"
-                 x-transition:leave="transition ease-in duration-150"
-                 x-transition:leave-start="opacity-100 translate-y-0"
-                 x-transition:leave-end="opacity-0 -translate-y-1">
+            <div class="transition-all duration-500 ease-in-out overflow-hidden"
+                 x-ref="accordionBody_{{ $result->id }}"
+                 :style="openId === {{ $result->id }} ? 'max-height: ' + ($refs.accordionBody_{{ $result->id }}?.scrollHeight || 1500) + 'px; opacity: 1; visibility: visible;' : 'max-height: 0px; opacity: 0; visibility: hidden; pointer-events: none;'">
             <form action="{{ route('results.update', $result->id) }}" method="POST" enctype="multipart/form-data" class="p-8">
                 @csrf
                 @method('POST')
@@ -326,92 +331,219 @@
                                 class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all">{{ $result->notes }}</textarea>
                         </div>
 
-                        {{-- AI Compliance Synthesis Card --}}
-                        @if(!empty($result->ai_recommendation))
-                        <div class="mt-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl border border-indigo-100 p-6 shadow-sm space-y-4">
-                            <div class="flex items-center justify-between border-b border-indigo-100 pb-3">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-md shadow-indigo-600/10">
-                                        <i class="fa-solid fa-robot text-sm"></i>
+                        {{-- AI Compliance Synthesis Card (Accordion Panels) --}}
+                        <div id="ai-synthesis-wrapper-{{ $result->id }}">
+                            @if(!empty($result->ai_recommendation))
+                            @php
+                                $aiSections = [];
+                                $aiSections[] = [
+                                    'key'   => 'strategic',
+                                    'icon'  => 'fa-lightbulb',
+                                    'color' => 'indigo',
+                                    'label' => __('Strategic Recommendation'),
+                                    'desc'  => __('AI-generated compliance improvement strategy'),
+                                    'body'  => $result->ai_recommendation,
+                                    'type'  => 'text',
+                                ];
+                                if (!empty($result->corrective_action_plan)) {
+                                    $aiSections[] = [
+                                        'key'   => 'cap',
+                                        'icon'  => 'fa-list-check',
+                                        'color' => 'emerald',
+                                        'label' => __('Corrective Action Plan'),
+                                        'desc'  => __('Step-by-step remediation roadmap'),
+                                        'body'  => $result->corrective_action_plan,
+                                        'type'  => 'pre',
+                                    ];
+                                }
+                                $insightText = is_array($result->control_insight) ? ($result->control_insight['gap'] ?? null) : $result->control_insight;
+                                if (!empty($insightText)) {
+                                    $aiSections[] = [
+                                        'key'   => 'gap',
+                                        'icon'  => 'fa-magnifying-glass-chart',
+                                        'color' => 'violet',
+                                        'label' => __('AI Audit Insight (Gap Analysis)'),
+                                        'desc'  => __('Identified gaps against ISO 27001:2022 requirements'),
+                                        'body'  => $insightText,
+                                        'type'  => 'text',
+                                    ];
+                                }
+                                if (!empty($result->evidence_validation)) {
+                                    $aiSections[] = [
+                                        'key'   => 'evidence',
+                                        'icon'  => 'fa-circle-check',
+                                        'color' => 'sky',
+                                        'label' => __('Evidence Validation'),
+                                        'desc'  => __('AI review of submitted supporting evidence'),
+                                        'body'  => $result->evidence_validation,
+                                        'type'  => 'text',
+                                    ];
+                                }
+                                if (!empty($result->impact_interpretation)) {
+                                    $aiSections[] = [
+                                        'key'   => 'impact',
+                                        'icon'  => 'fa-triangle-exclamation',
+                                        'color' => 'rose',
+                                        'label' => __('Impact Interpretation'),
+                                        'desc'  => __('Consequences if this condition is not remediated'),
+                                        'body'  => $result->impact_interpretation,
+                                        'type'  => 'text',
+                                    ];
+                                }
+                                $colorMap = [
+                                    'indigo'  => ['bg' => 'bg-indigo-600',  'light' => 'bg-indigo-50',  'border' => 'border-indigo-100', 'text' => 'text-indigo-600',  'ring' => 'ring-indigo-600/10'],
+                                    'emerald' => ['bg' => 'bg-emerald-600', 'light' => 'bg-emerald-50', 'border' => 'border-emerald-100','text' => 'text-emerald-600', 'ring' => 'ring-emerald-600/10'],
+                                    'violet'  => ['bg' => 'bg-violet-600',  'light' => 'bg-violet-50',  'border' => 'border-violet-100', 'text' => 'text-violet-600',  'ring' => 'ring-violet-600/10'],
+                                    'sky'     => ['bg' => 'bg-sky-600',     'light' => 'bg-sky-50',     'border' => 'border-sky-100',    'text' => 'text-sky-600',     'ring' => 'ring-sky-600/10'],
+                                    'rose'    => ['bg' => 'bg-rose-600',    'light' => 'bg-rose-50',    'border' => 'border-rose-100',   'text' => 'text-rose-600',    'ring' => 'ring-rose-600/10'],
+                                ];
+                            @endphp
+
+                            <div class="mt-6 rounded-3xl border border-indigo-100 shadow-sm overflow-hidden"
+                                 x-data="{ activeAi_{{ $result->id }}: 'strategic' }">
+
+                                {{-- Card Header --}}
+                                <div class="flex items-center justify-between gap-3 px-5 py-4 bg-gradient-to-r from-indigo-600 to-violet-600">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center text-white backdrop-blur-sm">
+                                            <i class="fa-solid fa-robot text-xs"></i>
+                                        </div>
+                                        <div class="leading-none">
+                                            <h4 class="text-[11px] font-black text-white tracking-tight uppercase">{{ __('AI Compliance Synthesis') }}</h4>
+                                            <p class="text-[8px] text-indigo-200 font-bold uppercase tracking-widest mt-0.5">{{ __('AI Expert Recommendation') }}</p>
+                                        </div>
                                     </div>
-                                    <div class="leading-none">
-                                        <h4 class="text-xs font-black text-slate-900 tracking-tight uppercase">{{ __('AI Compliance Synthesis') }}</h4>
-                                        <p class="text-[8px] text-indigo-600 font-bold uppercase tracking-widest mt-0.5">{{ __('AI Expert Recommendation') }}</p>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[8px] font-black text-indigo-200 uppercase tracking-widest">{{ count($aiSections) }} {{ __('sections') }}</span>
+                                        @if(!empty($result->risk_priority))
+                                        <span class="px-2.5 py-1 bg-white/15 text-white border border-white/20 text-[8px] font-black rounded-lg uppercase tracking-wider leading-none backdrop-blur-sm">
+                                            {{ $result->risk_priority }}
+                                        </span>
+                                        @endif
                                     </div>
                                 </div>
-                                @if(!empty($result->risk_priority))
-                                <span class="px-2.5 py-1 bg-rose-50 text-rose-600 border border-rose-100 text-[8px] font-black rounded-lg uppercase tracking-wider leading-none">
-                                    {{ $result->risk_priority }}
-                                </span>
-                                @endif
-                            </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div class="space-y-1">
-                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ __('Strategic Recommendation') }}</span>
-                                    <p class="text-xs text-slate-700 font-medium leading-relaxed bg-white/60 p-3 rounded-xl border border-slate-100/50 shadow-inner h-full">{{ $result->ai_recommendation }}</p>
-                                </div>
-                                
-                                @if(!empty($result->corrective_action_plan))
-                                <div class="space-y-1">
-                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ __('Corrective Action Plan') }}</span>
-                                    <div class="text-xs text-slate-700 font-medium leading-relaxed bg-white/60 p-3 rounded-xl border border-slate-100/50 shadow-inner whitespace-pre-line h-full">{{ $result->corrective_action_plan }}</div>
-                                </div>
-                                @endif
+                                {{-- Accordion Panels --}}
+                                <div class="divide-y divide-indigo-50 bg-gradient-to-br from-indigo-50/60 to-purple-50/60">
+                                    @foreach($aiSections as $section)
+                                    @php $c = $colorMap[$section['color']]; @endphp
+                                    <div x-data="{ get isOpen() { return activeAi_{{ $result->id }} === '{{ $section['key'] }}' } }">
 
-                                @if(!empty(is_array($result->control_insight) ? ($result->control_insight['gap'] ?? null) : $result->control_insight))
-                                <div class="space-y-1">
-                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ __('AI Audit Insight (Gap Analysis)') }}</span>
-                                    <p class="text-xs text-slate-700 font-medium leading-relaxed bg-white/60 p-3 rounded-xl border border-slate-100/50 shadow-inner h-full">{{ is_array($result->control_insight) ? ($result->control_insight['gap'] ?? '') : $result->control_insight }}</p>
-                                </div>
-                                @endif
-                            </div>
+                                        {{-- Panel Header / Toggle Button --}}
+                                        <button type="button"
+                                            @click="activeAi_{{ $result->id }} = isOpen ? null : '{{ $section['key'] }}'"
+                                            class="w-full flex items-center justify-between gap-3 px-5 py-3.5 text-left transition-all duration-200 hover:bg-white/50 group"
+                                            :class="isOpen ? 'bg-white/70 shadow-sm' : ''">
 
-                            @if(!empty($result->evidence_validation))
-                            <div class="pt-3 border-t border-indigo-100 flex items-start gap-2.5 text-[10px] text-indigo-700 font-semibold bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/30">
-                                <i class="fa-solid fa-circle-check mt-0.5 text-indigo-500"></i>
-                                <div>
-                                    <span class="block text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-0.5">{{ __('Evidence Validation') }}</span>
-                                    <p class="leading-relaxed">{{ $result->evidence_validation }}</p>
+                                            <div class="flex items-center gap-3 min-w-0">
+                                                {{-- Colored Icon Badge --}}
+                                                <div class="shrink-0 w-7 h-7 {{ $c['bg'] }} rounded-lg flex items-center justify-center text-white shadow-sm transition-transform duration-200"
+                                                     :class="isOpen ? 'scale-110 ring-4 {{ $c['ring'] }}' : ''">
+                                                    <i class="fa-solid {{ $section['icon'] }} text-[10px]"></i>
+                                                </div>
+
+                                                <div class="min-w-0">
+                                                    <p class="text-[11px] font-black text-slate-800 uppercase tracking-wide leading-none">{{ $section['label'] }}</p>
+                                                    <p class="text-[9px] {{ $c['text'] }} font-semibold mt-0.5 leading-none">{{ $section['desc'] }}</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex items-center gap-2 shrink-0">
+                                                {{-- Word count badge (shown when collapsed) --}}
+                                                <span x-show="!isOpen"
+                                                      class="hidden sm:inline-block text-[8px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                                    {{ str_word_count(strip_tags($section['body'])) }} {{ __('words') }}
+                                                </span>
+
+                                                {{-- Chevron --}}
+                                                <div class="w-6 h-6 rounded-lg {{ $c['light'] }} {{ $c['border'] }} border flex items-center justify-center transition-all duration-300"
+                                                     :class="isOpen ? '{{ $c['bg'] }} border-transparent' : ''">
+                                                    <i class="fa-solid fa-chevron-down text-[9px] transition-all duration-300"
+                                                       :class="isOpen ? 'rotate-180 text-white' : '{{ $c['text'] }}'"></i>
+                                                </div>
+                                            </div>
+                                        </button>
+
+                                        {{-- Panel Body --}}
+                                        <div class="transition-all duration-300 ease-in-out overflow-hidden"
+                                             x-ref="aiPanelBody_{{ $result->id }}_{{ $section['key'] }}"
+                                             :style="isOpen ? 'max-height: ' + ($refs.aiPanelBody_{{ $result->id }}_{{ $section['key'] }}?.scrollHeight || 400) + 'px; opacity: 1; visibility: visible;' : 'max-height: 0px; opacity: 0; visibility: hidden; pointer-events: none;'">
+                                            <div class="px-5 pb-5">
+                                                <div class="bg-white rounded-2xl border {{ $c['border'] }} shadow-inner p-4 mt-1">
+                                                    @if($section['type'] === 'pre')
+                                                    <div class="text-xs text-slate-700 font-medium leading-relaxed whitespace-pre-line">{{ $section['body'] }}</div>
+                                                    @else
+                                                    <p class="text-xs text-slate-700 font-medium leading-relaxed">{{ $section['body'] }}</p>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    @endforeach
                                 </div>
+
+                            </div>{{-- /AI accordion wrapper --}}
+
+                            @elseif($result->status === 'completed' && $result->maturity_rating < 3 && empty($result->ai_recommendation))
+                            <div class="mt-6 bg-gradient-to-br from-indigo-50/30 to-purple-50/30 rounded-3xl border border-indigo-100/50 p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-4 py-8 relative overflow-hidden" 
+                                 x-data="{
+                                    poll() {
+                                        let interval = setInterval(async () => {
+                                            try {
+                                                let res = await fetch('/results/{{ $result->id }}/ai-status');
+                                                let data = await res.json();
+                                                let aiResult = data.data || data.result || data;
+                                                if (aiResult.has_ai) {
+                                                    clearInterval(interval);
+                                                    
+                                                    // Dynamic fetch to avoid full page reload flash
+                                                    let pageRes = await fetch(window.location.href);
+                                                    let html = await pageRes.text();
+                                                    let parser = new DOMParser();
+                                                    let doc = parser.parseFromString(html, 'text/html');
+                                                    let newContent = doc.getElementById('ai-synthesis-wrapper-{{ $result->id }}');
+                                                    
+                                                    let oldContainer = document.getElementById('ai-synthesis-wrapper-{{ $result->id }}');
+                                                    if (oldContainer && newContent) {
+                                                        oldContainer.style.transition = 'opacity 0.3s ease';
+                                                        oldContainer.style.opacity = '0';
+                                                        setTimeout(() => {
+                                                            oldContainer.innerHTML = newContent.innerHTML;
+                                                            oldContainer.style.opacity = '1';
+                                                            
+                                                            // Re-initialize Alpine in this dynamically updated subtree if needed
+                                                            if (window.Alpine) {
+                                                                window.Alpine.initTree(oldContainer);
+                                                            }
+                                                        }, 300);
+                                                    } else {
+                                                        window.location.reload();
+                                                    }
+                                                }
+                                            } catch(e) {
+                                                console.error(e);
+                                            }
+                                        }, 2500);
+                                    }
+                                 }" 
+                                 x-init="poll()">
+                                 <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 animate-pulse"></div>
+
+                                 <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20 animate-bounce relative z-10">
+                                     <i class="fa-solid fa-wand-magic-sparkles text-xl"></i>
+                                 </div>
+
+                                 <div class="space-y-1 relative z-10">
+                                     <h4 class="text-xs font-black text-slate-900 uppercase tracking-wider">{{ __('AI Compliance Synthesis Active') }}</h4>
+                                     <p class="text-[10px] text-slate-500 font-medium">{{ __('AI is currently analyzing your evidence and drafting strategic recommendations...') }}</p>
+                                 </div>
+
+                                 <div class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-[8px] font-black uppercase tracking-widest text-indigo-700 animate-pulse relative z-10">
+                                     <i class="fa-solid fa-spinner animate-spin"></i>{{ __('Processing Real-Time Synthesis') }}</div>
                             </div>
                             @endif
                         </div>
-                        @elseif($result->status === 'completed' && $result->maturity_rating < 3 && empty($result->ai_recommendation))
-                        <div class="mt-6 bg-gradient-to-br from-indigo-50/30 to-purple-50/30 rounded-3xl border border-indigo-100/50 p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-4 py-8 relative overflow-hidden" 
-                             x-data="{
-                                poll() {
-                                    let interval = setInterval(async () => {
-                                        try {
-                                            let res = await fetch('/results/{{ $result->id }}/ai-status');
-                                            let data = await res.json();
-                                            let aiResult = data.data || data.result || data;
-                                            if (aiResult.has_ai) {
-                                                clearInterval(interval);
-                                                window.location.reload();
-                                            }
-                                        } catch(e) {
-                                            console.error(e);
-                                        }
-                                    }, 2500);
-                                }
-                             }" 
-                             x-init="poll()">
-                             <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 animate-pulse"></div>
-
-                             <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20 animate-bounce relative z-10">
-                                 <i class="fa-solid fa-wand-magic-sparkles text-xl"></i>
-                             </div>
-
-                             <div class="space-y-1 relative z-10">
-                                 <h4 class="text-xs font-black text-slate-900 uppercase tracking-wider">{{ __('AI Compliance Synthesis Active') }}</h4>
-                                 <p class="text-[10px] text-slate-500 font-medium">{{ __('AI is currently analyzing your evidence and drafting strategic recommendations...') }}</p>
-                             </div>
-
-                             <div class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-[8px] font-black uppercase tracking-widest text-indigo-700 animate-pulse relative z-10">
-                                 <i class="fa-solid fa-spinner animate-spin"></i>{{ __('Processing Real-Time Synthesis') }}</div>
-                        </div>
-                        @endif
 
                         <div class="flex justify-end pt-4">
                             <button type="submit" name="trigger_ai" value="1" class="px-8 py-3.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 transition-all flex items-center gap-2 active:scale-95">

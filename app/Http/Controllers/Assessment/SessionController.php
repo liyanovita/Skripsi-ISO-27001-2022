@@ -129,7 +129,7 @@ class SessionController extends Controller
         try {
             $exportData = $this->sessionService->exportSessionToJson($id);
             
-            $fileName = 'OpenAudit_Export_' . str_replace(' ', '_', $exportData['session']['name']) . '_' . date('Ymd_His') . '.json';
+            $fileName = 'AuditGuard_Export_' . str_replace(' ', '_', $exportData['session']['name']) . '_' . date('Ymd_His') . '.json';
             
             return response()->json($exportData, 200, [
                 'Content-Disposition' => "attachment; filename=\"{$fileName}\""

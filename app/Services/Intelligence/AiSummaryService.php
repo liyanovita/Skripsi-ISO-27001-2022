@@ -5,6 +5,7 @@ namespace App\Services\Intelligence;
 use App\Models\AssessmentSession;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class AiSummaryService
 {
@@ -22,8 +23,8 @@ class AiSummaryService
             throw new \Exception('You must finalize and complete this audit session before generating the AI summary.');
         }
 
-        // Clear existing summary to track new generation status
-        $session->update(['ai_summary' => null]);
+        // Track generation status in Cache instead of setting DB summary to null
+        Cache::put("session_{$sessionId}_summary_status", 'processing', 300); // 5 minutes timeout
 
         $this->triggerN8nSummary($session);
         return $session->fresh();
@@ -49,6 +50,8 @@ class AiSummaryService
         }
 
         $session->update(['ai_summary' => $aiSummary]);
+        Cache::forget("session_{$sessionId}_summary_status");
+
         return $session->fresh();
     }
 
@@ -97,5 +100,6 @@ class AiSummaryService
         }
 
         $session->update(['ai_summary' => $summary]);
+        Cache::forget("session_{$session->id}_summary_status");
     }
 }

@@ -6,6 +6,7 @@ use App\Models\AssessmentSession;
 use App\Services\Traits\MaturityHelper;
 use App\Services\Traits\SessionLoader;
 use App\Services\Traits\ResultCalculator;
+use Illuminate\Support\Facades\Cache;
 
 class AnalyticsService
 {
@@ -146,7 +147,11 @@ class AnalyticsService
             ];
         }
 
-        return compact('sessions', 'latestSession', 'comparison', 'selectedId', 'stats', 'maturityDistribution', 'complianceBreakdown', 'maturityViews', 'maturityTrends');
+        $isAiProcessing = $latestSession
+            ? Cache::get("session_{$latestSession->id}_summary_status") === 'processing'
+            : false;
+
+        return compact('sessions', 'latestSession', 'comparison', 'selectedId', 'stats', 'maturityDistribution', 'complianceBreakdown', 'maturityViews', 'maturityTrends', 'isAiProcessing');
     }
 
     /**

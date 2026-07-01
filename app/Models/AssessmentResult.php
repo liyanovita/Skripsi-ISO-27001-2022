@@ -11,7 +11,7 @@ class AssessmentResult extends Model
         'session_id', 'iso_standard_id', 'answers', 'maturity_rating', 
         'notes', 'evidence_file', 'status', 'ai_recommendation',
         'corrective_action_plan', 'risk_priority', 'control_insight',
-        'evidence_validation', 'is_applicable', 'soa_justification', 'implementation_status',
+        'evidence_validation', 'impact_interpretation', 'is_applicable', 'soa_justification', 'implementation_status',
         'treatment_due_date', 'treatment_pic', 'treatment_status',
     ];
 

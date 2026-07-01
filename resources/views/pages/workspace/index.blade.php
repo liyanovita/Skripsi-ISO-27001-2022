@@ -45,7 +45,7 @@
     controls: @js($workspaceControls),
     gapFindings: @js($gapFindings),
     showAiModal: false,
-    activeAiDetails: { code: '', title: '', rec: '', plan: '', insight: '', priority: '', validation: '' },
+    activeAiDetails: { code: '', title: '', rec: '', plan: '', insight: '', priority: '', validation: '', impact: '' },
     showEvidenceModal: false,
     activeEvidenceDetails: { code: '', title: '', notes: '', files: [] },
     openEvidenceDetails(details) {
@@ -88,7 +88,8 @@
             plan: details.plan || '',
             insight: details.insight || '',
             priority: details.priority || '',
-            validation: details.validation || ''
+            validation: details.validation || '',
+            impact: details.impact || ''
         };
         this.showAiModal = true;
     },
@@ -535,7 +536,8 @@
                                             plan: @js($aiPlan),
                                             insight: @js(is_array($result->control_insight) ? ($result->control_insight['gap'] ?? '') : ($result->control_insight ?? '')),
                                             priority: @js($result->risk_priority ?? ''),
-                                            validation: @js($result->evidence_validation ?? '')
+                                            validation: @js($result->evidence_validation ?? ''),
+                                            impact: @js($result->impact_interpretation ?? '')
                                         })"
                                         class="inline-flex items-center gap-1.5 px-2.5 py-1.5 border {{ $aiBtnClass }} rounded-lg text-[8px] font-black uppercase tracking-widest transition-all leading-none shrink-0 shadow-sm hover:scale-105 active:scale-95 cursor-pointer group/aibtn">
                                         <i class="fa-solid fa-robot text-[9px] {{ $aiIconAnim }} group-hover/aibtn:text-white"></i>{{ __('Detail AI') }}</button>
@@ -717,19 +719,119 @@
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="space-y-1.5 flex flex-col">
-                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block">{{ __('Strategic Recommendation') }}</span>
-                    <div class="text-xs text-slate-700 font-medium leading-relaxed bg-slate-50 border border-slate-100 p-4 rounded-lg shadow-inner flex-1" x-text="activeAiDetails.rec"></div>
+            {{-- AI Analysis Accordion --}}
+            <div class="space-y-2" x-data="{ openSection: 'rec' }">
+
+                {{-- Section 1: Strategic Recommendation --}}
+                <div class="rounded-xl border border-slate-100 overflow-hidden">
+                    <button type="button"
+                        @click="openSection = openSection === 'rec' ? null : 'rec'"
+                        class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
+                        :class="openSection === 'rec' ? 'bg-indigo-50 border-b border-indigo-100' : 'bg-white'">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors"
+                                 :class="openSection === 'rec' ? 'bg-indigo-600' : 'bg-slate-100'">
+                                <i class="fa-solid fa-lightbulb text-[9px]"
+                                   :class="openSection === 'rec' ? 'text-white' : 'text-slate-400'"></i>
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-widest"
+                                  :class="openSection === 'rec' ? 'text-indigo-700' : 'text-slate-600'">
+                                {{ __('Strategic Recommendation') }}
+                            </span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200"
+                           :class="openSection === 'rec' ? 'rotate-180 text-indigo-400' : ''"></i>
+                    </button>
+                    <div x-show="openSection === 'rec'" x-collapse.duration.250ms>
+                        <div class="px-4 py-3 bg-white">
+                            <p class="text-xs text-slate-700 font-medium leading-relaxed" x-text="activeAiDetails.rec"></p>
+                        </div>
+                    </div>
                 </div>
-                <div class="space-y-1.5 flex flex-col">
-                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block">{{ __('Corrective Action Plan') }}</span>
-                    <div class="text-xs text-slate-700 font-medium leading-relaxed bg-slate-50 border border-slate-100 p-4 rounded-lg shadow-inner whitespace-pre-line flex-1" x-text="activeAiDetails.plan || 'No specific action plan drafted.'"></div>
+
+                {{-- Section 2: Corrective Action Plan --}}
+                <div class="rounded-xl border border-slate-100 overflow-hidden">
+                    <button type="button"
+                        @click="openSection = openSection === 'cap' ? null : 'cap'"
+                        class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
+                        :class="openSection === 'cap' ? 'bg-emerald-50 border-b border-emerald-100' : 'bg-white'">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors"
+                                 :class="openSection === 'cap' ? 'bg-emerald-600' : 'bg-slate-100'">
+                                <i class="fa-solid fa-list-check text-[9px]"
+                                   :class="openSection === 'cap' ? 'text-white' : 'text-slate-400'"></i>
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-widest"
+                                  :class="openSection === 'cap' ? 'text-emerald-700' : 'text-slate-600'">
+                                {{ __('Corrective Action Plan') }}
+                            </span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200"
+                           :class="openSection === 'cap' ? 'rotate-180 text-emerald-400' : ''"></i>
+                    </button>
+                    <div x-show="openSection === 'cap'" x-collapse.duration.250ms>
+                        <div class="px-4 py-3 bg-white">
+                            <p class="text-xs text-slate-700 font-medium leading-relaxed whitespace-pre-line"
+                               x-text="activeAiDetails.plan || '{{ __('No specific action plan drafted.') }}'"></p>
+                        </div>
+                    </div>
                 </div>
-                <div class="space-y-1.5 flex flex-col">
-                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block">{{ __('AI Audit Insight (Gap)') }}</span>
-                    <div class="text-xs text-slate-700 font-medium leading-relaxed bg-slate-50 border border-slate-100 p-4 rounded-lg shadow-inner flex-1" x-text="activeAiDetails.insight || 'Control shows solid operational alignment.'"></div>
+
+                {{-- Section 3: AI Audit Insight --}}
+                <div class="rounded-xl border border-slate-100 overflow-hidden">
+                    <button type="button"
+                        @click="openSection = openSection === 'gap' ? null : 'gap'"
+                        class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
+                        :class="openSection === 'gap' ? 'bg-violet-50 border-b border-violet-100' : 'bg-white'">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors"
+                                 :class="openSection === 'gap' ? 'bg-violet-600' : 'bg-slate-100'">
+                                <i class="fa-solid fa-magnifying-glass-chart text-[9px]"
+                                   :class="openSection === 'gap' ? 'text-white' : 'text-slate-400'"></i>
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-widest"
+                                  :class="openSection === 'gap' ? 'text-violet-700' : 'text-slate-600'">
+                                {{ __('AI Audit Insight (Gap)') }}
+                            </span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200"
+                           :class="openSection === 'gap' ? 'rotate-180 text-violet-400' : ''"></i>
+                    </button>
+                    <div x-show="openSection === 'gap'" x-collapse.duration.250ms>
+                        <div class="px-4 py-3 bg-white">
+                            <p class="text-xs text-slate-700 font-medium leading-relaxed"
+                               x-text="activeAiDetails.insight || '{{ __('Control shows solid operational alignment.') }}'"></p>
+                        </div>
+                    </div>
                 </div>
+
+                {{-- Section 4: Impact Interpretation --}}
+                <div class="rounded-xl border border-slate-100 overflow-hidden" x-show="activeAiDetails.impact" x-cloak>
+                    <button type="button"
+                        @click="openSection = openSection === 'impact' ? null : 'impact'"
+                        class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
+                        :class="openSection === 'impact' ? 'bg-rose-50 border-b border-rose-100' : 'bg-white'">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors"
+                                 :class="openSection === 'impact' ? 'bg-rose-600' : 'bg-slate-100'">
+                                <i class="fa-solid fa-triangle-exclamation text-[9px]"
+                                   :class="openSection === 'impact' ? 'text-white' : 'text-slate-400'"></i>
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-widest"
+                                  :class="openSection === 'impact' ? 'text-rose-700' : 'text-slate-600'">
+                                {{ __('Impact Interpretation') }}
+                            </span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200"
+                           :class="openSection === 'impact' ? 'rotate-180 text-rose-400' : ''"></i>
+                    </button>
+                    <div x-show="openSection === 'impact'" x-collapse.duration.250ms>
+                        <div class="px-4 py-3 bg-rose-50/30">
+                            <p class="text-xs text-slate-700 font-medium leading-relaxed" x-text="activeAiDetails.impact"></p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
             <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-2" x-show="activeAiDetails.priority">

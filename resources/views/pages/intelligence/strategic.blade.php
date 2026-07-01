@@ -11,7 +11,7 @@
 @php
     $trendSessions = $maturityTrends ?? collect();
 @endphp
-<div class="max-w-6xl mx-auto space-y-6 pb-16" x-data="strategicAnalytics({{ $selectedId ?: 'null' }})">
+<div class="max-w-6xl mx-auto space-y-6 pb-16" x-data="strategicAnalytics({{ $selectedId ?: 'null' }})" x-init="initSummary()">
     
     {{-- Header with Session Filter --}}
     <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300">
@@ -319,6 +319,81 @@ document.addEventListener('alpine:init', () => {
         expandedId: null,
         summaryHtml: null,
         showIncompleteModal: false,
+        async initSummary() {
+            // On page load: auto-check if summary already exists or is still processing.
+            // This eliminates needing to click Generate again after navigating away.
+            if (!this.selectedSession) return;
+            try {
+                const statusRes = await fetch(`/reports/ai-summary/${this.selectedSession}/status`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const statusData = await statusRes.json().catch(() => ({}));
+                if (!statusRes.ok || !statusData.success) return;
+
+                if (statusData.data.status === 'completed') {
+                    const html = statusData.data.summary_html || statusData.data.summary;
+                    if (html) {
+                        // Summary exists in DB — display it immediately without generating
+                        this.summaryHtml = `<div class='ai-prose space-y-2'>${statusData.data.summary_html || html}</div>`;
+                    }
+                    // If html is empty, Blade fallback will handle display
+                } else if (statusData.data.status === 'processing') {
+                    // Still being generated from a previous trigger — resume polling
+                    this.isGenerating = true;
+                    this.summaryHtml = `<div class="text-center py-4 opacity-70"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-indigo-500"></i><p>{{ __('Analyzing and synthesizing session data...') }}</p></div>`;
+                    this.startPolling();
+                }
+                // status === 'idle' → let Blade-rendered placeholder show (no ai_summary yet)
+            } catch (e) {
+                // Fail silently — Blade fallback will show
+            }
+        },
+        startPolling() {
+            let attempts = 0;
+            const maxAttempts = 80;
+            const pollInterval = setInterval(async () => {
+                attempts++;
+                try {
+                    const statusRes = await fetch(`/reports/ai-summary/${this.selectedSession}/status`, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    const statusData = await statusRes.json().catch(() => ({}));
+                    if (statusRes.ok && statusData.success && statusData.data.status === 'completed') {
+                        clearInterval(pollInterval);
+                        const html = statusData.data.summary_html || statusData.data.summary;
+                        this.summaryHtml = `<div class='ai-prose space-y-2'>${html}</div>`;
+                        this.isGenerating = false;
+                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: 'Intelligence Core Synchronized!', type: 'success' } }));
+                    }
+                } catch (e) { console.error("Polling error:", e); }
+                if (attempts >= maxAttempts) {
+                    clearInterval(pollInterval);
+                    this.isGenerating = false;
+                    // Do a final DB check before giving up — webhook may have delivered
+                    // the summary AFTER the cache key expired (n8n slow response)
+                    try {
+                        const finalRes = await fetch(`/reports/ai-summary/${this.selectedSession}/status`, {
+                            headers: { 'Accept': 'application/json' }
+                        });
+                        const finalData = await finalRes.json().catch(() => ({}));
+                        if (finalRes.ok && finalData.success && finalData.data.status === 'completed') {
+                            const html = finalData.data.summary_html || finalData.data.summary;
+                            if (html) {
+                                this.summaryHtml = `<div class='ai-prose space-y-2'>${html}</div>`;
+                                window.dispatchEvent(new CustomEvent('notify', { detail: { message: 'Intelligence Core Synchronized!', type: 'success' } }));
+                                return;
+                            }
+                        }
+                    } catch (e) { /* ignore final check error */ }
+                    // Truly timed out — keep Blade fallback visible (don't set null if Blade has content)
+                    // Only clear summaryHtml if it's currently showing the spinner
+                    if (this.summaryHtml && this.summaryHtml.includes('fa-spinner')) {
+                        this.summaryHtml = null;
+                    }
+                    window.dispatchEvent(new CustomEvent('notify', { detail: { message: 'Synthesis timed out. Please try again.', type: 'error' } }));
+                }
+            }, 1500);
+        },
         async triggerAISummary() {
             if (!this.selectedSession) return;
             
@@ -342,36 +417,7 @@ document.addEventListener('alpine:init', () => {
                 if (!response.ok || !data.success) {
                     throw new Error(data.message || 'Synthesis Failed');
                 }
-                
-                // Poll for status since generation is async (give Ollama more time, up to 120s)
-                let attempts = 0;
-                const maxAttempts = 80;
-                const pollInterval = setInterval(async () => {
-                    attempts++;
-                    try {
-                        const statusRes = await fetch(`/reports/ai-summary/${this.selectedSession}/status`, {
-                            headers: { 'Accept': 'application/json' }
-                        });
-                        const statusData = await statusRes.json().catch(() => ({}));
-                        if (statusRes.ok && statusData.success) {
-                            if (statusData.data.status === 'completed') {
-                                clearInterval(pollInterval);
-                                this.summaryHtml = `<div class='ai-prose space-y-2'>${statusData.data.summary_html}</div>`;
-                                this.isGenerating = false;
-                                window.dispatchEvent(new CustomEvent('notify', { detail: { message: 'Intelligence Core Synchronized!', type: 'success' } }));
-                            }
-                        }
-                    } catch (e) {
-                        console.error("Polling error:", e);
-                    }
-                    
-                    if (attempts >= maxAttempts) {
-                        clearInterval(pollInterval);
-                        this.isGenerating = false;
-                        this.summaryHtml = null;
-                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: 'Synthesis timed out. Please try again.', type: 'error' } }));
-                    }
-                }, 1500);
+                this.startPolling();
             } catch (e) {
                 this.summaryHtml = null;
                 this.isGenerating = false;

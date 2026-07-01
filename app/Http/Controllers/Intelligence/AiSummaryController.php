@@ -8,6 +8,8 @@ use App\Http\Responses\ApiResponse;
 use App\Services\Intelligence\AiSummaryService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class AiSummaryController extends Controller
 {
@@ -42,11 +44,35 @@ class AiSummaryController extends Controller
                 throw ApiException::forbidden('Unauthorized: You do not have permission to access this session.');
             }
 
+            // Check the dedicated Cache key set by AiSummaryService::generate().
+            // This is the AUTHORITATIVE source of truth for "is it still running?".
+            // It is cleared by the webhook (or the mock generator) once the summary
+            // is safely written to the DB — so we never flash a null summary.
+            $isProcessing = Cache::get("session_{$sessionId}_summary_status") === 'processing';
+
+            if ($isProcessing) {
+                return ApiResponse::success([
+                    'status'       => 'processing',
+                    'summary'      => null,
+                    'summary_html' => null,
+                ], 'AI summary is being generated.');
+            }
+
+            if ($session->ai_summary) {
+                return ApiResponse::success([
+                    'status'       => 'completed',
+                    'summary'      => $session->ai_summary,
+                    'summary_html' => Str::markdown(e($session->ai_summary)),
+                ], 'Summary status retrieved.');
+            }
+
+            // No processing flag and no summary in DB — the session is idle
             return ApiResponse::success([
-                'status' => $session->ai_summary ? 'completed' : 'processing',
-                'summary' => $session->ai_summary,
-                'summary_html' => $session->ai_summary ? \Illuminate\Support\Str::markdown(e($session->ai_summary)) : null,
-            ], 'Summary status retrieved.');
+                'status'       => 'idle',
+                'summary'      => null,
+                'summary_html' => null,
+            ], 'No summary generated yet.');
+
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             throw ApiException::notFound('Session not found');
         } catch (\Exception $e) {

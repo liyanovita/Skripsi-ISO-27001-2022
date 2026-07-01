@@ -9,6 +9,7 @@ use App\Models\AssessmentResult;
 use App\Models\AssessmentSession;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @OA\Schema(
@@ -158,6 +159,8 @@ class WebhookApiController extends BaseApiController
             $session->update([
                 'ai_summary' => $request->summary,
             ]);
+
+            Cache::forget("session_{$session->id}_summary_status");
 
             return $this->successResponse(
                 null,

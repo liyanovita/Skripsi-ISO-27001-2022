@@ -29,13 +29,45 @@
         .ai-card-body { padding: 20px; }
         
         .cap-box { margin-top: 15px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 10px; color: #1e293b; }
+        .summary-box p, .ai-card-body p, .cap-box p { margin: 0 0 8px 0; }
+        .summary-box p:last-child, .ai-card-body p:last-child, .cap-box p:last-child { margin-bottom: 0; }
+        .summary-box ul, .ai-card-body ul, .cap-box ul { margin: 0 0 8px 0; padding-left: 20px; }
+        .summary-box li, .ai-card-body li, .cap-box li { margin-bottom: 4px; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>{{ __('ISO 27001:2022 IMPROVEMENT ROADMAP') }}</h1>
-        <p>Audit Session: {{ $session->name }}</p>
-        <p>Generated on: {{ $date }} | User: {{ auth()->user()->name }}</p>
+    @php
+        $logoPath = public_path('images/logo.jpg');
+        $logoBase64 = '';
+        if (file_exists($logoPath)) {
+            $logoBase64 = 'data:image/jpeg;base64,' . base64_encode(file_get_contents($logoPath));
+        }
+    @endphp
+    <div style="margin-bottom: 25px; border-bottom: 2px solid #008B9B; padding-bottom: 12px;">
+        <table style="width: 100%; border: none; margin-bottom: 0;">
+            <tr>
+                <td style="width: 50px; border: none; padding: 0; vertical-align: middle;">
+                    @if($logoBase64)
+                        <img src="{{ $logoBase64 }}" style="height: 45px; width: 45px; border-radius: 8px;">
+                    @endif
+                </td>
+                <td style="border: none; padding: 0 0 0 10px; vertical-align: middle; text-align: left;">
+                    <div style="font-size: 20px; font-weight: bold; line-height: 1.1;">
+                        <span style="color: #0B2545;">Audit</span><span style="color: #008B9B;">Guard</span>
+                    </div>
+                    <div style="font-size: 7px; font-weight: 900; color: #64748b; letter-spacing: 2px; margin-top: 2px; text-transform: uppercase;">
+                        ASSESS &bull; ANALYZE &bull; ASSURE
+                    </div>
+                </td>
+                <td style="border: none; padding: 0; text-align: right; vertical-align: middle; color: #475569;">
+                    <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">{{ __('ISO 27001:2022 Improvement Roadmap') }}</div>
+                    <div style="font-size: 8px; margin-top: 3px; color: #64748b;">
+                        Session: {{ $session->name }}<br>
+                        Generated: {{ $date }} &nbsp;|&nbsp; {{ auth()->user()->name }}
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div class="section-title">Executive Summary & AI Intelligence</div>
@@ -43,8 +75,8 @@
         <div style="font-size: 18px; font-weight: bold; color: #1e293b; margin-bottom: 15px;">
             Overall Maturity Score: {{ number_format($session->overall_maturity_score, 1) }} / 5.0
         </div>
-        <div style="font-size: 11px; color: #334155; line-height: 1.8; white-space: pre-line;">
-            {!! nl2br(e($summary)) !!}
+        <div style="font-size: 11px; color: #334155; line-height: 1.8;">
+            {!! \Illuminate\Support\Str::markdown(e($summary)) !!}
         </div>
     </div>
 
@@ -106,17 +138,17 @@
             <div class="ai-card-body">
                 <table style="margin-bottom: 0; border: none; width: 100%;">
                     <tr>
-                        <td style="width: 33%; border: none; padding: 0 10px 0 0; vertical-align: top;">
+                        <td style="width: 50%; border: none; padding: 0 10px 0 0; vertical-align: top;">
                             <div style="font-size: 8px; font-weight: bold; color: #2563eb; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">{{ __('Strategic Recommendation') }}</div>
                             <div style="font-size: 10px; color: #334155; line-height: 1.5;">
                                 @if(!empty($result->ai_recommendation))
-                                    {{ $result->ai_recommendation }}
+                                    {!! \Illuminate\Support\Str::markdown(e($result->ai_recommendation)) !!}
                                 @else
                                     <span style="color: #94a3b8; font-style: italic;">{{ __('AI recommendation not yet generated.') }}</span>
                                 @endif
                             </div>
                         </td>
-                        <td style="width: 34%; border: none; padding: 0 10px; vertical-align: top;">
+                        <td style="width: 50%; border: none; padding: 0 0 0 10px; vertical-align: top;">
                             <div style="font-size: 8px; font-weight: bold; color: #dc2626; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">{{ __('AI Audit Insight (Gap)') }}</div>
                             <div style="font-size: 10px; color: #334155; line-height: 1.5;">
                                 @php
@@ -124,30 +156,11 @@
                                     $insight = trim($insight ?? '');
                                 @endphp
                                 @if(!empty($insight))
-                                    {{ $insight }}
+                                    {!! \Illuminate\Support\Str::markdown(e($insight)) !!}
                                 @else
                                     <span style="color: #94a3b8; font-style: italic;">{{ __('AI insight not yet generated.') }}</span>
                                 @endif
                             </div>
-                        </td>
-                        <td style="width: 33%; border: none; padding: 0 0 0 10px; vertical-align: top;">
-                            <div style="font-size: 8px; font-weight: bold; color: #d97706; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">{{ __('AI Evidence Validation') }}</div>
-                            @if(!empty($result->evidence_file))
-                                @php
-                                    $evidenceFiles = is_array($result->evidence_file)
-                                        ? $result->evidence_file
-                                        : [$result->evidence_file];
-                                    $fileNames = implode(', ', array_map('basename', $evidenceFiles));
-                                @endphp
-                                <div style="font-size: 8px; font-weight: bold; color: #475569; margin-bottom: 4px;">Doc: <span style="font-weight: normal; color: #2563eb;">{{ $fileNames }}</span></div>
-                                @if(!empty($result->evidence_validation))
-                                    <div style="font-size: 10px; color: #475569; font-style: italic; line-height: 1.5;">{{ $result->evidence_validation }}</div>
-                                @else
-                                    <div style="font-size: 10px; color: #94a3b8; font-style: italic; line-height: 1.5;">{{ __('AI validation not yet generated.') }}</div>
-                                @endif
-                            @else
-                                <div style="font-size: 10px; color: #94a3b8; font-style: italic; line-height: 1.5;">{{ __('No evidence provided.') }}</div>
-                            @endif
                         </td>
                     </tr>
                 </table>
@@ -175,7 +188,7 @@
                             $capText = trim($capText);
                         @endphp
                         @if(!empty($capText))
-                            {!! nl2br(e($capText)) !!}
+                            {!! \Illuminate\Support\Str::markdown(e($capText)) !!}
                         @else
                             <span style="color: #94a3b8; font-style: italic;">{{ __('AI corrective action plan not yet generated.') }}</span>
                         @endif
@@ -190,7 +203,7 @@
         </div>
     @endif
     <div class="footer">
-        ISO 27001:2022 Improvement Roadmap | Internal Self-Assessment Report
+        AuditGuard &copy; {{ date('Y') }} | ISO 27001:2022 Improvement Roadmap
     </div>
 </body>
 </html>
