@@ -158,7 +158,7 @@
                     <td class="px-5 py-4 text-right">
                         <div class="flex items-center justify-end gap-2">
                             {{-- Preview --}}
-                            <a href="{{ route('community.preview', $template->id) }}"
+                            <a href="{{ route('community.show', $template->id) }}"
                                 target="_blank"
                                 class="w-8 h-8 rounded-lg flex items-center justify-center text-indigo-600 hover:bg-indigo-50 border border-indigo-200 bg-white transition-colors"
                                 title="Preview Template">

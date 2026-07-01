@@ -243,8 +243,8 @@
                             Swal.fire({
                                 icon: 'info',
                                 title: '{{ __('No Changes Detected') }}',
-                                html: `<p class="text-sm text-slate-600 leading-relaxed">{{ __('The assessment data for this control has not changed since the last AI analysis was generated.') }}</p>
-                                       <p class="text-xs text-slate-400 mt-2">{{ __('Regeneration is only required after modifying the maturity score, answers, or audit notes.') }}</p>`,
+                                html: '<p class=\'text-sm text-slate-600 leading-relaxed\'>{{ addslashes(__('The assessment data for this control has not changed since the last AI analysis was generated.')) }}</p>' +
+                                      '<p class=\'text-xs text-slate-400 mt-2\'>{{ addslashes(__('Regeneration is only required after modifying the maturity score, answers, or audit notes.')) }}</p>',
                                 confirmButtonText: '{{ __('Understood') }}',
                                 confirmButtonColor: '#4f46e5',
                                 width: '26rem',

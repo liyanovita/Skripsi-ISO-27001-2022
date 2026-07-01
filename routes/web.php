@@ -169,9 +169,14 @@ Route::middleware(['auth'])->group(function () {
     // Community Domain
     Route::controller(CommunityController::class)->prefix('community')->name('community.')->group(function () {
         Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
         Route::post('/store', 'store')->name('store');
+        Route::get('/{id}/edit', 'edit')->name('edit');
+        Route::put('/{id}', 'update')->name('update');
+        Route::delete('/{id}', 'destroy')->name('destroy');
+        Route::get('/attachment/{id}', 'downloadAttachment')->name('attachment');
         Route::post('/use', 'useTemplate')->name('use');
-        Route::get('/{id}/preview', 'show')->name('preview');
+        Route::get('/{id}', 'show')->name('show');
         Route::post('/{id}/upvote', 'upvote')->name('upvote');
         Route::post('/{id}/rate', 'rate')->name('rate');
         Route::post('/{id}/clone', 'clone')->name('clone');

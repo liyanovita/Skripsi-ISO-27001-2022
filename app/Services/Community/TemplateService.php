@@ -35,6 +35,9 @@ class TemplateService
             'downloads'    => $t->downloads_count,
             'tags'         => $t->tags ?? [],
             'is_db'        => true,
+            'user_id'      => $t->user_id,
+            'has_content'  => !empty($t->content_data),
+            'has_attachment'=> !empty($t->attachment_path),
         ]);
 
         $topContributors = User::has('communityTemplates')
@@ -67,11 +70,11 @@ class TemplateService
         return compact('templates', 'topContributors', 'recentActivity', 'stats');
     }
 
-    public function createTemplate(array $data, int $userId): CommunityTemplate
+    public function create(array $data, int $userId): CommunityTemplate
     {
         // Validate required fields
-        if (empty($data['title']) || empty($data['content_data'])) {
-            throw new \Exception('Title and content data are required.');
+        if (empty($data['title'])) {
+            throw new \Exception('Title is required.');
         }
 
         // Validate title length
@@ -79,27 +82,56 @@ class TemplateService
             throw new \Exception('Title must be between 5 and 255 characters.');
         }
 
-        // Validate description if provided
-        if (isset($data['description'])) {
-            if (strlen($data['description']) < 10 || strlen($data['description']) > 2000) {
-                throw new \Exception('Description must be between 10 and 2000 characters.');
-            }
+        $data['user_id'] = $userId;
+        $data['author_name'] = $data['author_name'] ?? 'Anonymous';
+        
+        return CommunityTemplate::create($data);
+    }
+    
+    public function update(int $templateId, array $data, int $userId): CommunityTemplate
+    {
+        $template = CommunityTemplate::findOrFail($templateId);
+        
+        if ($template->user_id !== $userId && !auth()->user()->is_admin) {
+            throw new \Exception('You do not have permission to edit this template.');
         }
-
-        // Validate content_data is array
-        if (!is_array($data['content_data'])) {
-            throw new \Exception('Content data must be a valid array.');
+        
+        $template->update($data);
+        return $template;
+    }
+    
+    public function delete(int $templateId, int $userId): void
+    {
+        $template = CommunityTemplate::findOrFail($templateId);
+        
+        if ($template->user_id !== $userId && !auth()->user()->is_admin) {
+            throw new \Exception('You do not have permission to delete this template.');
         }
-
-        return CommunityTemplate::create([
-            'user_id'      => $userId,
-            'title'        => $data['title'],
-            'description'  => $data['description'] ?? '',
-            'author_name'  => $data['author_name'] ?? 'Anonymous',
-            'tags'         => $data['tags'] ?? [],
-            'base_score'   => $data['base_score'] ?? 0,
-            'content_data' => $data['content_data'],
-        ]);
+        
+        if ($template->attachment_path && \Illuminate\Support\Facades\Storage::disk('local')->exists($template->attachment_path)) {
+            \Illuminate\Support\Facades\Storage::disk('local')->delete($template->attachment_path);
+        }
+        
+        $template->delete();
+    }
+    
+    public function hasAttachment(CommunityTemplate $template): bool
+    {
+        return !empty($template->attachment_path) && 
+               \Illuminate\Support\Facades\Storage::disk('local')->exists($template->attachment_path);
+    }
+    
+    public function attachmentDownloadName(CommunityTemplate $template): string
+    {
+        $extension = pathinfo($template->attachment_name, PATHINFO_EXTENSION);
+        $safeName = \Illuminate\Support\Str::slug($template->title) . '-community-asset';
+        return $extension ? "{$safeName}.{$extension}" : $safeName;
+    }
+    
+    public function recordDownload(CommunityTemplate $template): CommunityTemplate
+    {
+        $template->increment('downloads_count');
+        return $template;
     }
 
     public function useTemplate(int $templateId, int $userId): AssessmentSession

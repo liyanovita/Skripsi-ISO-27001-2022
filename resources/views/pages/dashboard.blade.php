@@ -275,7 +275,7 @@
                         [&::-webkit-scrollbar-thumb]:bg-slate-200
                         [&::-webkit-scrollbar-thumb]:rounded-full">
                 @forelse($topTemplates ?? [] as $template)
-                    <a href="{{ route('community.preview', $template->id) }}" class="flex items-center gap-3 p-3 bg-slate-50 hover:bg-blue-50 rounded-xl border border-slate-100 transition-colors group">
+                    <a href="{{ route('community.show', $template->id) }}" class="flex items-center gap-3 p-3 bg-slate-50 hover:bg-blue-50 rounded-xl border border-slate-100 transition-colors group">
                         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm group-hover:scale-110 transition-transform">
                             <i class="fa-solid fa-file-shield text-[10px]"></i>
                         </div>

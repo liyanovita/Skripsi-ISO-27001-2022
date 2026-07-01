@@ -50,12 +50,12 @@
                         ['label' => 'Downloads', 'value' => number_format($stats['total_downloads']), 'color' => 'text-blue-400', 'bg' => 'bg-blue-400/10'],
                         ['label' => 'Contributors', 'value' => $stats['total_contributors'], 'color' => 'text-emerald-400', 'bg' => 'bg-emerald-400/10'],
                         ['label' => 'Assets', 'value' => $stats['total_templates'], 'color' => 'text-purple-400', 'bg' => 'bg-purple-400/10'],
-                        ['label' => 'Avg Rating', 'value' => $stats['avg_rating'] . 'â˜…', 'color' => 'text-amber-400', 'bg' => 'bg-amber-400/10'],
+                        ['label' => 'Avg Rating', 'value' => $stats['avg_rating'] . '<i class="fa-solid fa-star text-sm ml-1 mb-0.5"></i>', 'color' => 'text-amber-400', 'bg' => 'bg-amber-400/10'],
                     ];
                 @endphp
                 @foreach($displayStats as $stat)
                 <div class="w-28 h-28 {{ $stat['bg'] }} backdrop-blur-xl border border-white/5 rounded-2xl flex flex-col items-center justify-center gap-1 p-4 hover:scale-105 transition-all">
-                    <div class="text-xl font-black {{ $stat['color'] }} tracking-tighter">{{ $stat['value'] }}</div>
+                    <div class="text-xl font-black {{ $stat['color'] }} tracking-tighter flex items-center justify-center">{!! $stat['value'] !!}</div>
                     <div class="text-[8px] font-bold text-white/40 uppercase tracking-widest text-center">{{ __($stat['label']) }}</div>
                 </div>
                 @endforeach
@@ -108,7 +108,7 @@
                             <div class="flex items-start justify-between gap-3">
                                 <div>
                                     <h4 class="text-xs font-bold text-slate-900 tracking-tight">{{ $item->title }}</h4>
-                                    <p class="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{{ $item->author_name ?? $item->user->name }} Â· {{ $item->created_at->diffForHumans() }}</p>
+                                    <p class="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{{ $item->author_name ?? $item->user->name }} &middot; {{ $item->created_at->diffForHumans() }}</p>
                                 </div>
                                 <span class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[7px] font-black uppercase border border-blue-100 shrink-0">{{ count($item->tags ?? []) > 0 ? $item->tags[0] : 'Asset' }}</span>
                             </div>
@@ -200,10 +200,11 @@
                                     </button>
                                 </form>
                                 {{-- Preview button --}}
-                                <a href="{{ route('community.preview', $temp->id) }}" title="{{ __('Preview') }}" class="w-7 h-7 flex items-center justify-center bg-slate-100 hover:bg-blue-100 text-slate-400 hover:text-blue-600 rounded-md transition-all">
+                                <a href="{{ route('community.show', $temp->id) }}" title="{{ __('View Details') }}" class="w-7 h-7 flex items-center justify-center bg-slate-100 hover:bg-blue-100 text-slate-400 hover:text-blue-600 rounded-md transition-all">
                                     <i class="fa-solid fa-eye text-[10px]"></i>
                                 </a>
-                                {{-- Clone button with label --}}
+                                {{-- Clone button if it has JSON content --}}
+                                @if($temp->has_content)
                                 <form action="{{ route('community.clone', $temp->id) }}" method="POST">
                                     @csrf
                                     <button type="submit" @if($loop->first) id="btn-clone-first" @endif title="{{ __('Clone as new session') }}" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-lg font-black text-[9px] uppercase tracking-widest transition-all flex items-center gap-1.5 shadow-sm">
@@ -211,6 +212,33 @@
                                         <span>{{ __('Clone') }}</span>
                                     </button>
                                 </form>
+                                @endif
+                                {{-- Download button if it has attachment --}}
+                                @if($temp->has_attachment)
+                                <a href="{{ route('community.attachment', ['id' => $temp->id, 'download' => 1]) }}" title="{{ __('Download') }}" class="w-7 h-7 flex items-center justify-center bg-slate-100 hover:bg-emerald-100 text-slate-400 hover:text-emerald-600 rounded-md transition-all">
+                                    <i class="fa-solid fa-download text-[10px]"></i>
+                                </a>
+                                @endif
+                                
+                                @if(auth()->id() === $temp->user_id || auth()->user()->is_admin)
+                                <div x-data="{ open: false }" class="relative">
+                                    <button @click="open = !open" @click.away="open = false" class="w-7 h-7 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-md transition-all">
+                                        <i class="fa-solid fa-ellipsis-vertical text-[10px]"></i>
+                                    </button>
+                                    <div x-show="open" style="display: none;" class="absolute right-0 bottom-full mb-2 w-32 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-20">
+                                        <a href="{{ route('community.edit', $temp->id) }}" class="block px-4 py-2 text-[10px] font-bold text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-colors">
+                                            <i class="fa-solid fa-pen-to-square mr-2"></i> {{ __('Edit') }}
+                                        </a>
+                                        <form action="{{ route('community.destroy', $temp->id) }}" method="POST" onsubmit="return confirm('{{ __('Are you sure you want to delete this asset?') }}');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="w-full text-left px-4 py-2 text-[10px] font-bold text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors">
+                                                <i class="fa-solid fa-trash mr-2"></i> {{ __('Delete') }}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -225,22 +253,14 @@
             </div>
         </div>
 
-        {{-- Sidebar --}}
+    {{-- Sidebar --}}
         <div class="lg:col-span-4 space-y-4">
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest mb-4">{{ __('Quick Actions') }}</h3>
                 <div class="space-y-2">
-                    <button @click="showUploadModal = true"
-                        class="w-full flex items-center gap-3 px-4 py-3 bg-indigo-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-md">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> {{ __('Submit Template') }}
-                    </button>
-                    <a href="{{ route('sessions.index') }}"
-                        class="w-full flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all">
-                        <i class="fa-solid fa-file-import text-slate-500"></i> {{ __('Import JSON Session') }}
-                    </a>
-                    <a href="{{ route('sessions.index') }}"
-                        class="w-full flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all">
-                        <i class="fa-solid fa-download text-slate-500"></i> {{ __('Export Session JSON') }}
+                    <a href="{{ route('community.create') }}"
+                        class="w-full flex items-center justify-center gap-3 px-4 py-3 bg-indigo-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-md">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> {{ __('Submit Asset') }}
                     </a>
                 </div>
             </div>
@@ -251,7 +271,7 @@
                     @php
                         $guide = [
                             ['step' => 1, 'title' => 'Design & Test', 'desc' => 'Develop blueprints in your local sandbox.', 'color' => 'blue'],
-                            ['step' => 2, 'title' => 'Submit PR', 'desc' => 'Fork and submit your contribution.', 'color' => 'purple'],
+                            ['step' => 2, 'title' => 'Submit PR', 'desc' => 'Upload your contribution document.', 'color' => 'purple'],
                             ['step' => 3, 'title' => 'Review & Merge', 'desc' => 'Community peer-review process.', 'color' => 'emerald'],
                         ];
                     @endphp
@@ -267,77 +287,6 @@
                     </div>
                     @endforeach
                 </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- ===== UPLOAD MODAL ===== --}}
-    <div x-show="showUploadModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            
-            <div x-show="showUploadModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" aria-hidden="true"></div>
-            
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            
-            <div x-show="showUploadModal" @click.away="showUploadModal = false" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-3xl shadow-2xl sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-8 border border-slate-100 relative z-10">
-                <div class="absolute top-0 right-0 pt-6 pr-6">
-                    <button @click="showUploadModal = false" type="button" class="text-slate-400 bg-slate-50 rounded-xl p-2 hover:text-slate-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
-                        <span class="sr-only">{{ __('Close') }}</span>
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-                
-                <div class="sm:flex sm:items-start mb-6">
-                    <div class="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-indigo-50 rounded-xl sm:mx-0 sm:h-12 sm:w-12 border border-indigo-100">
-                        <i class="fa-solid fa-cloud-arrow-up text-indigo-600 text-xl"></i>
-                    </div>
-                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                        <h3 class="text-lg font-black text-slate-900 tracking-tight uppercase" id="modal-title">{{ __('Submit Intelligence Asset') }}</h3>
-                        <div class="mt-1">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Share your ISO 27001:2022 configurations to the global network.') }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <form action="{{ route('community.store') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
-                    @csrf
-                    <div>
-                        <label for="title" class="block text-[10px] font-bold text-slate-700 uppercase tracking-widest mb-2">{{ __('Asset Title') }}</label>
-                        <input type="text" name="title" id="title" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all shadow-inner" placeholder="{{ __('e.g. Fintech Cloud Policy Blueprint') }}">
-                    </div>
-                    
-                    <div>
-                        <label for="description" class="block text-[10px] font-bold text-slate-700 uppercase tracking-widest mb-2">{{ __('Description') }}</label>
-                        <textarea name="description" id="description" rows="3" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium text-slate-700 outline-none focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all shadow-inner" placeholder="{{ __('Describe the use-cases and coverage of this template...') }}"></textarea>
-                    </div>
-
-                    <div>
-                        <label for="tags" class="block text-[10px] font-bold text-slate-700 uppercase tracking-widest mb-2">{{ __('Tags (Comma Separated)') }}</label>
-                        <input type="text" name="tags" id="tags" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all shadow-inner" placeholder="{{ __('e.g. Fintech, AWS, Remote Work') }}">
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-widest mb-2">{{ __('Payload File (JSON)') }}</label>
-                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-200 border-dashed rounded-xl hover:border-indigo-400 hover:bg-indigo-50/50 transition-all cursor-pointer relative group">
-                            <div class="space-y-2 text-center relative z-10 pointer-events-none">
-                                <i class="fa-solid fa-file-code text-3xl text-slate-300 group-hover:text-indigo-400 transition-colors"></i>
-                                <div class="flex text-xs text-slate-600 justify-center">
-                                    <span class="relative font-bold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                                        <span>{{ __('Upload a file') }}</span>
-                                    </span>
-                                    <p class="pl-1">{{ __('or drag and drop') }}</p>
-                                </div>
-                                <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">{{ __('JSON format only') }}</p>
-                            </div>
-                            <input id="json_file" name="json_file" type="file" required accept=".json" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
-                        </div>
-                    </div>
-
-                    <div class="mt-6 sm:mt-8 sm:flex sm:flex-row-reverse border-t border-slate-100 pt-6">
-                        <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-3 bg-indigo-600 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm transition-all">{{ __('Submit Asset') }}</button>
-                        <button @click="showUploadModal = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-xl border border-slate-200 shadow-sm px-6 py-3 bg-white text-xs font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-all">{{ __('Cancel') }}</button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
