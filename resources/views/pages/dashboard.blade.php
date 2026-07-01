@@ -200,16 +200,13 @@
         </div>
     </div>
 
-    {{-- Trend & AI Insights Grid --}}
-    {{-- Analytics & Insights Grid --}}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5 mb-5">
-        
-        {{-- Compliance Trend --}}
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full min-h-[300px]">
-            <h3 class="text-sm font-bold text-slate-900 mb-4 shrink-0">{{ __('Compliance Trend over Time') }}</h3>
-            <div class="flex-1 relative w-full" style="min-height: 220px;">
+    {{-- Compliance Trend - Full Width --}}
+    <div class="mt-5 mb-5">
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+            <h3 class="text-sm font-bold text-slate-900 mb-4">{{ __('Compliance Trend over Time') }}</h3>
+            <div class="relative w-full" style="height: 280px;">
                 @if(count($trendData['data']) >= 1)
-                    <canvas id="complianceTrendChart" style="display:block; width:100%; height:220px;"></canvas>
+                    <canvas id="complianceTrendChart" style="display:block; width:100%; height:280px;"></canvas>
                 @else
                     <div class="flex flex-col items-center justify-center h-full text-center">
                         <i class="fa-solid fa-chart-line text-3xl text-slate-200 mb-2"></i>
@@ -219,10 +216,14 @@
                 @endif
             </div>
         </div>
+    </div>
+
+    {{-- Analytics & Insights Grid --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
 
         {{-- Compliance Radar Chart --}}
         <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full min-h-[300px]">
-            <h3 class="text-sm font-bold text-slate-900 mb-4 shrink-0">{{ __('Maturity by Domain') }}</h3>
+            <h3 class="text-sm font-bold text-slate-900 mb-4 shrink-0">{{ __('Global Maturity by Domain') }}</h3>
             <div class="flex-1 relative w-full flex items-center justify-center">
                 @if(isset($radarData) && count($radarData['data']) >= 1 && array_sum($radarData['data']) > 0)
                     <canvas id="complianceRadarChart" style="display:block; width:100%; height:220px;"></canvas>
@@ -235,46 +236,12 @@
             </div>
         </div>
 
-        {{-- Live Audit Trail Widget --}}
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full min-h-[300px]">
-            <div class="flex items-center justify-between mb-4 shrink-0">
-                <h3 class="text-sm font-bold text-slate-900">{{ __('Live Audit Trail') }}</h3>
-                <a href="{{ route('audit-trail.index') }}" class="text-[9px] font-bold text-blue-600 hover:underline uppercase tracking-widest">{{ __('View All') }}</a>
-            </div>
-            <div class="flex-1 flex flex-col gap-3 overflow-hidden">
-                @forelse($recentAuditTrails ?? [] as $trail)
-                    <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-200 text-slate-400 shrink-0 shadow-sm">
-                            <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="text-[10px] font-bold text-slate-900 truncate">{{ $trail->model?->standard?->code ?? 'N/A' }} <span class="text-slate-400 font-medium ml-1">updated</span></p>
-                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">{{ str_replace('_', ' ', Str::title($trail->field_changed)) }}</p>
-                            <p class="text-[10px] text-slate-500 mt-1 truncate flex items-center gap-1.5">
-                                <span class="line-through text-rose-400">{{ $trail->old_value }}</span> 
-                                <i class="fa-solid fa-arrow-right text-[8px] text-slate-300"></i> 
-                                <span class="text-emerald-600 font-bold bg-emerald-50 px-1 rounded">{{ $trail->new_value }}</span>
-                            </p>
-                        </div>
-                    </div>
-                @empty
-                    <div class="flex flex-col items-center justify-center h-full text-center opacity-50">
-                        <i class="fa-solid fa-history text-2xl text-slate-300 mb-2"></i>
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">{{ __('No Recent Activity') }}</p>
-                    </div>
-                @endforelse
-            </div>
-        </div>
-
         {{-- Executive Summary --}}
-        <div class="lg:col-span-2 relative bg-gradient-to-br from-indigo-600 to-blue-800 rounded-2xl p-5 shadow-lg shadow-blue-900/20 text-white overflow-hidden flex flex-col" style="min-height: 300px; max-height: 340px;">
+        <div class="relative bg-gradient-to-br from-indigo-600 to-blue-800 rounded-2xl p-5 shadow-lg shadow-blue-900/20 text-white overflow-hidden flex flex-col" style="min-height: 300px; max-height: 340px;">
             <div class="absolute -right-8 -top-8 w-28 h-28 bg-white/10 rounded-full blur-3xl"></div>
 
             <div class="flex items-center gap-3 mb-4 relative z-10 shrink-0">
-                <div class="w-7 h-7 bg-white/20 rounded-xl flex items-center justify-center border border-white/10">
-                    <i class="fa-solid fa-robot text-sm"></i>
-                </div>
-                <h3 class="text-sm font-bold tracking-tight">{{ __('Executive Summary') }}</h3>
+                <h3 class="text-sm font-bold tracking-tight">{{ __('Compliance & Maturity Overview') }}</h3>
                 <span class="ml-auto px-2 py-0.5 bg-blue-500/50 text-blue-100 rounded-lg text-[9px] font-black uppercase tracking-widest border border-blue-400/30">Auto Generated</span>
             </div>
 
@@ -291,8 +258,12 @@
             </div>
         </div>
 
+    </div>
+
+    {{-- Community Spotlight & Audit Trail Row --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         {{-- Community Spotlight Widget --}}
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full" style="min-height: 300px; max-height: 340px;">
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full" style="min-height: 280px; max-height: 340px;">
             <div class="flex items-center justify-between mb-4 shrink-0">
                 <h3 class="text-sm font-bold text-slate-900">{{ __('Community Spotlight') }}</h3>
                 <a href="{{ route('community.index') }}" class="text-[9px] font-bold text-blue-600 hover:underline uppercase tracking-widest">{{ __('Explore') }}</a>
@@ -320,6 +291,42 @@
                     <div class="flex flex-col items-center justify-center h-full text-center opacity-50">
                         <i class="fa-solid fa-users text-2xl text-slate-300 mb-2"></i>
                         <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">{{ __('No Templates Yet') }}</p>
+                    </div>
+                @endforelse
+            </div>
+        </div>
+
+        {{-- Live Audit Trail Widget --}}
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full" style="min-height: 280px; max-height: 340px;">
+            <div class="flex items-center justify-between mb-4 shrink-0">
+                <h3 class="text-sm font-bold text-slate-900">{{ __('Live Audit Trail') }}</h3>
+                <a href="{{ route('audit-trail.index') }}" class="text-[9px] font-bold text-blue-600 hover:underline uppercase tracking-widest">{{ __('View All') }}</a>
+            </div>
+            <div class="flex-1 flex flex-col gap-3 overflow-y-auto pr-1
+                        [&::-webkit-scrollbar]:w-1
+                        [&::-webkit-scrollbar-track]:bg-slate-50
+                        [&::-webkit-scrollbar-track]:rounded-full
+                        [&::-webkit-scrollbar-thumb]:bg-slate-200
+                        [&::-webkit-scrollbar-thumb]:rounded-full">
+                @forelse($recentAuditTrails ?? [] as $trail)
+                    <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-200 text-slate-400 shrink-0 shadow-sm">
+                            <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[10px] font-bold text-slate-900 truncate">{{ $trail->model?->standard?->code ?? 'N/A' }} <span class="text-slate-400 font-medium ml-1">updated</span></p>
+                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">{{ str_replace('_', ' ', Str::title($trail->field_changed)) }}</p>
+                            <p class="text-[10px] text-slate-500 mt-1 truncate flex items-center gap-1.5">
+                                <span class="line-through text-rose-400">{{ $trail->old_value }}</span> 
+                                <i class="fa-solid fa-arrow-right text-[8px] text-slate-300"></i> 
+                                <span class="text-emerald-600 font-bold bg-emerald-50 px-1 rounded">{{ $trail->new_value }}</span>
+                            </p>
+                        </div>
+                    </div>
+                @empty
+                    <div class="flex flex-col items-center justify-center h-full text-center opacity-50">
+                        <i class="fa-solid fa-history text-2xl text-slate-300 mb-2"></i>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">{{ __('No Recent Activity') }}</p>
                     </div>
                 @endforelse
             </div>
@@ -541,12 +548,23 @@ window.initDashboardCharts = function() {
                             min: 0,
                             max: 100,
                             ticks: {
+                                font: { size: 10 },
                                 callback: function(value) { return value + '%'; }
                             },
                             grid: { color: 'rgba(0,0,0,0.04)' }
                         },
                         x: {
-                            grid: { display: false }
+                            grid: { display: false },
+                            ticks: {
+                                font: { size: 9, weight: 'bold' },
+                                maxRotation: 35,
+                                minRotation: 0,
+                                autoSkip: false,
+                                callback: function(val, idx) {
+                                    const label = this.getLabelForValue(val);
+                                    return label && label.length > 14 ? label.slice(0, 13) + '…' : label;
+                                }
+                            }
                         }
                     },
                     animation: { duration: 800 }

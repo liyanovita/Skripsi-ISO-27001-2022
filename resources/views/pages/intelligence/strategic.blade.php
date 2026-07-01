@@ -203,11 +203,51 @@
                         {{-- Alpine dynamically injected summary --}}
                         <div x-show="summaryHtml !== null" x-html="summaryHtml"></div>
 
-                        {{-- Initial Blade-rendered summary --}}
                         <div x-show="summaryHtml === null">
                             @if($latestSession && $latestSession->ai_summary)
-                                <div class="ai-prose space-y-2">
-                                    {!! Str::markdown(e($latestSession->ai_summary)) !!}
+                                @php
+                                    $parsedSummary = \App\Services\Intelligence\AiSummaryService::parseSummary($latestSession->ai_summary);
+                                @endphp
+                                <div class="ai-prose space-y-4">
+                                    @if($parsedSummary && isset($parsedSummary['overall_assessment_conclusion']))
+                                        @if(!empty($parsedSummary['overall_assessment_conclusion']))
+                                            <div class="summary-section">
+                                                <div class="summary-section-title"><i class="fa-solid fa-chart-line"></i> Overall Assessment Conclusion</div>
+                                                <p class="summary-section-body">{{ $parsedSummary['overall_assessment_conclusion'] }}</p>
+                                            </div>
+                                        @endif
+                                        
+                                        @if(!empty($parsedSummary['overall_risk_areas']))
+                                            <div class="summary-section">
+                                                <div class="summary-section-title"><i class="fa-solid fa-triangle-exclamation"></i> Overall Risk Areas</div>
+                                                <p class="summary-section-body">{{ $parsedSummary['overall_risk_areas'] }}</p>
+                                            </div>
+                                        @endif
+
+                                        @if(!empty($parsedSummary['executive_strategic_recommendations']))
+                                            @php
+                                                $recs = $parsedSummary['executive_strategic_recommendations'];
+                                                if (is_string($recs)) $recs = [$recs];
+                                            @endphp
+                                            <div class="summary-section">
+                                                <div class="summary-section-title"><i class="fa-solid fa-bullseye"></i> Executive Strategic Recommendations</div>
+                                                <ol class="summary-recs-list">
+                                                    @foreach($recs as $rec)
+                                                        <li>{{ $rec }}</li>
+                                                    @endforeach
+                                                </ol>
+                                            </div>
+                                        @endif
+
+                                        @if(!empty($parsedSummary['assessment_confidence']))
+                                            <div class="summary-section">
+                                                <div class="summary-section-title"><i class="fa-solid fa-shield-check"></i> Assessment Confidence</div>
+                                                <p class="summary-section-body">{{ $parsedSummary['assessment_confidence'] }}</p>
+                                            </div>
+                                        @endif
+                                    @else
+                                        {!! Str::markdown(e($latestSession->ai_summary)) !!}
+                                    @endif
                                 </div>
                             @else
                                 <div class="text-center py-4 opacity-70">
@@ -224,6 +264,13 @@
                         .ai-prose ul { list-style-type: disc; padding-left: 1.25rem; margin-top: 0.5rem; margin-bottom: 0.5rem; }
                         .ai-prose li { margin-bottom: 0.25rem; }
                         .ai-prose strong { color: #f8fafc; font-weight: 800; }
+
+                        .summary-section { margin-bottom: 1.25rem; }
+                        .summary-section:last-child { margin-bottom: 0; }
+                        .summary-section-title { font-weight: 800; text-transform: uppercase; font-size: 10px; tracking: 0.05em; color: #818cf8; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.5rem; }
+                        .summary-section-body { color: #cbd5e1; font-size: 11px; line-height: 1.6; }
+                        .summary-recs-list { list-style-type: decimal; padding-left: 1.25rem; color: #cbd5e1; font-size: 11px; line-height: 1.6; }
+                        .summary-recs-list li { margin-bottom: 0.35rem; }
                     </style>
                 </div>
             </div>
@@ -234,7 +281,7 @@
         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300">
             <div class="mb-4">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                    <i class="fa-solid fa-gauge-high text-indigo-600"></i>{{ __('Maturity Scope Radar') }}</h3>
+                    <i class="fa-solid fa-gauge-high text-indigo-600"></i>{{ __('Session Maturity Radar') }}</h3>
                 <p class="text-[9px] font-medium text-slate-400 mt-1 leading-snug">{{ __('Distribution of average maturity scores (0-5) across the 5 main pillars of ISO 27001:2022.') }}</p>
             </div>
             <div class="h-64 w-full relative">

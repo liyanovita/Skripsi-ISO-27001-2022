@@ -76,7 +76,48 @@
             Overall Maturity Score: {{ number_format($session->overall_maturity_score, 1) }} / 5.0
         </div>
         <div style="font-size: 11px; color: #334155; line-height: 1.8;">
-            {!! \Illuminate\Support\Str::markdown(e($summary)) !!}
+            @php
+                $parsedSummary = \App\Services\Intelligence\AiSummaryService::parseSummary($summary);
+            @endphp
+            @if($parsedSummary && isset($parsedSummary['overall_assessment_conclusion']))
+                @if(!empty($parsedSummary['overall_assessment_conclusion']))
+                    <div style="margin-bottom: 15px;">
+                        <div style="font-weight: bold; color: #2563eb; text-transform: uppercase; font-size: 10px; margin-bottom: 4px;">Overall Assessment Conclusion</div>
+                        <div style="color: #334155;">{{ $parsedSummary['overall_assessment_conclusion'] }}</div>
+                    </div>
+                @endif
+                
+                @if(!empty($parsedSummary['overall_risk_areas']))
+                    <div style="margin-bottom: 15px;">
+                        <div style="font-weight: bold; color: #dc2626; text-transform: uppercase; font-size: 10px; margin-bottom: 4px;">Overall Risk Areas</div>
+                        <div style="color: #334155;">{{ $parsedSummary['overall_risk_areas'] }}</div>
+                    </div>
+                @endif
+
+                @if(!empty($parsedSummary['executive_strategic_recommendations']))
+                    @php
+                        $recs = $parsedSummary['executive_strategic_recommendations'];
+                        if (is_string($recs)) $recs = [$recs];
+                    @endphp
+                    <div style="margin-bottom: 15px;">
+                        <div style="font-weight: bold; color: #b45309; text-transform: uppercase; font-size: 10px; margin-bottom: 4px;">Executive Strategic Recommendations</div>
+                        <ol style="margin: 0; padding-left: 20px; color: #334155;">
+                            @foreach($recs as $rec)
+                                <li style="margin-bottom: 4px;">{{ $rec }}</li>
+                            @endforeach
+                        </ol>
+                    </div>
+                @endif
+
+                @if(!empty($parsedSummary['assessment_confidence']))
+                    <div style="margin-bottom: 0;">
+                        <div style="font-weight: bold; color: #1e293b; text-transform: uppercase; font-size: 10px; margin-bottom: 4px;">Assessment Confidence</div>
+                        <div style="color: #334155;">{{ $parsedSummary['assessment_confidence'] }}</div>
+                    </div>
+                @endif
+            @else
+                {!! \Illuminate\Support\Str::markdown(e($summary)) !!}
+            @endif
         </div>
     </div>
 

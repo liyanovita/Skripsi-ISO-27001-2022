@@ -187,7 +187,7 @@ class AnalyticsService
             'People' => 'A.6',
             'Physical' => 'A.7',
             'Technology' => 'A.8',
-            'Governance' => 'clausa',
+            'Clauses (4-10)' => 'clausa',
         ];
 
         $latestResults = $this->filterApplicableResults($this->filterAssessableResults($latest->results))

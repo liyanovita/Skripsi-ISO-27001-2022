@@ -322,7 +322,7 @@
                 </div>
 
                 {{-- Section 4: Impact Interpretation --}}
-                <div class="rounded-xl border border-slate-100 overflow-hidden" x-show="activeAiDetails.impact" x-cloak>
+                <div class="rounded-xl border border-slate-100 overflow-hidden" x-cloak>
                     <button type="button"
                         @click="openSection = openSection === 'impact' ? null : 'impact'"
                         class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
@@ -343,7 +343,7 @@
                     </button>
                     <div x-show="openSection === 'impact'" x-collapse.duration.250ms>
                         <div class="px-4 py-3 bg-rose-50/30">
-                            <p class="text-xs text-slate-700 font-medium leading-relaxed" x-text="activeAiDetails.impact"></p>
+                            <p class="text-xs text-slate-700 font-medium leading-relaxed" x-text="activeAiDetails.impact || '{{ __('No impact interpretation available. Please click Regenerate AI to update this analysis.') }}'"></p>
                         </div>
                     </div>
                 </div>

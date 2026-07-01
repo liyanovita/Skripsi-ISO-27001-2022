@@ -352,7 +352,9 @@
                                         'color' => 'emerald',
                                         'label' => __('Corrective Action Plan'),
                                         'desc'  => __('Step-by-step remediation roadmap'),
-                                        'body'  => $result->corrective_action_plan,
+                                        'body'  => is_array($result->corrective_action_plan) 
+                                            ? ($result->corrective_action_plan['action'] ?? implode("\n", $result->corrective_action_plan)) 
+                                            : $result->corrective_action_plan,
                                         'type'  => 'pre',
                                     ];
                                 }

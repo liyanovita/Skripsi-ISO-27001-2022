@@ -97,7 +97,8 @@ class ResultController extends Controller
                 'corrective_action_plan'=> $result->corrective_action_plan,
                 'control_insight'       => $result->control_insight,
                 'risk_priority'         => $result->risk_priority,
-                'evidence_validation'   => $result->evidence_validation
+                'evidence_validation'   => $result->evidence_validation,
+                'impact_interpretation' => $result->impact_interpretation
             ]);
         } catch (\Exception $e) {
             throw ApiException::notFound('Assessment result not found');

@@ -156,7 +156,7 @@ class StrategicAnalyticsTest extends TestCase
             ->viewData('comparison')['domains'];
 
         $this->assertSame(0.0, collect($domains)->firstWhere('label', 'Policies')['latest']);
-        $this->assertSame(3.0, collect($domains)->firstWhere('label', 'Governance')['latest']);
+        $this->assertSame(3.0, collect($domains)->firstWhere('label', 'Clauses (4-10)')['latest']);
     }
 
     public function test_strategic_analytics_api_returns_aligned_metrics(): void

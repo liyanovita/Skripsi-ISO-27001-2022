@@ -1,4 +1,4 @@
-@if(!($wizard ?? false) && ($showGuide ?? true))
+﻿@if(!($wizard ?? false) && ($showGuide ?? true))
 {{-- Sticky Combined Audit Execution Protocol & Maturity Scale --}}
 <div x-data="{ showGuide: true }" 
      class="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-slate-100 p-6 shadow-sm transition-all duration-300 rounded-t-2xl">
@@ -236,7 +236,9 @@
                                     if (aiResult.has_ai) {
                                         clearInterval(pollInterval);
                                         this.aiRec = aiResult.ai_recommendation;
-                                        this.aiPlan = Array.isArray(aiResult.corrective_action_plan) ? aiResult.corrective_action_plan.join('\n') : (aiResult.corrective_action_plan || '');
+                                        this.aiPlan = (typeof aiResult.corrective_action_plan === 'object' && aiResult.corrective_action_plan !== null)
+                                             ? (aiResult.corrective_action_plan.action || (Array.isArray(aiResult.corrective_action_plan) ? aiResult.corrective_action_plan.join('\n') : JSON.stringify(aiResult.corrective_action_plan)))
+                                             : (aiResult.corrective_action_plan || '');
                                         this.aiInsight = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null) ? (aiResult.control_insight.gap || '') : (aiResult.control_insight || '');
                                         this.aiPriority = aiResult.risk_priority || '';
                                         this.aiValidation = aiResult.evidence_validation || '';
@@ -605,3 +607,4 @@
     </div>
     @endforelse
 </div>
+

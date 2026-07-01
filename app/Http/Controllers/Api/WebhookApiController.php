@@ -93,17 +93,13 @@ class WebhookApiController extends BaseApiController
     public function handleN8nResponse(Request $request): JsonResponse
     {
         try {
-            $result = AssessmentResult::find($request->result_id);
+            $success = app(\App\Services\Assessment\ResultService::class)->receiveN8nWebhook($request->all());
 
-            if (!$result) {
-                return $this->errorResponse('Assessment result not found', 404);
+            if (!$success) {
+                return $this->errorResponse('Failed to process AI recommendation', 500);
             }
 
-            $result->update([
-                'ai_recommendation' => $request->ai_recommendation,
-                'corrective_action_plan' => $request->action_plan,
-                'control_insight' => $request->control_insight,
-            ]);
+            $result = AssessmentResult::find($request->result_id);
 
             return $this->successResponse(
                 $result,
@@ -150,17 +146,7 @@ class WebhookApiController extends BaseApiController
     public function handleSessionSummary(Request $request): JsonResponse
     {
         try {
-            $session = AssessmentSession::find($request->session_id);
-
-            if (!$session) {
-                return $this->errorResponse('Session not found', 404);
-            }
-
-            $session->update([
-                'ai_summary' => $request->summary,
-            ]);
-
-            Cache::forget("session_{$session->id}_summary_status");
+            app(\App\Services\Intelligence\AiSummaryService::class)->receiveWebhook($request->all());
 
             return $this->successResponse(
                 null,
