@@ -205,6 +205,44 @@
                     </div>
                 @endif
             @endif
+
+            @if(!empty($results) && count($results) > 0)
+                <div class="mt-8 pt-8 border-t border-slate-100">
+                    <h3 class="text-slate-900 font-bold text-sm tracking-tight flex items-center gap-2 mb-4">
+                        <i class="fa-solid fa-list-check text-indigo-600"></i>
+                        {{ app()->getLocale() == 'id' ? 'Pratinjau Struktur Kontrol & Kematangan' : 'Control Structure & Maturity Preview' }}
+                    </h3>
+                    <div class="overflow-hidden border border-slate-200/80 rounded-2xl shadow-sm">
+                        <table class="w-full text-left text-xs text-slate-600 border-collapse">
+                            <thead class="bg-slate-50 text-slate-500 font-black uppercase tracking-wider border-b border-slate-200">
+                                <tr>
+                                    <th class="px-4 py-3">{{ __('Control') }}</th>
+                                    <th class="px-4 py-3 text-center">{{ __('Maturity') }}</th>
+                                    <th class="px-4 py-3">{{ __('Notes') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @foreach($results as $res)
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="px-4 py-3 font-semibold text-slate-800">
+                                            <span class="text-indigo-600 font-bold mr-1">{{ $res->standard->code }}</span>
+                                            {{ $res->standard->title }}
+                                        </td>
+                                        <td class="px-4 py-3 text-center">
+                                            <span class="px-2 py-0.5 rounded font-black text-[10px] bg-slate-100 text-slate-700">
+                                                {{ $res->maturity_rating }}/5
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-slate-500 italic">
+                                            {{ $res->notes ?: '—' }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
         </div>
     </article>
 </div>

@@ -28,6 +28,7 @@ class CreateTemplateRequest extends FormRequest
             'content' => 'nullable|string',
             'tags' => 'nullable|string|max:500',
             'attachment' => 'nullable|file|max:20480', // 20MB max
+            'json_file' => 'nullable|file|max:20480',
         ];
     }
 

@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', 'Audit Sessions')
-@section('view_name', 'Audit Sessions')
+@section('title', __('Audit Sessions'))
+@section('view_name', __('Audit Sessions'))
 
 @section('content')
 <div x-data="{ showSessionModal: {{ request('create') ? 'true' : 'false' }}, showImportModal: false, showEditModal: false, showCloneModal: false, showArchiveModal: false, showRestoreModal: false, editSessionId: '', editSessionName: '', cloneSessionId: '', archiveSessionId: '', restoreSessionId: '' }">
@@ -126,7 +126,7 @@
                                 @endphp
                                 <div class="flex flex-col gap-1.5 w-32">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">{{ $ansC }} / {{ $totalC }} Scored</span>
+                                        <span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">{{ $ansC }} / {{ $totalC }} {{ __('Scored') }}</span>
                                     </div>
                                     <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden flex items-center">
                                         <div class="h-full {{ $prog == 100 ? 'bg-green-500' : 'bg-blue-500' }} rounded-full" style="width: {{ $prog }}%"></div>
@@ -148,7 +148,7 @@
                                     <span class="px-2.5 py-1 bg-orange-50 text-orange-600 border-orange-100 text-[9px] font-bold rounded-lg uppercase tracking-widest border">{{ __('Archived') }}</span>
                                 @else
                                     <span class="px-2.5 py-1 {{ $session->status == 'completed' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-blue-50 text-blue-600 border-blue-100' }} text-[9px] font-bold rounded-lg uppercase tracking-widest border">
-                                        {{ $session->status == 'completed' ? 'Completed' : 'In Progress' }}
+                                        {{ $session->status == 'completed' ? __('Completed') : __('In Progress') }}
                                     </span>
                                 @endif
                             </td>

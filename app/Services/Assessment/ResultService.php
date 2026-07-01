@@ -77,6 +77,20 @@ class ResultService
             $updateData['soa_justification'] = $data['soa_justification'];
         }
 
+        $newPayload = implode('|', [
+            (string) $updateData['maturity_rating'],
+            $updateData['is_applicable'] ? '1' : '0',
+            (string) ($updateData['notes'] ?? ''),
+            json_encode($updateData['answers'] ?? []),
+        ]);
+        $newHash = hash('sha256', $newPayload);
+
+        if (isset($data['trigger_ai']) && $data['trigger_ai'] == '1') {
+            if ($result->ai_recommendation && $result->ai_data_hash === $newHash) {
+                throw new \Exception('NO_DATA_CHANGE');
+            }
+        }
+
         $result->update($updateData);
 
         if (isset($data['trigger_ai']) && $data['trigger_ai'] == '1') {
@@ -86,6 +100,7 @@ class ResultService
                 'control_insight' => null,
                 'risk_priority' => null,
                 'evidence_validation' => null,
+                'ai_data_hash' => $newHash,
             ]);
             $this->sendToN8n($result);
         }
@@ -149,11 +164,12 @@ class ResultService
             $data = $data[0];
         }
 
-        $resultId = $data['result_id'] ?? null;
+        $resultId = $data['result_id'] ?? $data['id'] ?? null;
+        
         $strategicRecommendation = $data['strategic_recommendation'] ?? null;
         $aiRecommendation = $data['ai_recommendation'] ?? null;
-
-        $targetRecommendation = $strategicRecommendation ?? $aiRecommendation;
+        $recommendation = $data['recommendation'] ?? null;
+        $targetRecommendation = $strategicRecommendation ?? $aiRecommendation ?? $recommendation;
 
         if (!$resultId || !$targetRecommendation) {
             $receivedKeys = implode(', ', array_keys($data));
@@ -171,13 +187,13 @@ class ResultService
         $updateData['ai_recommendation'] = $targetRecommendation;
 
         // 2. Action Plan / Corrective Action Plan
-        $actionPlan = $data['action_plan'] ?? null;
+        $actionPlan = $data['action_plan'] ?? $data['corrective_action_plan'] ?? $data['corrective_action'] ?? $data['action'] ?? null;
         if ($actionPlan !== null) {
             $updateData['corrective_action_plan'] = is_array($actionPlan) ? $actionPlan : ['action' => $actionPlan];
         }
 
         // 3. Impact Interpretation
-        $impactInterpretation = $data['impact_interpretation'] ?? null;
+        $impactInterpretation = $data['impact_interpretation'] ?? $data['impact'] ?? $data['impact_analysis'] ?? $data['interpretation'] ?? null;
         if ($impactInterpretation !== null) {
             $updateData['impact_interpretation'] = $impactInterpretation;
         }
@@ -185,7 +201,9 @@ class ResultService
         // 4. Prioritization Level / Risk Priority
         $prioritizationLevel = $data['prioritization_level'] ?? null;
         $riskPriority = $data['risk_priority'] ?? null;
-        $targetPriority = $prioritizationLevel ?? $riskPriority;
+        $priority = $data['priority'] ?? null;
+        $prioritization = $data['prioritization'] ?? null;
+        $targetPriority = $prioritizationLevel ?? $riskPriority ?? $priority ?? $prioritization;
 
         if ($targetPriority !== null) {
             if (is_array($targetPriority)) {
@@ -199,15 +217,14 @@ class ResultService
         }
 
         // 5. Control Insight / Evidence Validation
-        // If it is the new structure (determined by having strategic_recommendation or prioritization_level or impact_interpretation or evidence_validation),
-        // we map control_insight to evidence_validation.
-        // Otherwise (old structure), we map control_insight to control_insight['gap'].
         $hasNewKeys = isset($data['strategic_recommendation']) || 
                       isset($data['prioritization_level']) || 
                       isset($data['impact_interpretation']) || 
-                      isset($data['evidence_validation']);
+                      isset($data['evidence_validation']) ||
+                      isset($data['impact']) ||
+                      isset($data['priority']);
 
-        $controlInsight = $data['control_insight'] ?? null;
+        $controlInsight = $data['control_insight'] ?? $data['insight'] ?? $data['gap'] ?? null;
         if ($controlInsight !== null) {
             if ($hasNewKeys) {
                 $updateData['evidence_validation'] = $controlInsight;
@@ -222,7 +239,7 @@ class ResultService
             }
         }
 
-        $evidenceValidation = $data['evidence_validation'] ?? null;
+        $evidenceValidation = $data['evidence_validation'] ?? $data['validation'] ?? null;
         if ($evidenceValidation !== null) {
             $updateData['evidence_validation'] = $evidenceValidation;
         }
@@ -283,7 +300,8 @@ class ResultService
             $webhookUrl = config('services.n8n.webhook_url');
 
             if (!$webhookUrl) {
-                Log::warning("N8N_WEBHOOK_URL not configured, skipping AI insight for Result ID: {$result->id}");
+                Log::warning("N8N_WEBHOOK_URL not configured, fallback to generating mock AI insight for Result ID: {$result->id}");
+                $this->generateMockAiInsight($result);
                 return;
             }
             
@@ -307,6 +325,7 @@ class ResultService
                     'risk_level' => $result->risk_level,
                     'compliance_status' => $result->compliance_status,
                 ],
+                'locale'        => app()->getLocale(),
                 'timestamp'     => now()->toDateTimeString(),
             ]);
 
@@ -317,6 +336,36 @@ class ResultService
         } catch (\Exception $e) {
             Log::error("n8n Connection Error: " . $e->getMessage());
         }
+    }
+
+    protected function generateMockAiInsight(AssessmentResult $result): void
+    {
+        $isId = app()->getLocale() === 'id';
+        
+        if ($isId) {
+            $recommendation = "Berdasarkan penilaian tingkat kematangan {$result->maturity_rating} untuk kontrol {$result->standard->code}, disarankan untuk menetapkan dokumentasi kebijakan formal yang mencakup prosedur operasional standar (SOP). Kebijakan ini harus disosialisasikan secara berkala kepada seluruh staf terkait.";
+            $actionPlan = "1. Menyusun draf kebijakan dan SOP terkait {$result->standard->title}.\n2. Memperoleh persetujuan dari pimpinan organisasi.\n3. Melaksanakan pelatihan kesadaran untuk seluruh personel.";
+            $impact = "Tanpa penerapan kontrol ini, organisasi berisiko mengalami inkonsistensi operasional dan potensi ketidakpatuhan terhadap persyaratan audit eksternal.";
+            $priority = "Tinggi";
+            $validation = "Catatan bukti yang ada saat ini (" . ($result->notes ?: 'Tidak ada') . ") menunjukkan perlunya peningkatan formalitas dalam dokumentasi.";
+            $insight = "Terdapat kesenjangan antara praktik aktual dan persyaratan dokumentasi formal ISO 27001.";
+        } else {
+            $recommendation = "Based on the maturity rating of {$result->maturity_rating} for control {$result->standard->code}, it is recommended to establish formal policy documentation covering standard operating procedures (SOPs). This policy should be regularly disseminated to all relevant staff.";
+            $actionPlan = "1. Draft policies and SOPs related to {$result->standard->title}.\n2. Obtain approval from senior management.\n3. Conduct awareness training for all key personnel.";
+            $impact = "Without implementing this control, the organization faces risks of operational inconsistency and potential non-compliance during external audits.";
+            $priority = "High";
+            $validation = "The current evidence notes (" . ($result->notes ?: 'None') . ") indicate a need for increased formality in documentation.";
+            $insight = "A gap exists between actual practices and the formal documentation requirements of ISO 27001.";
+        }
+
+        $result->update([
+            'ai_recommendation' => $recommendation,
+            'corrective_action_plan' => ['action' => $actionPlan],
+            'impact_interpretation' => $impact,
+            'risk_priority' => $priority,
+            'evidence_validation' => $validation,
+            'control_insight' => ['gap' => $insight]
+        ]);
     }
 
     protected function updateSessionScore(int $sessionId): void

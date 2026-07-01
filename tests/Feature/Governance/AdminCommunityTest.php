@@ -130,6 +130,6 @@ class AdminCommunityTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.community.index'))
             ->assertOk()
-            ->assertSee(route('community.preview', $template->id));
+            ->assertSee(route('community.show', $template->id));
     }
 }

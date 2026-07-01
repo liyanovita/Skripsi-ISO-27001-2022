@@ -79,7 +79,7 @@ class QuickSearchController extends Controller
                     'type'     => 'community',
                     'title'    => $t->title,
                     'subtitle' => 'by ' . ($t->author_name ?? 'Anonymous') . ' · ★ ' . number_format($t->avg_rating, 1),
-                    'url'      => route('community.preview', $t->id),
+                    'url'      => route('community.show', $t->id),
                 ];
             });
 

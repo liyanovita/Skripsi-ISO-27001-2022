@@ -251,4 +251,46 @@ class StrategicAnalyticsTest extends TestCase
 
         return [$user, $session->refresh()];
     }
+
+    public function test_ai_summary_webhook_persists_data_and_status_renders_html(): void
+    {
+        $user = User::factory()->create();
+        $session = AssessmentSession::create([
+            'user_id' => $user->id,
+            'name' => 'IT Department Audit',
+            'status' => 'in_progress',
+        ]);
+
+        $payload = [
+            'session_id' => $session->id,
+            'summary' => json_encode([
+                'overall_assessment_conclusion' => 'Safe Summary conclusion',
+                'overall_risk_areas' => 'Some risk areas',
+                'executive_strategic_recommendations' => ['Rec 1', 'Rec 2'],
+                'assessment_confidence' => 'High confidence'
+            ])
+        ];
+
+        // Hit the webhook endpoint
+        $response = $this->postJson('/api/webhook/n8n/session-summary', $payload);
+        $response->assertOk()
+            ->assertJsonPath('success', true);
+
+        // Check the database
+        $session->refresh();
+        $this->assertNotNull($session->ai_summary);
+
+        // Fetch the status API endpoint
+        $statusResponse = $this->actingAs($user)->getJson("/reports/ai-summary/{$session->id}/status");
+        $statusResponse->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.status', 'completed')
+            ->assertJsonPath('data.structured.overall_assessment_conclusion', 'Safe Summary conclusion');
+            
+        // Check that HTML is returned and contains the translated sections and content
+        $html = $statusResponse->json('data.summary_html');
+        $this->assertStringContainsString('Overall Assessment Conclusion', $html);
+        $this->assertStringContainsString('Safe Summary conclusion', $html);
+        $this->assertStringContainsString('Rec 1', $html);
+    }
 }

@@ -548,7 +548,68 @@
                         </div>
 
                         <div class="flex justify-end pt-4">
-                            <button type="submit" name="trigger_ai" value="1" class="px-8 py-3.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 transition-all flex items-center gap-2 active:scale-95">
+                            <button type="button" 
+                                    x-on:click="
+                                        let btn = $el;
+                                        let form = btn.closest('form');
+                                        let formData = new FormData(form);
+                                        formData.append('trigger_ai', '1');
+                                        
+                                        btn.disabled = true;
+                                        let originalHtml = btn.innerHTML;
+                                        btn.innerHTML = `<i class='fa-solid fa-spinner animate-spin'></i> {{ __('Processing...') }}`;
+                                        
+                                        fetch(form.action, {
+                                            method: 'POST',
+                                            headers: { 
+                                                'X-Requested-With': 'XMLHttpRequest', 
+                                                'Accept': 'application/json' 
+                                            },
+                                            body: formData
+                                        })
+                                        .then(async res => {
+                                            const data = await res.json();
+                                            if (res.status === 409 || (data && data.no_change)) {
+                                                Swal.fire({
+                                                    icon: 'warning',
+                                                    title: `{{ __('No data has changed') }}`,
+                                                    text: `{{ __('The assessment data for this control has not changed since the last AI generation.') }}`,
+                                                    confirmButtonColor: '#3b82f6',
+                                                    width: '24rem',
+                                                    customClass: {
+                                                        popup: 'rounded-2xl p-4',
+                                                        title: 'text-sm font-bold text-slate-800 mt-2',
+                                                        htmlContainer: 'text-xs text-slate-500 font-medium my-2',
+                                                        confirmButton: 'rounded-xl font-bold px-4 py-2 text-xs'
+                                                    }
+                                                });
+                                                btn.disabled = false;
+                                                btn.innerHTML = originalHtml;
+                                            } else if (!res.ok) {
+                                                throw new Error(data.message || 'Something went wrong');
+                                            } else {
+                                                window.location.reload();
+                                            }
+                                        })
+                                        .catch(err => {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: `{{ __('Error') }}`,
+                                                text: err.message,
+                                                confirmButtonColor: '#3b82f6',
+                                                width: '24rem',
+                                                customClass: {
+                                                    popup: 'rounded-2xl p-4',
+                                                    title: 'text-sm font-bold text-slate-800 mt-2',
+                                                    htmlContainer: 'text-xs text-slate-500 font-medium my-2',
+                                                    confirmButton: 'rounded-xl font-bold px-4 py-2 text-xs'
+                                                }
+                                            });
+                                            btn.disabled = false;
+                                            btn.innerHTML = originalHtml;
+                                        });
+                                    "
+                                    class="px-8 py-3.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 transition-all flex items-center gap-2 active:scale-95">
                                 <i class="fa-solid fa-wand-magic-sparkles"></i>
                                 {{ !empty($result->ai_recommendation) ? __('Save & Regenerate with AI') : __('Save & Analyze with AI') }}
                             </button>

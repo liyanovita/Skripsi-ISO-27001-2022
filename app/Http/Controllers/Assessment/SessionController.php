@@ -38,9 +38,9 @@ class SessionController extends Controller
                 'name' => $request->name,
             ]);
 
-            return $this->successRedirect('sessions.index', 'New audit session initialized successfully.');
+            return $this->successRedirect('sessions.index', __('New audit session initialized successfully.'));
         } catch (\Exception $e) {
-            return $this->errorRedirect('Failed: ' . $e->getMessage());
+            return $this->errorRedirect(__('Failed: ') . $e->getMessage());
         }
     }
 
@@ -63,9 +63,9 @@ class SessionController extends Controller
                 'name' => $request->name
             ]);
 
-            return $this->successRedirect('sessions.index', 'Audit session name successfully updated.');
+            return $this->successRedirect('sessions.index', __('Audit session name successfully updated.'));
         } catch (\Exception $e) {
-            return $this->errorRedirect('Failed to update session: ' . $e->getMessage());
+            return $this->errorRedirect(__('Failed to update session: ') . $e->getMessage());
         }
     }
 
@@ -74,9 +74,9 @@ class SessionController extends Controller
         try {
             $this->sessionService->deleteSession($id, auth()->id());
 
-            return $this->successRedirect('sessions.index', 'Audit session successfully archived.');
+            return $this->successRedirect('sessions.index', __('Audit session successfully archived.'));
         } catch (\Exception $e) {
-            return $this->errorRedirect('Failed to delete session: ' . $e->getMessage());
+            return $this->errorRedirect(__('Failed to delete session: ') . $e->getMessage());
         }
     }
 
@@ -85,9 +85,9 @@ class SessionController extends Controller
         try {
             $this->sessionService->restoreSession($id, auth()->id());
 
-            return $this->successRedirect('sessions.index', 'Audit session successfully restored.');
+            return $this->successRedirect('sessions.index', __('Audit session successfully restored.'));
         } catch (\Exception $e) {
-            return $this->errorRedirect('Failed to restore session: ' . $e->getMessage());
+            return $this->errorRedirect(__('Failed to restore session: ') . $e->getMessage());
         }
     }
 
@@ -96,9 +96,9 @@ class SessionController extends Controller
         try {
             $this->sessionService->forceDeleteSession($id, auth()->id());
 
-            return $this->successRedirect('sessions.index', 'Audit session permanently deleted.');
+            return $this->successRedirect('sessions.index', __('Audit session permanently deleted.'));
         } catch (\Exception $e) {
-            return $this->errorRedirect('Failed to permanently delete session: ' . $e->getMessage());
+            return $this->errorRedirect(__('Failed to permanently delete session: ') . $e->getMessage());
         }
     }
 
@@ -107,9 +107,9 @@ class SessionController extends Controller
         try {
             $newSession = $this->sessionService->cloneSession($id, auth()->id());
 
-            return $this->successRedirect('sessions.index', 'Session successfully cloned!');
+            return $this->successRedirect('sessions.index', __('Session successfully cloned!'));
         } catch (\Exception $e) {
-            return $this->errorRedirect('Failed to clone session: ' . $e->getMessage());
+            return $this->errorRedirect(__('Failed to clone session: ') . $e->getMessage());
         }
     }
 
@@ -118,7 +118,7 @@ class SessionController extends Controller
         try {
             $this->sessionService->finalizeSession($id, auth()->id());
 
-            return $this->successRedirect('sessions.show', 'Audit session has been finalized and marked as Completed!', ['id' => $id]);
+            return $this->successRedirect('sessions.show', __('Audit session has been finalized and marked as Completed!'), ['id' => $id]);
         } catch (\Exception $e) {
             return $this->errorRedirect($e->getMessage());
         }
@@ -137,7 +137,7 @@ class SessionController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to export session: ' . $e->getMessage()
+                'message' => __('Failed to export session: ') . $e->getMessage()
             ], 500);
         }
     }
@@ -148,7 +148,7 @@ class SessionController extends Controller
             $data = json_decode(file_get_contents($request->file('json_file')->getRealPath()), true);
 
             if (!$data) {
-                return $this->errorRedirect('Invalid JSON file format.');
+                return $this->errorRedirect(__('Invalid JSON file format.'));
             }
 
             $this->sessionService->importSessionFromJson(
@@ -157,9 +157,9 @@ class SessionController extends Controller
                 $request->new_name
             );
 
-            return $this->successRedirect('sessions.index', 'Audit session successfully imported from external template.');
+            return $this->successRedirect('sessions.index', __('Audit session successfully imported from external template.'));
         } catch (\Exception $e) {
-            return $this->errorRedirect('Failed to import session: ' . $e->getMessage());
+            return $this->errorRedirect(__('Failed to import session: ') . $e->getMessage());
         }
     }
 }

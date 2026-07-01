@@ -56,14 +56,25 @@ class ResultController extends Controller
                     'is_applicable'     => (bool) $result->is_applicable,
                     'soa_justification' => $result->soa_justification,
                     'evidence_file'     => is_array($result->evidence_file) ? $result->evidence_file : (empty($result->evidence_file) ? [] : [$result->evidence_file]),
-                ], 'Assessment for ' . $result->standard->code . ' successfully saved.');
+                ], __('Assessment for :code successfully saved.', ['code' => $result->standard->code]));
             }
 
             return redirect()->back()->with([
-                'success'         => 'Assessment for ' . $result->standard->code . ' successfully saved.',
+                'success'         => __('Assessment for :code successfully saved.', ['code' => $result->standard->code]),
                 'last_updated_id' => $result->id
             ]);
         } catch (\Exception $e) {
+            if ($e->getMessage() === 'NO_DATA_CHANGE') {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success'   => false,
+                        'no_change' => true,
+                        'message'   => __('No data has changed'),
+                    ], 409);
+                }
+                return redirect()->back()->with('warning', __('No data has changed'));
+            }
+
             if ($request->ajax() || $request->wantsJson()) {
                 throw ApiException::internalError($e->getMessage());
             }
@@ -78,14 +89,14 @@ class ResultController extends Controller
 
             return ApiResponse::success(
                 ['ai_recommendation' => null],
-                'AI insight generation triggered successfully.'
+                __('AI insight generation triggered successfully.')
             );
         } catch (\Exception $e) {
             if ($e->getMessage() === 'NO_DATA_CHANGE') {
                 return response()->json([
                     'success'   => false,
                     'no_change' => true,
-                    'message'   => 'No data change detected.',
+                    'message'   => __('No data change detected.'),
                 ], 409);
             }
             throw ApiException::internalError($e->getMessage());
@@ -108,7 +119,7 @@ class ResultController extends Controller
                 'impact_interpretation' => $result->impact_interpretation
             ]);
         } catch (\Exception $e) {
-            throw ApiException::notFound('Assessment result not found');
+            throw ApiException::notFound(__('Assessment result not found'));
         }
     }
 
@@ -120,7 +131,7 @@ class ResultController extends Controller
             $files = is_array($result->evidence_file) ? $result->evidence_file : (empty($result->evidence_file) ? [] : [$result->evidence_file]);
 
             if (empty($files)) {
-                abort(404, 'Evidence file not specified.');
+                abort(404, __('Evidence file not specified.'));
             }
 
             $requestedFile = $request->query('file');
@@ -131,12 +142,12 @@ class ResultController extends Controller
             $disk = \Illuminate\Support\Facades\Storage::disk('public')->exists($requestedFile) ? 'public' : 'local';
 
             if (!\Illuminate\Support\Facades\Storage::disk($disk)->exists($requestedFile)) {
-                abort(404, 'Evidence file not found on disk.');
+                abort(404, __('Evidence file not found on disk.'));
             }
 
             return \Illuminate\Support\Facades\Storage::disk($disk)->response($requestedFile);
         } catch (\Exception $e) {
-            abort(403, 'Unauthorized access to evidence.');
+            abort(403, __('Unauthorized access to evidence.'));
         }
     }
 
@@ -164,10 +175,10 @@ class ResultController extends Controller
             ]);
 
             if ($request->ajax() || $request->wantsJson()) {
-                return ApiResponse::success(['evidence_file' => $result->evidence_file], 'Evidence file deleted successfully.');
+                return ApiResponse::success(['evidence_file' => $result->evidence_file], __('Evidence file deleted successfully.'));
             }
 
-            return redirect()->back()->with('success', 'Evidence file deleted successfully.');
+            return redirect()->back()->with('success', __('Evidence file deleted successfully.'));
         } catch (\Exception $e) {
             if ($request->ajax() || $request->wantsJson()) {
                 throw ApiException::internalError($e->getMessage());

@@ -353,7 +353,7 @@
             {{-- Footer Badges --}}
             <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-2" x-show="activeAiDetails.priority">
-                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Risk Tier:</span>
+                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">{{ __('Risk Tier:') }}</span>
                     <span class="px-2.5 py-1 bg-rose-50 text-rose-600 border border-rose-100 text-[8px] font-black rounded-lg uppercase tracking-wider leading-none" x-text="activeAiDetails.priority"></span>
                 </div>
                 
@@ -401,7 +401,7 @@
                                 <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
                                 <span class="text-sm font-bold text-amber-800">{{ __('Incomplete Assessment') }}</span>
                             </div>
-                            <p class="text-xs text-amber-700" x-text="'There are ' + (totalAssessable - assessedCount) + ' controls without a score. Please score every control before finalizing.'"></p>
+                            <p class="text-xs text-amber-700" x-text="'{{ __('There are') }} ' + (totalAssessable - assessedCount) + ' {{ __('controls without a score. Please score every control before finalizing.') }}'"></p>
                         </div>
                     </template>
 

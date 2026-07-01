@@ -198,7 +198,7 @@
                             if(typeof updateProgress === 'function') updateProgress();
 
                             if(finalize) {
-                                window.dispatchEvent(new CustomEvent('notify', { detail: { message: 'Control Verified!', type: 'success' } }));
+                                window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Control Verified!') }}', type: 'success' } }));
                             }
                         }
                     } finally { this.loading = false; }
@@ -402,63 +402,77 @@
                     </div>
                     @endif
 
-                    <div x-show="isApplicable" class="space-y-5">
-                    
-                    {{-- Context Section --}}
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                        <div class="space-y-4">
-                            <div>
-                                <h5 class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2">{{ __('Structural Requirements') }}</h5>
-                                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/60 text-[10px] text-slate-700 leading-relaxed font-medium">
-                                    {{ __($result->standard->description ?? 'Section boundary and scope definition.') }}
-                                </div>
-                            </div>
-                            @if($result->standard->implementation_guidance)
-                            <div class="relative pl-5 border-l-2 border-blue-600/20">
-                                <h5 class="text-[8px] font-bold text-blue-500 uppercase tracking-widest mb-2">{{ __('Implementation Roadmap') }}</h5>
-                                <div class="p-3 bg-blue-50/30 rounded-xl border border-blue-100/60 text-[9px] text-blue-900 leading-relaxed font-bold italic">
-                                    {{ __($result->standard->implementation_guidance) }}
-                                </div>
-                            </div>
-                            @endif
-                        </div>
+                    <div x-show="isApplicable" class="space-y-4">
 
-                        {{-- Scoring Section --}}
-                        <div class="space-y-3">
-                            <h5 class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2">{{ __('Maturity Verification') }}</h5>
-                            <div class="space-y-3">
-                                @foreach($result->standard->questions as $qIndex => $q)
-                                <div class="space-y-2">
-                                    <p class="text-slate-800 font-bold text-[11px] leading-relaxed">{{ __($q) }}</p>
-                                    
-                                    <div class="grid grid-cols-3 gap-1.5">
-                                        @php
-                                            $options = [
-                                                0 => ['title' => 'Non-existent', 'desc' => 'Lack of policies, procedures, controls, etc.', 'color' => 'bg-slate-100 text-slate-400 border-slate-200'],
-                                                1 => ['title' => 'Initial', 'desc' => 'Development has just started and will require significant effort to meet the requirements.', 'color' => 'bg-blue-50 text-blue-400 border-blue-100'],
-                                                2 => ['title' => 'Limited/Repeatable', 'desc' => 'Progress is reasonably good but not yet complete.', 'color' => 'bg-blue-100 text-blue-600 border-blue-200'],
-                                                3 => ['title' => 'Defined', 'desc' => 'Development is more or less complete, although details are still lacking and/or it has not been fully implemented, enforced, and actively supported by management.', 'color' => 'bg-indigo-500 text-white border-indigo-400'],
-                                                4 => ['title' => 'Managed', 'desc' => 'Development is complete, processes/controls have been implemented and are newly operational.', 'color' => 'bg-indigo-700 text-white border-indigo-600'],
-                                                5 => ['title' => 'Optimized', 'desc' => 'Requirements are fully met, operating completely as expected, actively monitored and improved, and there is substantial evidence that can be provided to auditors.', 'color' => 'bg-slate-900 text-white border-slate-900'],
-                                            ];
-                                        @endphp
-                                        @foreach($options as $val => $opt)
-                                        <label class="cursor-pointer group/btn" title="{{ __($opt['desc']) }}">
-                                            <input type="radio" name="answers[q{{ $qIndex }}]" value="{{ $val }}" 
-                                                   {{ isset($result->answers["q$qIndex"]) && $result->answers["q$qIndex"] == $val ? 'checked' : '' }}
-                                                   @change="rating = {{ $val }}; submitForm()"
-                                                   class="peer hidden">
-                                            <div class="py-1.5 px-0.5 text-center rounded-lg border-2 transition-all duration-300 {{ $opt['color'] }} 
-                                                        opacity-40 saturate-50 hover:opacity-100 hover:saturate-100 peer-checked:opacity-100 peer-checked:saturate-100 peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-blue-500 peer-checked:border-blue-500 peer-checked:scale-105 peer-checked:shadow-md">
-                                                <div class="text-sm font-black mb-0.5">{{ $val }}</div>
-                                                <div class="text-[6px] font-bold uppercase tracking-widest opacity-90 leading-none">{{ __($opt['title']) }}</div>
-                                            </div>
-                                        </label>
-                                        @endforeach
+                    {{-- Collapsible: Control Details (Structural Requirements + Implementation Roadmap) --}}
+                    @if($result->standard->description || $result->standard->implementation_guidance)
+                    <div x-data="{ showDetails: false }" class="rounded-xl border border-slate-200/70 overflow-hidden">
+                        <button type="button" @click="showDetails = !showDetails"
+                            class="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50 hover:bg-slate-100 transition-colors text-left group">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-book-open text-slate-400 text-[10px] group-hover:text-blue-500 transition-colors"></i>
+                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover:text-blue-600 transition-colors">{{ __('Control Details') }}</span>
+                                <span class="text-[8px] font-medium text-slate-400">&mdash; {{ __('Requirements & Implementation Guide') }}</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 transition-transform duration-300" :class="showDetails && 'rotate-180'"></i>
+                        </button>
+                        <div x-show="showDetails" x-collapse x-cloak class="border-t border-slate-200/60">
+                            <div class="p-4 space-y-3 bg-white">
+                                @if($result->standard->description)
+                                <div>
+                                    <h6 class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">{{ __('Structural Requirements') }}</h6>
+                                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/60 text-[10px] text-slate-700 leading-relaxed font-medium">
+                                        {{ __($result->standard->description) }}
                                     </div>
                                 </div>
-                                @endforeach
+                                @endif
+                                @if($result->standard->implementation_guidance)
+                                <div class="relative pl-4 border-l-2 border-blue-400/30">
+                                    <h6 class="text-[8px] font-bold text-blue-500 uppercase tracking-widest mb-1.5">{{ __('Implementation Roadmap') }}</h6>
+                                    <div class="p-3 bg-blue-50/40 rounded-xl border border-blue-100/60 text-[9px] text-blue-900 leading-relaxed font-medium italic">
+                                        {{ __($result->standard->implementation_guidance) }}
+                                    </div>
+                                </div>
+                                @endif
                             </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- Scoring Section — always visible, full width --}}
+                    <div class="space-y-3">
+                        <h5 class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Score This Control') }}</h5>
+                        <div class="space-y-4">
+                            @foreach($result->standard->questions as $qIndex => $q)
+                            <div class="space-y-2">
+                                <p class="text-slate-800 font-bold text-[11px] leading-relaxed">{{ __($q) }}</p>
+                                <div class="grid grid-cols-3 md:grid-cols-6 gap-1.5">
+                                    @php
+                                        $options = [
+                                            0 => ['title' => 'Non-existent', 'desc' => 'Lack of policies, procedures, controls, etc.', 'color' => 'bg-slate-100 text-slate-400 border-slate-200'],
+                                            1 => ['title' => 'Initial', 'desc' => 'Development has just started and will require significant effort to meet the requirements.', 'color' => 'bg-blue-50 text-blue-400 border-blue-100'],
+                                            2 => ['title' => 'Limited/Repeatable', 'desc' => 'Progress is reasonably good but not yet complete.', 'color' => 'bg-blue-100 text-blue-600 border-blue-200'],
+                                            3 => ['title' => 'Defined', 'desc' => 'Development is more or less complete, although details are still lacking and/or it has not been fully implemented, enforced, and actively supported by management.', 'color' => 'bg-indigo-500 text-white border-indigo-400'],
+                                            4 => ['title' => 'Managed', 'desc' => 'Development is complete, processes/controls have been implemented and are newly operational.', 'color' => 'bg-indigo-700 text-white border-indigo-600'],
+                                            5 => ['title' => 'Optimized', 'desc' => 'Requirements are fully met, operating completely as expected, actively monitored and improved, and there is substantial evidence that can be provided to auditors.', 'color' => 'bg-slate-900 text-white border-slate-900'],
+                                        ];
+                                    @endphp
+                                    @foreach($options as $val => $opt)
+                                    <label class="cursor-pointer group/btn" title="{{ __($opt['desc']) }}">
+                                        <input type="radio" name="answers[q{{ $qIndex }}]" value="{{ $val }}"
+                                               {{ isset($result->answers["q$qIndex"]) && $result->answers["q$qIndex"] == $val ? 'checked' : '' }}
+                                               @change="rating = {{ $val }}; submitForm()"
+                                               class="peer hidden">
+                                        <div class="py-1.5 px-0.5 text-center rounded-lg border-2 transition-all duration-300 {{ $opt['color'] }}
+                                                    opacity-40 saturate-50 hover:opacity-100 hover:saturate-100 peer-checked:opacity-100 peer-checked:saturate-100 peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-blue-500 peer-checked:border-blue-500 peer-checked:scale-105 peer-checked:shadow-md">
+                                            <div class="text-sm font-black mb-0.5">{{ $val }}</div>
+                                            <div class="text-[6px] font-bold uppercase tracking-widest opacity-90 leading-none">{{ __($opt['title']) }}</div>
+                                        </div>
+                                    </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endforeach
                         </div>
                     </div>
 
@@ -477,7 +491,7 @@
                             <div>
                                 <h5 class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2">{{ __('Evidence Repository') }}</h5>
                                 <div class="relative group/up">
-                                    <input type="file" name="evidence_file" @change="submitForm().then(() => { $el.value = ''; window.dispatchEvent(new CustomEvent('notify', { detail: { message: 'Artifact uploaded!', type: 'success' } })); });" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                                    <input type="file" name="evidence_file" @change="submitForm().then(() => { $el.value = ''; window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Artifact uploaded!') }}', type: 'success' } })); });" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
                                     <div class="w-full py-2 bg-white border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-1 group-hover/up:border-blue-400 group-hover:bg-blue-50/50 transition-all">
                                         <div class="flex items-center gap-2">
                                             <i class="fa-solid fa-paperclip text-slate-300 group-hover/up:text-blue-600 text-xs"></i>
@@ -540,7 +554,7 @@
                                                                     .then(data => {
                                                                         if(data.success) {
                                                                             evidenceFiles = evidenceFiles.filter(f => f !== file);
-                                                                            window.dispatchEvent(new CustomEvent('notify', { detail: { message: 'File deleted!', type: 'success' } }));
+                                                                            window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('File deleted!') }}', type: 'success' } }));
                                                                         }
                                                                     })
                                                                     .finally(() => deleting = false);
@@ -605,7 +619,7 @@
                                         <button type="button" @click="generateAi()" :disabled="aiLoading"
                                                 class="px-4 py-2 bg-white border border-slate-200 hover:border-indigo-400 hover:text-indigo-600 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 text-slate-600">
                                             <i class="fa-solid fa-arrows-rotate" :class="aiLoading && 'animate-spin text-indigo-500'"></i>
-                                            <span x-text="aiLoading ? 'Regenerating...' : 'Regenerate'"></span>
+                                            <span x-text="aiLoading ? '{{ __('Regenerating...') }}' : '{{ __('Regenerate') }}'"></span>
                                         </button>
                                     </template>
                                 </div>
@@ -615,7 +629,7 @@
                                 <button type="button" @click="generateAi()" :disabled="aiLoading"
                                         class="px-4 py-2 bg-white border border-slate-200 hover:border-indigo-400 hover:text-indigo-600 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 text-slate-600">
                                     <i class="fa-solid fa-wand-magic-sparkles" :class="aiLoading && 'animate-spin text-indigo-500'"></i>
-                                    <span x-text="aiLoading ? 'Synthesizing...' : 'Trigger AI'"></span>
+                                    <span x-text="aiLoading ? '{{ __('Synthesizing...') }}' : '{{ __('Trigger AI') }}'"></span>
                                 </button>
                             </template>
                         </div>
@@ -627,7 +641,7 @@
                         <button type="button" @click="submitForm(true)" :disabled="loading"
                                 class="px-6 py-2.5 bg-slate-900 text-white rounded-lg text-[8px] font-bold uppercase tracking-widest hover:bg-blue-600 transition-all flex items-center gap-2 shadow-lg">
                             <i class="fa-solid fa-circle-check text-xs"></i>
-                            Verify & Finalize
+                            {{ __('Verify & Finalize') }}
                         </button>
                     </div>
                 </form>

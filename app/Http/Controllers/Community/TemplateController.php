@@ -46,6 +46,15 @@ class TemplateController extends Controller
                 $data['size'] = number_format($file->getSize() / 1048576, 2) . ' MB';
             }
 
+            if ($request->hasFile('json_file')) {
+                $jsonFile = $request->file('json_file');
+                $fileContent = json_decode(file_get_contents($jsonFile->getRealPath()), true);
+                if ($fileContent) {
+                    $data['content_data'] = $fileContent;
+                    $data['base_score'] = $fileContent['session']['overall_maturity_score'] ?? ($fileContent['overall_maturity_score'] ?? 0);
+                }
+            }
+
             // Convert tags from comma separated to array if needed
             if (!empty($data['tags'])) {
                 $data['tags'] = array_map('trim', explode(',', $data['tags']));
@@ -211,9 +220,11 @@ class TemplateController extends Controller
     public function show($id): View|RedirectResponse
     {
         try {
-            $resource = \App\Models\CommunityTemplate::findOrFail($id);
+            $data = $this->templateService->getTemplateWithResults($id);
+            $resource = $data['template'];
+            $results = $data['results'];
             $contentHtml = (string) \Illuminate\Support\Str::markdown(e($resource->content ?? $resource->description));
-            return view('pages.community.show', compact('resource', 'contentHtml'));
+            return view('pages.community.show', compact('resource', 'contentHtml', 'results'));
         } catch (\Exception $e) {
             return $this->errorRedirect('Asset not found.');
         }

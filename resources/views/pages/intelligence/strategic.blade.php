@@ -135,10 +135,10 @@
             </div>
             <div class="flex items-center gap-1.5">
                 <span class="px-1.5 py-0.5 bg-rose-50 text-rose-600 rounded border border-rose-100 text-[8px] font-black uppercase tracking-widest">
-                    {{ $stats['critical'] ?? 0 }} Critical
+                    {{ $stats['critical'] ?? 0 }} {{ __('Critical') }}
                 </span>
                 <span class="px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded border border-orange-100 text-[8px] font-black uppercase tracking-widest">
-                    {{ ($stats['total_gaps'] ?? 0) - ($stats['critical'] ?? 0) }} Warn
+                    {{ ($stats['total_gaps'] ?? 0) - ($stats['critical'] ?? 0) }} {{ __('Warn') }}
                 </span>
             </div>
         </div>
@@ -179,7 +179,7 @@
                     @if($latestSession->status === 'completed')
                     <button @click="triggerAISummary()" :disabled="isGenerating" id="btn-generate-summary" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[8px] font-black uppercase tracking-widest border border-white/10 disabled:opacity-50 transition-all sm:ml-1">
                         <i class="fa-solid fa-arrows-rotate mr-1" :class="isGenerating && 'animate-spin'"></i>
-                        <span x-text="isGenerating ? 'Synthesizing...' : 'Regenerate'"></span>
+                        <span x-text="isGenerating ? '{{ __('Synthesizing...') }}' : '{{ __('Regenerate') }}'"></span>
                     </button>
                     @endif
                 </div>
@@ -212,15 +212,15 @@
                                     @if($parsedSummary && isset($parsedSummary['overall_assessment_conclusion']))
                                         @if(!empty($parsedSummary['overall_assessment_conclusion']))
                                             <div class="summary-section">
-                                                <div class="summary-section-title"><i class="fa-solid fa-chart-line"></i> Overall Assessment Conclusion</div>
-                                                <p class="summary-section-body">{{ $parsedSummary['overall_assessment_conclusion'] }}</p>
+                                                <div class="summary-section-title"><i class="fa-solid fa-chart-line"></i> {{ __('Overall Assessment Conclusion') }}</div>
+                                                <div class="summary-section-body">{!! Str::markdown(e($parsedSummary['overall_assessment_conclusion'])) !!}</div>
                                             </div>
                                         @endif
                                         
                                         @if(!empty($parsedSummary['overall_risk_areas']))
                                             <div class="summary-section">
-                                                <div class="summary-section-title"><i class="fa-solid fa-triangle-exclamation"></i> Overall Risk Areas</div>
-                                                <p class="summary-section-body">{{ $parsedSummary['overall_risk_areas'] }}</p>
+                                                <div class="summary-section-title"><i class="fa-solid fa-triangle-exclamation"></i> {{ __('Overall Risk Areas') }}</div>
+                                                <div class="summary-section-body">{!! Str::markdown(e($parsedSummary['overall_risk_areas'])) !!}</div>
                                             </div>
                                         @endif
 
@@ -230,10 +230,10 @@
                                                 if (is_string($recs)) $recs = [$recs];
                                             @endphp
                                             <div class="summary-section">
-                                                <div class="summary-section-title"><i class="fa-solid fa-bullseye"></i> Executive Strategic Recommendations</div>
+                                                <div class="summary-section-title"><i class="fa-solid fa-bullseye"></i> {{ __('Executive Strategic Recommendations') }}</div>
                                                 <ol class="summary-recs-list">
                                                     @foreach($recs as $rec)
-                                                        <li>{{ $rec }}</li>
+                                                        <li>{!! Str::markdown(e($rec)) !!}</li>
                                                     @endforeach
                                                 </ol>
                                             </div>
@@ -241,8 +241,8 @@
 
                                         @if(!empty($parsedSummary['assessment_confidence']))
                                             <div class="summary-section">
-                                                <div class="summary-section-title"><i class="fa-solid fa-circle-check"></i> Assessment Confidence</div>
-                                                <p class="summary-section-body">{{ $parsedSummary['assessment_confidence'] }}</p>
+                                                <div class="summary-section-title"><i class="fa-solid fa-circle-check"></i> {{ __('Assessment Confidence') }}</div>
+                                                <div class="summary-section-body">{!! Str::markdown(e($parsedSummary['assessment_confidence'])) !!}</div>
                                             </div>
                                         @endif
                                     @else
@@ -554,7 +554,7 @@ window.getMaturityConfig = function() {
         data: {
             labels: rows.map(row => row.label),
             datasets: [{
-                label: 'Maturity',
+                label: '{{ __('Maturity') }}',
                 data: rows.map(row => row.value),
                 borderColor: '#4f46e5',
                 backgroundColor: 'rgba(79, 70, 229, 0.12)',
@@ -577,7 +577,7 @@ window.getMaturityConfig = function() {
                             return rows[item.dataIndex]?.fullLabel || item.label;
                         },
                         label(item) {
-                            return `Maturity: ${item.formattedValue}/5`;
+                            return `{{ __('Maturity') }}: ${item.formattedValue}/5`;
                         }
                     }
                 }
@@ -639,7 +639,7 @@ window.initCharts = function() {
         window.chartInstances['complianceChart'] = new Chart(complianceEl.getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: ['Compliant', 'Partially Compliant', 'Non-Compliant', 'Unassessed'],
+                labels: ['{{ __('Compliant') }}', '{{ __('Partially Compliant') }}', '{{ __('Non-Compliant') }}', '{{ __('Unassessed') }}'],
                 datasets: [{
                     data: [compliance.compliant, compliance.partial, compliance.non_compliant, compliance.unassessed],
                     backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#cbd5e1'],
@@ -670,14 +670,14 @@ window.initCharts = function() {
                 labels: domains.map(d => d.label),
                 datasets: [
                     {
-                        label: 'Prev',
+                        label: '{{ __('Prev') }}',
                         data: domains.map(d => d.previous),
                         backgroundColor: '#e2e8f0',
                         borderRadius: 4,
                         barThickness: 12
                     },
                     {
-                        label: 'Now',
+                        label: '{{ __('Now') }}',
                         data: domains.map(d => d.latest),
                         backgroundColor: '#3b82f6',
                         borderRadius: 4,

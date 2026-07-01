@@ -151,7 +151,7 @@ class CommunityTemplateApiController extends BaseApiController
                 return $this->errorResponse('Invalid JSON file format.', 422);
             }
 
-            $template = $this->templateService->createTemplate([
+            $template = $this->templateService->create([
                 'title'        => $request->title,
                 'description'  => $request->description,
                 'author_name'  => auth()->user()->name ?? 'Anonymous Assessor',

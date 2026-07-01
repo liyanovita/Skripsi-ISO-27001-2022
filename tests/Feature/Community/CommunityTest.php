@@ -251,11 +251,11 @@ class CommunityTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->get(route('community.preview', $template->id));
+            ->get(route('community.show', $template->id));
 
         $response
             ->assertOk()
-            ->assertSee('Template Preview')
+            ->assertSee('Community Asset')
             ->assertSee('Fintech Standard')
             ->assertSee('A.5.1')
             ->assertSee('Security Policies')

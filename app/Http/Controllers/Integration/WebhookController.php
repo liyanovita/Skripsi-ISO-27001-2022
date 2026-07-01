@@ -55,14 +55,22 @@ class WebhookController extends Controller
      */
     public function handleSessionSummary(Request $request): JsonResponse
     {
+        \Illuminate\Support\Facades\Log::info("WebhookController (Web): handleSessionSummary called", [
+            'ip' => $request->ip(),
+            'payload_keys' => array_keys($request->all()),
+        ]);
+
         try {
             app(\App\Services\Intelligence\AiSummaryService::class)->receiveWebhook($request->all());
+
+            \Illuminate\Support\Facades\Log::info("WebhookController (Web): handleSessionSummary successfully completed");
 
             return ApiResponse::success(
                 null,
                 'Executive summary updated successfully'
             );
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("WebhookController (Web): handleSessionSummary failed: " . $e->getMessage());
             throw ApiException::internalError($e->getMessage());
         }
     }

@@ -21,12 +21,12 @@ class ApiResponse
      */
     public static function success(
         mixed $data = null,
-        string $message = 'Success',
+        string $message = null,
         int $statusCode = 200
     ): JsonResponse {
         return response()->json([
             'success' => true,
-            'message' => $message,
+            'message' => $message ?? __('Success'),
             'data' => $data,
         ], $statusCode);
     }
@@ -40,9 +40,9 @@ class ApiResponse
      */
     public static function created(
         mixed $data = null,
-        string $message = 'Resource created successfully'
+        string $message = null
     ): JsonResponse {
-        return self::success($data, $message, 201);
+        return self::success($data, $message ?? __('Resource created successfully'), 201);
     }
 
     /**
@@ -54,13 +54,13 @@ class ApiResponse
      * @return JsonResponse
      */
     public static function error(
-        string $message = 'An error occurred',
+        string $message = null,
         int $statusCode = 400,
         array $errors = []
     ): JsonResponse {
         return response()->json([
             'success' => false,
-            'message' => $message,
+            'message' => $message ?? __('An error occurred'),
             'errors' => $errors,
         ], $statusCode);
     }
@@ -74,9 +74,9 @@ class ApiResponse
      */
     public static function validationError(
         array $errors,
-        string $message = 'Validation failed'
+        string $message = null
     ): JsonResponse {
-        return self::error($message, 422, $errors);
+        return self::error($message ?? __('Validation failed'), 422, $errors);
     }
 
     /**
@@ -86,9 +86,9 @@ class ApiResponse
      * @return JsonResponse
      */
     public static function notFound(
-        string $message = 'Resource not found'
+        string $message = null
     ): JsonResponse {
-        return self::error($message, 404);
+        return self::error($message ?? __('Resource not found'), 404);
     }
 
     /**
@@ -98,9 +98,9 @@ class ApiResponse
      * @return JsonResponse
      */
     public static function unauthorized(
-        string $message = 'Unauthorized'
+        string $message = null
     ): JsonResponse {
-        return self::error($message, 401);
+        return self::error($message ?? __('Unauthorized'), 401);
     }
 
     /**
@@ -110,9 +110,9 @@ class ApiResponse
      * @return JsonResponse
      */
     public static function forbidden(
-        string $message = 'Forbidden'
+        string $message = null
     ): JsonResponse {
-        return self::error($message, 403);
+        return self::error($message ?? __('Forbidden'), 403);
     }
 
     /**
@@ -122,9 +122,9 @@ class ApiResponse
      * @return JsonResponse
      */
     public static function conflict(
-        string $message = 'Resource conflict'
+        string $message = null
     ): JsonResponse {
-        return self::error($message, 409);
+        return self::error($message ?? __('Resource conflict'), 409);
     }
 
     /**
@@ -134,9 +134,9 @@ class ApiResponse
      * @return JsonResponse
      */
     public static function serverError(
-        string $message = 'Internal server error'
+        string $message = null
     ): JsonResponse {
-        return self::error($message, 500);
+        return self::error($message ?? __('Internal server error'), 500);
     }
 
     /**
@@ -148,11 +148,11 @@ class ApiResponse
      */
     public static function paginated(
         mixed $data,
-        string $message = 'Success'
+        string $message = null
     ): JsonResponse {
         return response()->json([
             'success' => true,
-            'message' => $message,
+            'message' => $message ?? __('Success'),
             'data' => $data->items(),
             'pagination' => [
                 'total' => $data->total(),
