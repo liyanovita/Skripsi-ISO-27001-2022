@@ -358,8 +358,10 @@
     $comparisonDomainsJson = $comparison['domains'] ?? [];
 @endphp
 <script>
-document.addEventListener('alpine:init', () => {
-    Alpine.data('strategicAnalytics', (initialSessionId, isProcessing, hasSummary) => ({
+const registerStrategicAnalytics = () => {
+    if (window.Alpine.data('strategicAnalytics')) return;
+
+    window.Alpine.data('strategicAnalytics', (initialSessionId, isProcessing, hasSummary) => ({
         riskFilter: 'all',
         selectedSession: initialSessionId,
         isGenerating: false,
@@ -369,30 +371,16 @@ document.addEventListener('alpine:init', () => {
         async initSummary() {
             if (!this.selectedSession) return;
 
+            // If summary already exists, let the Blade template show it (no redundant fetch needed)
+            if (hasSummary) {
+                return;
+            }
+
             // If server indicates it is processing, start polling immediately
             if (isProcessing) {
                 this.isGenerating = true;
                 this.summaryHtml = `<div class="text-center py-4 opacity-70"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-indigo-500"></i><p>{{ __('Analyzing and synthesizing session data...') }}</p></div>`;
                 this.startPolling();
-                return;
-            }
-
-            // If summary already exists, fetch and render it immediately (no page reload needed)
-            if (hasSummary) {
-                try {
-                    const statusRes = await fetch(`/reports/ai-summary/${this.selectedSession}/status`, {
-                        headers: { 'Accept': 'application/json' }
-                    });
-                    const statusData = await statusRes.json().catch(() => ({}));
-                    if (statusRes.ok && statusData.success && statusData.data.status === 'completed') {
-                        const html = statusData.data.summary_html || statusData.data.summary;
-                        if (html) {
-                            this.summaryHtml = `<div class='ai-prose space-y-4'>${html}</div>`;
-                            return;
-                        }
-                    }
-                } catch (e) { /* fail silently, blade fallback will show */ }
-                // If fetch fails, keep summaryHtml null so Blade fallback shows
                 return;
             }
 
@@ -527,7 +515,13 @@ document.addEventListener('alpine:init', () => {
             }
         }
     }));
-});
+};
+
+if (window.Alpine) {
+    registerStrategicAnalytics();
+} else {
+    document.addEventListener('alpine:init', registerStrategicAnalytics);
+}
 
 window.chartInstances = window.chartInstances || {};
 window.maturityViews = @json($maturityViewsJson);

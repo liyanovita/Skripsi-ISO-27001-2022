@@ -559,6 +559,63 @@
                                         let originalHtml = btn.innerHTML;
                                         btn.innerHTML = `<i class='fa-solid fa-spinner animate-spin'></i> {{ __('Processing...') }}`;
                                         
+                                        const startEditPolling = () => {
+                                            Swal.fire({
+                                                title: `{{ __('AI Synthesis in Progress') }}`,
+                                                html: `<p class='text-sm text-slate-600'>{{ __('AI is currently synthesizing compliance recommendations. Please wait.') }}</p>`,
+                                                allowOutsideClick: false,
+                                                allowEscapeKey: false,
+                                                allowEnterKey: false,
+                                                showConfirmButton: false,
+                                                width: '24rem',
+                                                customClass: {
+                                                    popup: 'rounded-2xl p-4',
+                                                    title: 'text-sm font-bold text-slate-800 mt-2'
+                                                },
+                                                didOpen: () => {
+                                                    Swal.showLoading();
+                                                }
+                                            });
+
+                                            let pollCount = 0;
+                                            let pollInterval = setInterval(async () => {
+                                                pollCount++;
+                                                try {
+                                                    let statusRes = await fetch('/results/{{ $result->id }}/ai-status');
+                                                    let statusData = await statusRes.json();
+                                                    let aiResult = statusData.data || statusData.result || statusData;
+                                                    
+                                                    if (aiResult.has_ai) {
+                                                        clearInterval(pollInterval);
+                                                        Swal.close();
+                                                        window.location.reload();
+                                                    } else if (pollCount > 24) { // Timeout after ~60 seconds (24 * 2.5s)
+                                                        clearInterval(pollInterval);
+                                                        Swal.close();
+                                                        btn.disabled = false;
+                                                        btn.innerHTML = originalHtml;
+                                                        Swal.fire({
+                                                            icon: 'error',
+                                                            title: `{{ __('Timeout') }}`,
+                                                            text: `{{ __('Timeout waiting for AI response.') }}`,
+                                                            confirmButtonColor: '#3b82f6',
+                                                        });
+                                                    }
+                                                } catch(e) {
+                                                    clearInterval(pollInterval);
+                                                    Swal.close();
+                                                    btn.disabled = false;
+                                                    btn.innerHTML = originalHtml;
+                                                    Swal.fire({
+                                                        icon: 'error',
+                                                        title: `{{ __('Error') }}`,
+                                                        text: `{{ __('Error retrieving AI status.') }}`,
+                                                        confirmButtonColor: '#3b82f6',
+                                                    });
+                                                }
+                                            }, 2500);
+                                        };
+
                                         fetch(form.action, {
                                             method: 'POST',
                                             headers: { 
@@ -586,25 +643,11 @@
                                                 btn.disabled = false;
                                                 btn.innerHTML = originalHtml;
                                             } else if (res.status === 429 || (data && data.is_processing)) {
-                                                Swal.fire({
-                                                    icon: 'info',
-                                                    title: `{{ __('AI Processing Active') }}`,
-                                                    text: `{{ __('AI is currently synthesizing compliance recommendations for this control. Please wait.') }}`,
-                                                    confirmButtonColor: '#3b82f6',
-                                                    width: '24rem',
-                                                    customClass: {
-                                                        popup: 'rounded-2xl p-4',
-                                                        title: 'text-sm font-bold text-slate-800 mt-2',
-                                                        htmlContainer: 'text-xs text-slate-500 font-medium my-2',
-                                                        confirmButton: 'rounded-xl font-bold px-4 py-2 text-xs'
-                                                    }
-                                                });
-                                                btn.disabled = false;
-                                                btn.innerHTML = originalHtml;
+                                                startEditPolling();
                                             } else if (!res.ok) {
                                                 throw new Error(data.message || 'Something went wrong');
                                             } else {
-                                                window.location.reload();
+                                                startEditPolling();
                                             }
                                         })
                                         .catch(err => {

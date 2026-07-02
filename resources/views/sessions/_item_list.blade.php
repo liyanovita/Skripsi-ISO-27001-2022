@@ -212,6 +212,44 @@
                     this.aiPriority = '';
                     this.aiValidation = '';
                     this.aiImpact = '';
+                    const self = this;
+
+                    // Helper to start polling
+                    const startPolling = () => {
+                        let pollCount = 0;
+                        let pollInterval = setInterval(async () => {
+                            pollCount++;
+                            try {
+                                let statusRes = await fetch('{{ route('results.ai-status', $result->id) }}');
+                                let statusData = await statusRes.json();
+                                let aiResult = statusData.data || statusData.result || statusData;
+                                
+                                if (aiResult.has_ai) {
+                                    clearInterval(pollInterval);
+                                    self.aiRec        = aiResult.ai_recommendation;
+                                    self.aiPlan       = (typeof aiResult.corrective_action_plan === 'object' && aiResult.corrective_action_plan !== null)
+                                                         ? (aiResult.corrective_action_plan.action || (Array.isArray(aiResult.corrective_action_plan) ? aiResult.corrective_action_plan.join('\n') : JSON.stringify(aiResult.corrective_action_plan)))
+                                                         : (aiResult.corrective_action_plan || '');
+                                    self.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null) ? (aiResult.control_insight.gap || '') : (aiResult.control_insight || '');
+                                    self.aiPriority   = aiResult.risk_priority || '';
+                                    self.aiValidation = aiResult.evidence_validation || '';
+                                    self.aiImpact     = aiResult.impact_interpretation || '';
+                                    self.aiLoading    = false;
+                                    window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('AI analysis received successfully!') }}', type: 'success' } }));
+                                } else if (pollCount > 24) { // Timeout after ~60 seconds (24 * 2.5s)
+                                    clearInterval(pollInterval);
+                                    self.aiLoading = false;
+                                    window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Timeout waiting for AI response.') }}', type: 'error' } }));
+                                }
+                            } catch(e) {
+                                console.error('Polling error', e);
+                                clearInterval(pollInterval);
+                                self.aiLoading = false;
+                                window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Error retrieving AI status.') }}', type: 'error' } }));
+                            }
+                        }, 2500);
+                    };
+
                     try {
                         const res = await fetch('{{ route('results.generate-ai', $result->id) }}', {
                             method: 'POST',
@@ -225,40 +263,27 @@
 
                         // Guard: already processing
                         if (res.status === 429 || (data && data.is_processing)) {
-                            this.aiLoading = false;
-                            const statusRes = await fetch('{{ route('results.ai-status', $result->id) }}');
-                            const statusData = await statusRes.json();
-                            const aiResult = statusData.data || statusData.result || statusData;
-                            if (aiResult.has_ai) {
-                                this.aiRec        = aiResult.ai_recommendation || '';
-                                this.aiPlan       = (typeof aiResult.corrective_action_plan === 'object' && aiResult.corrective_action_plan !== null)
-                                                     ? (aiResult.corrective_action_plan.action || (Array.isArray(aiResult.corrective_action_plan) ? aiResult.corrective_action_plan.join('\n') : JSON.stringify(aiResult.corrective_action_plan)))
-                                                     : (aiResult.corrective_action_plan || '');
-                                this.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null) ? (aiResult.control_insight.gap || '') : (aiResult.control_insight || '');
-                                this.aiPriority   = aiResult.risk_priority || '';
-                                this.aiValidation = aiResult.evidence_validation || '';
-                                this.aiImpact     = aiResult.impact_interpretation || '';
-                            }
                             window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('AI is currently analyzing this control.') }}', type: 'info' } }));
+                            startPolling();
                             return;
                         }
 
                         // Guard: no data change since last AI generation
                         if (res.status === 409 && data.no_change) {
-                            this.aiLoading = false;
+                            self.aiLoading = false;
                             // Restore existing AI data since we aborted
                             const statusRes = await fetch('{{ route('results.ai-status', $result->id) }}');
                             const statusData = await statusRes.json();
                             const aiResult = statusData.data || statusData.result || statusData;
                             if (aiResult.has_ai) {
-                                this.aiRec        = aiResult.ai_recommendation || '';
-                                this.aiPlan       = (typeof aiResult.corrective_action_plan === 'object' && aiResult.corrective_action_plan !== null)
+                                self.aiRec        = aiResult.ai_recommendation || '';
+                                self.aiPlan       = (typeof aiResult.corrective_action_plan === 'object' && aiResult.corrective_action_plan !== null)
                                                      ? (aiResult.corrective_action_plan.action || (Array.isArray(aiResult.corrective_action_plan) ? aiResult.corrective_action_plan.join('\n') : JSON.stringify(aiResult.corrective_action_plan)))
                                                      : (aiResult.corrective_action_plan || '');
-                                this.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null) ? (aiResult.control_insight.gap || '') : (aiResult.control_insight || '');
-                                this.aiPriority   = aiResult.risk_priority || '';
-                                this.aiValidation = aiResult.evidence_validation || '';
-                                this.aiImpact     = aiResult.impact_interpretation || '';
+                                self.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null) ? (aiResult.control_insight.gap || '') : (aiResult.control_insight || '');
+                                self.aiPriority   = aiResult.risk_priority || '';
+                                self.aiValidation = aiResult.evidence_validation || '';
+                                self.aiImpact     = aiResult.impact_interpretation || '';
                             }
                             Swal.fire({
                                 icon: 'info',
@@ -279,43 +304,15 @@
 
                         if (data.success) {
                             window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Connecting to n8n... Waiting for AI analysis.') }}', type: 'success' } }));
-                            
-                            // Start polling to wait for webhook response
-                            let pollCount = 0;
-                            let pollInterval = setInterval(async () => {
-                                pollCount++;
-                                try {
-                                    let statusRes = await fetch('{{ route('results.ai-status', $result->id) }}');
-                                    let statusData = await statusRes.json();
-                                    let aiResult = statusData.data || statusData.result || statusData;
-                                    
-                                    if (aiResult.has_ai) {
-                                        clearInterval(pollInterval);
-                                        this.aiRec        = aiResult.ai_recommendation;
-                                        this.aiPlan       = (typeof aiResult.corrective_action_plan === 'object' && aiResult.corrective_action_plan !== null)
-                                                             ? (aiResult.corrective_action_plan.action || (Array.isArray(aiResult.corrective_action_plan) ? aiResult.corrective_action_plan.join('\n') : JSON.stringify(aiResult.corrective_action_plan)))
-                                                             : (aiResult.corrective_action_plan || '');
-                                        this.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null) ? (aiResult.control_insight.gap || '') : (aiResult.control_insight || '');
-                                        this.aiPriority   = aiResult.risk_priority || '';
-                                        this.aiValidation = aiResult.evidence_validation || '';
-                                        this.aiImpact     = aiResult.impact_interpretation || '';
-                                        this.aiLoading    = false;
-                                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('AI analysis received successfully!') }}', type: 'success' } }));
-                                    } else if (pollCount > 24) { // Timeout after ~60 seconds (24 * 2.5s)
-                                        clearInterval(pollInterval);
-                                        this.aiLoading = false;
-                                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Timeout waiting for AI response.') }}', type: 'error' } }));
-                                    }
-                                } catch(e) {
-                                    console.error('Polling error', e);
-                                }
-                            }, 2500);
+                            startPolling();
                         } else {
-                            this.aiLoading = false;
+                            self.aiLoading = false;
+                            window.dispatchEvent(new CustomEvent('notify', { detail: { message: data.message || '{{ __('Failed to trigger AI generation.') }}', type: 'error' } }));
                         }
                     } catch(e) { 
                         console.error(e); 
-                        this.aiLoading = false;
+                        self.aiLoading = false;
+                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Failed to trigger AI generation.') }}', type: 'error' } }));
                     }
                 }
              }"
@@ -602,15 +599,18 @@
                         <div class="pt-4 border-t border-slate-100 mt-2 flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all" 
-                                     :class="aiRec ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20' : 'bg-slate-200 text-slate-400'">
-                                    <i class="fa-solid fa-robot text-xs"></i>
+                                     :class="aiLoading ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20 animate-pulse' : (aiRec ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20' : 'bg-slate-200 text-slate-400')">
+                                    <i class="fa-solid" :class="aiLoading ? 'fa-spinner animate-spin text-xs' : 'fa-robot text-xs'"></i>
                                 </div>
                                 <div>
                                     <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest leading-none">{{ __('AI Synthesis Status') }}</h4>
-                                    <template x-if="aiRec">
+                                    <template x-if="aiLoading">
+                                        <p class="text-[9px] font-bold text-indigo-600 uppercase tracking-widest mt-1 animate-pulse"><i class="fa-solid fa-spinner animate-spin mr-1"></i>{{ __('Synthesizing...') }}</p>
+                                    </template>
+                                    <template x-if="!aiLoading && aiRec">
                                         <p class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mt-1"><i class="fa-solid fa-check-circle mr-1"></i>{{ __('Analysis Ready') }}</p>
                                     </template>
-                                    <template x-if="!aiRec">
+                                    <template x-if="!aiLoading && !aiRec">
                                         <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{{ __('Pending Generation') }}</p>
                                     </template>
                                 </div>
