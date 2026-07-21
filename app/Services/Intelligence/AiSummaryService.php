@@ -71,16 +71,26 @@ class AiSummaryService
         $decoded = json_decode($rawSummary, true);
         if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
             if (isset($decoded['overall_assessment_conclusion'])) {
+                return [
+                    'overall_assessment_summary' => $decoded['overall_assessment_conclusion'],
+                    'control_insight'            => $decoded['overall_risk_areas'] ?? '',
+                    'impact_interpretation'      => $decoded['assessment_confidence'] ?? '',
+                    'strategic_recommendation'   => $decoded['executive_strategic_recommendations'] ?? [],
+                    'action_plan'                => '',
+                ];
+            }
+            if (isset($decoded['overall_assessment_summary'])) {
                 return $decoded;
             }
         }
 
-        // Legacy plain text — wrap it as conclusion only
+        // Legacy plain text — wrap it as summary only
         return [
-            'overall_assessment_conclusion'       => $rawSummary,
-            'overall_risk_areas'                  => null,
-            'executive_strategic_recommendations' => [],
-            'assessment_confidence'               => null,
+            'overall_assessment_summary' => $rawSummary,
+            'control_insight'            => '',
+            'impact_interpretation'      => '',
+            'strategic_recommendation'   => [],
+            'action_plan'                => '',
         ];
     }
 
@@ -112,15 +122,36 @@ class AiSummaryService
             isset($data['assessment_confidence'])
         ) {
             $structured = [
-                'overall_assessment_conclusion'       => $data['overall_assessment_conclusion'] ?? '',
-                'overall_risk_areas'                  => $data['overall_risk_areas'] ?? '',
+                'overall_assessment_conclusion' => $data['overall_assessment_conclusion'] ?? '',
+                'overall_risk_areas'            => $data['overall_risk_areas'] ?? '',
                 'executive_strategic_recommendations' => $data['executive_strategic_recommendations'] ?? [],
-                'assessment_confidence'               => $data['assessment_confidence'] ?? '',
+                'assessment_confidence'         => $data['assessment_confidence'] ?? '',
             ];
 
             if (empty(trim($structured['overall_assessment_conclusion']))) {
                 \Illuminate\Support\Facades\Log::error("AiSummaryService: Webhook processing failed - empty overall_assessment_conclusion", ['session_id' => $sessionId]);
                 throw new \Exception('AI summary must contain overall_assessment_conclusion.');
+            }
+
+            $aiSummary = json_encode($structured, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        } elseif (
+            isset($data['overall_assessment_summary']) ||
+            isset($data['control_insight']) ||
+            isset($data['impact_interpretation']) ||
+            isset($data['strategic_recommendation']) ||
+            isset($data['action_plan'])
+        ) {
+            $structured = [
+                'overall_assessment_summary' => $data['overall_assessment_summary'] ?? '',
+                'control_insight'            => $data['control_insight'] ?? '',
+                'impact_interpretation'      => $data['impact_interpretation'] ?? '',
+                'strategic_recommendation'   => $data['strategic_recommendation'] ?? [],
+                'action_plan'                => $data['action_plan'] ?? '',
+            ];
+
+            if (empty(trim($structured['overall_assessment_summary']))) {
+                \Illuminate\Support\Facades\Log::error("AiSummaryService: Webhook processing failed - empty overall_assessment_summary", ['session_id' => $sessionId]);
+                throw new \Exception('AI summary must contain overall_assessment_summary.');
             }
 
             $aiSummary = json_encode($structured, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -186,9 +217,7 @@ class AiSummaryService
             Log::error("N8N Summary unavailable: {$e->getMessage()}");
             throw new \Exception("Koneksi ke N8N gagal: " . $e->getMessage());
         }
-    }
-
-    protected function generateMockSummary(AssessmentSession $session): void
+    }    protected function generateMockSummary(AssessmentSession $session): void
     {
         $score = $session->overall_maturity_score;
         $isId = app()->getLocale() === 'id';
@@ -196,97 +225,89 @@ class AiSummaryService
         if ($score < 2) {
             if ($isId) {
                 $structured = [
-                    'overall_assessment_conclusion'       => "Kematangan keamanan informasi organisasi saat ini berada pada tahap Awal/Ad-hoc. Sebagian besar kontrol belum ditentukan secara formal dan bergantung pada inisiatif individu alih-alih struktur tata kelola yang sistematis.",
-                    'overall_risk_areas'                  => "Area risiko utama meliputi ketiadaan Kebijakan Keamanan Informasi yang formal, peran dan tanggung jawab keamanan yang belum didefinisikan, serta dokumentasi bukti yang tidak memadai untuk kontrol dasar ISMS (Klausul 4-5). Celah ini memaparkan organisasi pada risiko tata kelola dan kepatuhan yang signifikan.",
+                    'overall_assessment_conclusion' => "Kematangan keamanan informasi organisasi saat ini berada pada tahap Awal/Ad-hoc. Sebagian besar kontrol belum ditentukan secara formal dan bergantung pada inisiatif individu alih-alih struktur tata kelola yang sistematis.",
+                    'overall_risk_areas'            => "Area risiko utama meliputi ketiadaan Kebijakan Keamanan Informasi yang formal, peran dan tanggung jawab keamanan yang belum didefinisikan, serta dokumentasi bukti yang tidak memadai untuk kontrol dasar ISMS (Klausul 4-5).",
+                    'assessment_confidence'         => "Celah ini memaparkan organisasi pada risiko tata kelola dan kepatuhan yang signifikan.",
                     'executive_strategic_recommendations' => [
                         "Menetapkan dan menyetujui secara formal Kebijakan Keamanan Informasi yang komprehensif yang disahkan oleh manajemen senior, sebagaimana diwajibkan dalam ISO/IEC 27001:2022 Klausul 5.",
-                        "Mendefinisikan dan mengomunikasikan peran serta tanggung jawab keamanan di seluruh fungsi organisasi untuk menciptakan struktur akuntabilitas dan tata kelola.",
-                        "Memprioritaskan formalisasi dokumentasi bukti untuk Klausul 4 dan 5 guna mendukung kesiapan audit internal dan eksternal di masa mendatang."
+                        "Mendefinisikan dan mengomunikasikan peran serta tanggung jawab keamanan di seluruh fungsi organisasi untuk menciptakan struktur akuntabilitas."
                     ],
-                    'assessment_confidence'               => "Keyakinan penilaian terbatas karena catatan pendukung dan bukti sebagian besar tidak tersedia untuk sebagian besar kontrol. Kesimpulan didasarkan terutama pada Peringkat Kematangan dan Status Kepatuhan yang dilaporkan, dan validasi independen tidak dapat dilakukan sepenuhnya.",
                 ];
             } else {
                 $structured = [
-                    'overall_assessment_conclusion'       => "The organization's information security maturity is currently at the Initial/Ad-hoc stage. Most controls are not formally defined and rely on individual initiatives rather than systematic governance structures.",
-                    'overall_risk_areas'                  => "Primary risk areas include the absence of a formalized Information Security Policy, undefined security roles and responsibilities, and insufficient documentation of evidence for foundational ISMS controls (Clauses 4–5). These gaps expose the organization to significant governance and compliance risk.",
+                    'overall_assessment_conclusion' => "The organization's information security maturity is currently at the Initial/Ad-hoc stage. Most controls are not formally defined and rely on individual initiatives rather than systematic governance structures.",
+                    'overall_risk_areas'            => "Primary risk areas include the absence of a formalized Information Security Policy, undefined security roles and responsibilities, and insufficient documentation of evidence for foundational ISMS controls (Clauses 4–5).",
+                    'assessment_confidence'         => "These gaps expose the organization to significant governance and compliance risk.",
                     'executive_strategic_recommendations' => [
                         "Establish and formally approve a comprehensive Information Security Policy endorsed by senior management, as required under ISO/IEC 27001:2022 Clause 5.",
-                        "Define and communicate security roles and responsibilities across all organizational functions to create accountability and governance structure.",
-                        "Prioritize formalizing evidence documentation for Clauses 4 and 5 to support future internal and external audit readiness."
+                        "Define and communicate security roles and responsibilities across all organizational functions to create accountability."
                     ],
-                    'assessment_confidence'               => "Assessment confidence is limited as supporting notes and evidence are largely unavailable for most controls. The conclusions are based primarily on the reported Maturity Ratings and Compliance Statuses, and independent validation cannot be fully performed.",
                 ];
             }
         } elseif ($score < 3.5) {
             if ($isId) {
                 $structured = [
-                    'overall_assessment_conclusion'       => "Organisasi telah menetapkan kerangka kerja keamanan informasi dasar; namun, penerapannya masih belum konsisten di seluruh domain. Kematangan keseluruhan diklasifikasikan sebagai Berkembang, dengan celah yang terlihat dalam konsistensi operasional dan dokumentasi bukti.",
-                    'overall_risk_areas'                  => "Area risiko utama meliputi pelaksanaan audit internal berkala yang tidak konsisten, dokumentasi manajemen risiko yang tidak memadai untuk aset kritis, serta kelemahan dalam kontrol akses fisik dan logis. Hal ini mewakili risiko sedang hingga tinggi terhadap kelangsungan operasional dan kepatuhan regulasi.",
+                    'overall_assessment_conclusion' => "Organisasi telah menetapkan kerangka kerja keamanan informasi dasar; namun, penerapannya masih belum konsisten di seluruh domain. Kematangan keseluruhan diklasifikasikan sebagai Berkembang.",
+                    'overall_risk_areas'            => "Area risiko utama meliputi pelaksanaan audit internal berkala yang tidak konsisten, dokumentasi manajemen risiko yang tidak memadai untuk aset kritis, serta kelemahan dalam kontrol akses fisik dan logis.",
+                    'assessment_confidence'         => "Hal ini mewakili risiko sedang hingga tinggi terhadap kelangsungan operasional dan kepatuhan regulasi.",
                     'executive_strategic_recommendations' => [
-                        "Menerapkan program audit internal yang terstruktur dan terdokumentasi untuk memastikan evaluasi sistematis terhadap efektivitas ISMS di semua kontrol yang berlaku.",
-                        "Memformalkan proses manajemen risiko dengan daftar risiko, rencana penanganan, dan penerimaan risiko residual yang terdokumentasi untuk semua aset informasi kritis.",
-                        "Memperkuat kontrol keamanan fisik dan akses logis, terutama pada domain yang mencakup manajemen aset dan kontrol akses (Lampiran A.7 dan A.8)."
+                        "Menerapkan program audit internal yang terstruktur dan terdokumentasi untuk memastikan evaluasi sistematis terhadap efektivitas ISMS.",
+                        "Memformalkan proses manajemen risiko dengan daftar risiko, rencana penanganan, dan penerimaan risiko residual."
                     ],
-                    'assessment_confidence'               => "Keyakinan penilaian bersifat parsial. Meskipun beberapa kontrol didukung oleh catatan penilaian, tidak adanya dokumentasi bukti yang komprehensif di seluruh domain membatasi kemampuan untuk memvalidasi konsistensi penerapan secara independen.",
                 ];
             } else {
                 $structured = [
-                    'overall_assessment_conclusion'       => "The organization has established a basic information security framework; however, implementation remains inconsistent across domains. The overall maturity is classified as Developing, with observable gaps in operational consistency and evidence documentation.",
-                    'overall_risk_areas'                  => "Key risk areas include inconsistent execution of periodic internal audits, insufficient risk management documentation for critical assets, and weaknesses in physical and logical access controls. These represent moderate-to-high risks to operational continuity and regulatory compliance.",
+                    'overall_assessment_conclusion' => "The organization has established a basic information security framework; however, implementation remains inconsistent across domains. The overall maturity is classified as Developing.",
+                    'overall_risk_areas'            => "Key risk areas include inconsistent execution of periodic internal audits, insufficient risk management documentation for critical assets, and weaknesses in physical and logical access controls.",
+                    'assessment_confidence'         => "These represent moderate-to-high risks to operational continuity and regulatory compliance.",
                     'executive_strategic_recommendations' => [
-                        "Implement a structured and documented internal audit program to ensure systematic evaluation of ISMS effectiveness across all applicable controls.",
-                        "Formalize risk management processes with documented risk registers, treatment plans, and residual risk acceptance for all critical information assets.",
-                        "Strengthen physical security and logical access controls, particularly in domains covering asset management and access control (Annex A.7 and A.8)."
+                        "Implement a structured and documented internal audit program to ensure systematic evaluation of ISMS effectiveness.",
+                        "Formalize risk management processes with documented risk registers and treatment plans."
                     ],
-                    'assessment_confidence'               => "Assessment confidence is partial. While some controls are supported by assessment notes, the absence of comprehensive evidence documentation across all domains limits the ability to independently validate implementation consistency.",
                 ];
             }
         } elseif ($score < 4.5) {
             if ($isId) {
                 $structured = [
-                    'overall_assessment_conclusion'       => "Sistem manajemen keamanan informasi organisasi dikelola dengan baik dengan kontrol yang diterapkan dan dipantau secara berkala. Kematangan keseluruhan diklasifikasikan sebagai Terkelola, mencerminkan tata kelola sistematis dan praktik terdokumentasi di sebagian besar domain.",
-                    'overall_risk_areas'                  => "Area risiko residual meliputi ketiadaan indikator kinerja terukur untuk kontrol utama, kedalaman yang terbatas dalam peninjauan manajemen terhadap insiden keamanan, dan peluang untuk memperkuat otomatisasi dalam pemantauan kontrol. Celah ini dapat memengaruhi kemampuan organisasi untuk menunjukkan peningkatan berkelanjutan.",
+                    'overall_assessment_conclusion' => "Sistem manajemen keamanan informasi organisasi dikelola dengan baik dengan kontrol yang diterapkan dan dipantau secara berkala. Kematangan keseluruhan diklasifikasikan sebagai Terkelola.",
+                    'overall_risk_areas'            => "Area risiko residual meliputi ketiadaan indikator kinerja terukur untuk kontrol utama, kedalaman yang terbatas dalam peninjauan manajemen terhadap insiden keamanan, dan peluang untuk memperkuat otomatisasi dalam pemantauan kontrol.",
+                    'assessment_confidence'         => "Celah ini dapat memengaruhi kemampuan organisasi untuk menunjukkan peningkatan berkelanjutan.",
                     'executive_strategic_recommendations' => [
-                        "Mengembangkan dan menerapkan Indikator Kinerja Utama (KPI) untuk mengukur efektivitas masing-masing kontrol dan mendukung tinjauan manajemen berbasis bukti.",
-                        "Meningkatkan kedalaman dan formalitas tinjauan manajemen untuk mencakup analisis sistematis terhadap insiden keamanan, temuan audit, dan tindakan perbaikan.",
-                        "Menyelidiki solusi otomatisasi untuk pemantauan kontrol waktu nyata dan pelaporan kepatuhan guna mengurangi upaya manual dan meningkatkan kemampuan deteksi."
+                        "Mengembangkan dan menerapkan Indikator Kinerja Utama (KPI) untuk mengukur efektivitas masing-masing kontrol.",
+                        "Meningkatkan kedalaman dan formalitas peninjauan manajemen untuk mencakup analisis insiden secara sistematis."
                     ],
-                    'assessment_confidence'               => "Keyakinan penilaian umumnya tinggi. Catatan pendukung dan peringkat kematangan tersedia secara konsisten di seluruh kontrol yang dinilai, dan kesimpulan keseluruhan didukung dengan baik oleh informasi penilaian yang tersedia.",
                 ];
             } else {
                 $structured = [
-                    'overall_assessment_conclusion'       => "The organization's information security management system is well-managed with controls that are implemented and monitored on a regular basis. The overall maturity is classified as Managed, reflecting systematic governance and documented practices across most domains.",
-                    'overall_risk_areas'                  => "Residual risk areas include the absence of measurable performance indicators for key controls, limited depth in management review of security incidents, and opportunities to strengthen automation in control monitoring. These gaps may affect the organization's ability to demonstrate continuous improvement.",
+                    'overall_assessment_conclusion' => "The organization's information security management system is well-managed with controls that are implemented and monitored on a regular basis. The overall maturity is classified as Managed.",
+                    'overall_risk_areas'            => "Residual risk areas include the absence of measurable performance indicators for key controls, limited depth in management review of security incidents, and opportunities to strengthen automation in control monitoring.",
+                    'assessment_confidence'         => "These gaps may affect the organization's ability to demonstrate continuous improvement.",
                     'executive_strategic_recommendations' => [
-                        "Develop and deploy Key Performance Indicators (KPIs) to measure the effectiveness of individual controls and support evidence-based management reviews.",
-                        "Enhance the depth and formality of management reviews to include systematic analysis of security incidents, audit findings, and corrective actions.",
-                        "Explore automation solutions for real-time control monitoring and compliance reporting to reduce manual effort and improve detection capabilities."
+                        "Develop and deploy Key Performance Indicators (KPIs) to measure the effectiveness of individual controls.",
+                        "Enhance the depth and formality of management reviews to include systematic analysis of security incidents."
                     ],
-                    'assessment_confidence'               => "Assessment confidence is generally high. Supporting notes and maturity ratings are consistently available across assessed controls, and the overall conclusions are well-substantiated by the available assessment information.",
                 ];
             }
         } else {
             if ($isId) {
                 $structured = [
-                    'overall_assessment_conclusion'       => "Organisasi telah mencapai tingkat kematangan keamanan informasi yang Dioptimalkan. Keamanan tertanam sebagai nilai inti organisasi, dan ISMS ditingkatkan terus-menerus melalui inovasi, tolok ukur eksternal, dan manajemen ancaman yang proaktif.",
-                    'overall_risk_areas'                  => "Pada tingkat kematangan ini, risiko utama berkaitan dengan mempertahankan konsistensi selama perubahan organisasi, memastikan kepatuhan rantai pasokan pihak ketiga, dan mempertahankan inovasi dalam lingkungan ancaman yang berkembang. Kelangsungan tata kelola selama transisi kepemimpinan harus dikelola secara eksplisit.",
+                    'overall_assessment_conclusion' => "Organisasi telah mencapai tingkat kematangan keamanan informasi yang Dioptimalkan. Keamanan tertanam sebagai nilai inti organisasi, dan ISMS ditingkatkan terus-menerus.",
+                    'overall_risk_areas'            => "Risiko utama berkaitan dengan mempertahankan konsistensi selama perubahan organisasi, memastikan kepatuhan rantai pasokan pihak ketiga, dan mempertahankan inovasi dalam lingkungan ancaman yang berkembang.",
+                    'assessment_confidence'         => "Kelangsungan tata kelola selama transisi kepemimpinan harus dikelola secara eksplisit untuk mencegah kemunduran kontrol.",
                     'executive_strategic_recommendations' => [
-                        "Mempertahankan dan memvalidasi tingkat kematangan yang tinggi melalui audit eksternal berkala dan penilaian pihak ketiga yang independen untuk memastikan kesiapan sertifikasi yang berkelanjutan.",
-                        "Memperluas ruang lingkup ISMS untuk mengatasi kerangka kerja yang berkembang seperti ISO 27701 (Privasi) atau NIST CSF guna memperkuat postur keamanan organisasi secara keseluruhan.",
-                        "Memanfaatkan kematangan organisasi untuk berkontribusi pada pembagian pengetahuan keamanan di seluruh industri, memperkuat kemampuan internal dan kredibilitas eksternal."
+                        "Mempertahankan dan memvalidasi tingkat kematangan yang tinggi melalui audit eksternal berkala.",
+                        "Memperluas ruang lingkup ISMS untuk mengatasi kerangka kerja yang berkembang seperti ISO 27701 (Privasi) atau NIST CSF."
                     ],
-                    'assessment_confidence'               => "Keyakinan penilaian sangat tinggi. Penilaian ini didukung secara komprehensif oleh bukti terdokumentasi dan catatan rinci di semua kontrol yang dinilai, memberikan dasar yang kuat untuk kesimpulan yang disajikan dalam ringkasan eksekutif ini.",
                 ];
             } else {
                 $structured = [
-                    'overall_assessment_conclusion'       => "The organization has achieved an Optimized level of information security maturity. Security is embedded as a core organizational value, and the ISMS is continuously improved through innovation, external benchmarking, and proactive threat management.",
-                    'overall_risk_areas'                  => "At this maturity level, principal risks relate to maintaining consistency during organizational changes, ensuring third-party supply chain compliance, and sustaining innovation in emerging threat environments. Governance continuity during leadership transitions should be explicitly managed.",
+                    'overall_assessment_conclusion' => "The organization has achieved an Optimized level of information security maturity. Security is embedded as a core organizational value, and the ISMS is continuously improved.",
+                    'overall_risk_areas'            => "Principal risks relate to maintaining consistency during organizational changes, ensuring third-party supply chain compliance, and sustaining innovation in emerging threat environments.",
+                    'assessment_confidence'         => "Governance continuity during leadership transitions should be explicitly managed to prevent control regression.",
                     'executive_strategic_recommendations' => [
-                        "Sustain and validate high maturity levels through periodic external audits and independent third-party assessments to ensure continued certification readiness.",
-                        "Expand the ISMS scope to address emerging frameworks such as ISO 27701 (Privacy) or NIST CSF to strengthen the organization's overall security posture.",
-                        "Leverage the organization's maturity to contribute to industry-wide security knowledge sharing, strengthening both internal capability and external credibility."
+                        "Sustain and validate high maturity levels through periodic external audits.",
+                        "Expand the ISMS scope to address emerging frameworks such as ISO 27701 (Privacy) or NIST CSF."
                     ],
-                    'assessment_confidence'               => "Assessment confidence is high. The assessment is comprehensively supported by documented evidence and detailed notes across all assessed controls, providing a strong foundation for the conclusions presented in this executive summary.",
                 ];
             }
         }

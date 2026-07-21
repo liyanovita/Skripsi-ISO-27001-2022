@@ -13,7 +13,7 @@
 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden max-w-4xl">
     <div class="p-6 border-b border-slate-200 bg-slate-50">
         <h2 class="text-xl font-black text-slate-800">Add New Standard / Control</h2>
-        <p class="text-sm text-slate-500">Create a new clause or control for the ISO 27001 structure.</p>
+        <p class="text-sm text-slate-500">Create a new clause or control for the ISO 27001:2022 structure.</p>
     </div>
 
     <form method="POST" action="{{ route('admin.standards.store') }}" class="p-6" x-data="standardForm()">

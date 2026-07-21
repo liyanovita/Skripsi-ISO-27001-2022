@@ -1,14 +1,10 @@
 <section>
-    <header class="mb-5">
-        <h2 class="text-sm font-black text-slate-900 tracking-tight uppercase">{{ __('Change Password') }}</h2>
-        <p class="mt-0.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Update your password regularly to maintain account security.') }}</p>
-    </header>
 
     <form method="post" action="{{ route('profile.password.update') }}" class="space-y-4">
         @csrf
         @method('PUT')
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 gap-4">
             {{-- Current Password --}}
             <div class="space-y-1.5">
                 <label for="current_password" class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">{{ __('Current Password') }}</label>

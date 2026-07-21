@@ -72,7 +72,7 @@ class WebhookApiTest extends TestCase
         $this->assertEquals("1. Document key processes.\n2. Assign responsibilities.", $result->corrective_action_plan['action']);
         $this->assertEquals('High', $result->risk_priority);
         $this->assertEquals('Reduces operational compliance gaps.', $result->impact_interpretation);
-        $this->assertEquals('No files uploaded yet.', $result->evidence_validation);
+        $this->assertNull($result->evidence_validation);
     }
 
     /**

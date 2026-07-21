@@ -21,13 +21,40 @@
                     {{ str_replace('_', ' ', $session->status) }}
                 </span>
             </h2>
-            <div class="flex items-center gap-4 mt-2 text-sm text-slate-500">
+            <div class="flex items-center gap-4 mt-2 text-sm text-slate-500 flex-wrap">
                 <a href="{{ route('admin.users.show', $session->user_id) }}" class="flex items-center gap-2 hover:text-blue-600 transition-colors">
                     <i class="fa-solid fa-user"></i>
                     {{ $session->user->name ?? 'Unknown' }}
                 </a>
+                @if($session->organization)
+                <span class="flex items-center gap-1">
+                    <i class="fa-solid fa-building"></i>
+                    {{ $session->organization->name }}
+                </span>
+                @endif
                 <span class="flex items-center gap-1"><i class="fa-solid fa-calendar"></i> {{ $session->created_at->format('M d, Y H:i') }}</span>
                 <span class="flex items-center gap-1"><i class="fa-solid fa-clock"></i> Updated {{ $session->updated_at->diffForHumans() }}</span>
+                @if($session->deadline)
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider {{ $session->deadline->isPast() ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-amber-50 text-amber-600 border border-amber-200' }}">
+                    <i class="fa-solid fa-hourglass-half"></i> Deadline: {{ $session->deadline->format('M d, Y') }}
+                </span>
+                @endif
+            </div>
+            <div class="mt-4 flex items-center gap-3 flex-wrap">
+                <a href="{{ route('admin.sessions.workspace', $session) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-sm transition-all hover:scale-[1.02] duration-200">
+                    <i class="fa-solid fa-clipboard-check"></i> Open Assessment Workspace
+                </a>
+                <a href="{{ route('admin.capa.index', ['session_id' => $session->id]) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-black uppercase tracking-widest border border-rose-200 transition-all duration-200">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Manage Improvement Tracking
+                </a>
+                @if($session->status === 'completed')
+                <a href="{{ route('reports.export-pdf', $session) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-black uppercase tracking-widest border border-slate-200 transition-all duration-200">
+                    <i class="fa-solid fa-file-pdf text-red-600"></i> Export PDF Report
+                </a>
+                <a href="{{ route('reports.export-excel', $session) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-black uppercase tracking-widest border border-slate-200 transition-all duration-200">
+                    <i class="fa-solid fa-file-excel text-emerald-600"></i> Export Excel Data
+                </a>
+                @endif
             </div>
         </div>
         <div class="flex items-center gap-3 shrink-0">
@@ -55,7 +82,7 @@
                 if ($score >= 4.5) $label = 'Optimized (Level 5)';
                 elseif ($score >= 3.5) $label = 'Managed (Level 4)';
                 elseif ($score >= 2.5) $label = 'Defined (Level 3)';
-                elseif ($score >= 1.5) $label = 'Repeatable (Level 2)';
+                elseif ($score >= 1.5) $label = 'Limited/Repeatable (Level 2)';
                 elseif ($score >= 0.5) $label = 'Initial (Level 1)';
             @endphp
             <div class="text-center bg-slate-50 rounded-xl px-6 py-3 border border-slate-200">
@@ -169,7 +196,7 @@
                     <th class="px-6 py-3">Control</th>
                     <th class="px-6 py-3">Title</th>
                     <th class="px-6 py-3">Score</th>
-                    <th class="px-6 py-3">CAPA Status</th>
+                    <th class="px-6 py-3">Improvement Status</th>
                     <th class="px-6 py-3">PIC</th>
                     <th class="px-6 py-3">Due Date</th>
                 </tr>
@@ -215,7 +242,7 @@ document.addEventListener('turbo:load', function() {
     new Chart(canvas, {
         type: 'bar',
         data: {
-            labels: ['Initial (L1)', 'Repeatable (L2)', 'Defined (L3)', 'Managed (L4)', 'Optimized (L5)'],
+            labels: ['Initial (L1)', 'Limited/Repeatable (L2)', 'Defined (L3)', 'Managed (L4)', 'Optimized (L5)'],
             datasets: [{
                 data: @json($maturityDistribution),
                 backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'],

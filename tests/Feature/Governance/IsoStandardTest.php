@@ -43,7 +43,7 @@ class IsoStandardTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.standards.index'))
             ->assertOk()
-            ->assertSee('ISO 27001 Standards')
+            ->assertSee('ISO 27001:2022 Standards')
             ->assertSee('4.1')
             ->assertSee('Understanding the Organization');
     }
@@ -194,5 +194,42 @@ class IsoStandardTest extends TestCase
         $parent = IsoStandard::where('code', '4.3')->firstOrFail();
 
         $this->assertEquals($parent->id, $child->parent_id);
+    }
+
+    public function test_admin_cannot_import_empty_csv_file(): void
+    {
+        $admin = $this->createAdminUser();
+
+        $file = UploadedFile::fake()->createWithContent('empty.csv', "");
+
+        $this->actingAs($admin)
+            ->from(route('admin.standards.index'))
+            ->post(route('admin.standards.import'), [
+                'csv_file' => $file,
+            ])
+            ->assertRedirect(route('admin.standards.index'))
+            ->assertSessionHas('error', 'The uploaded CSV file is empty or invalid.');
+    }
+
+    public function test_admin_can_import_csv_with_semicolon_delimiter(): void
+    {
+        $admin = $this->createAdminUser();
+
+        $csvContent = "parent_code;type;level;code;title;description;questions;implementation_guidance\n"
+                    . ";clause;1;4.4;Semicolon Title;Semicolon Desc;[\"Question C\"];Guidance C\n";
+
+        $file = UploadedFile::fake()->createWithContent('standards_semicolon.csv', $csvContent);
+
+        $this->actingAs($admin)
+            ->post(route('admin.standards.import'), [
+                'csv_file' => $file,
+            ])
+            ->assertRedirect(route('admin.standards.index'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('iso_standards', [
+            'code' => '4.4',
+            'title' => 'Semicolon Title',
+        ]);
     }
 }

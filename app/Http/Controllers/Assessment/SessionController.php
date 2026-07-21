@@ -27,14 +27,21 @@ class SessionController extends Controller
     public function index(): View
     {
         $sessions = $this->sessionService->getUserSessions(auth()->id());
-        return view('sessions.index', compact('sessions'));
+        return view('sessions.index', [
+            'sessions' => $sessions,
+            'organizations' => \App\Models\Organization::orderBy('name', 'asc')->get()
+        ]);
     }
 
     public function store(CreateSessionRequest $request): RedirectResponse
     {
+        if (!auth()->user()->isAdmin()) {
+            return $this->errorRedirect(__('Only administrators can initialize new sessions.'));
+        }
         try {
             $this->sessionService->createSession([
                 'user_id' => auth()->id(),
+                'organization_id' => $request->organization_id,
                 'name' => $request->name,
             ]);
 
@@ -58,6 +65,9 @@ class SessionController extends Controller
 
     public function update(UpdateSessionRequest $request, int $id): RedirectResponse
     {
+        if (!auth()->user()->isAdmin()) {
+            return $this->errorRedirect(__('Only administrators can perform this action.'));
+        }
         try {
             $this->sessionService->updateSession($id, auth()->id(), [
                 'name' => $request->name
@@ -71,6 +81,9 @@ class SessionController extends Controller
 
     public function destroy(int $id): RedirectResponse
     {
+        if (!auth()->user()->isAdmin()) {
+            return $this->errorRedirect(__('Only administrators can perform this action.'));
+        }
         try {
             $this->sessionService->deleteSession($id, auth()->id());
 
@@ -82,6 +95,9 @@ class SessionController extends Controller
 
     public function restore(int $id): RedirectResponse
     {
+        if (!auth()->user()->isAdmin()) {
+            return $this->errorRedirect(__('Only administrators can perform this action.'));
+        }
         try {
             $this->sessionService->restoreSession($id, auth()->id());
 
@@ -93,6 +109,9 @@ class SessionController extends Controller
 
     public function forceDelete(int $id): RedirectResponse
     {
+        if (!auth()->user()->isAdmin()) {
+            return $this->errorRedirect(__('Only administrators can perform this action.'));
+        }
         try {
             $this->sessionService->forceDeleteSession($id, auth()->id());
 
@@ -104,6 +123,9 @@ class SessionController extends Controller
 
     public function clone(int $id): RedirectResponse
     {
+        if (!auth()->user()->isAdmin()) {
+            return $this->errorRedirect(__('Only administrators can perform this action.'));
+        }
         try {
             $newSession = $this->sessionService->cloneSession($id, auth()->id());
 
@@ -126,6 +148,12 @@ class SessionController extends Controller
 
     public function exportJson(int $id): JsonResponse
     {
+        if (!auth()->user()->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Only administrators can export templates.')
+            ], 403);
+        }
         try {
             $exportData = $this->sessionService->exportSessionToJson($id);
             
@@ -144,6 +172,9 @@ class SessionController extends Controller
 
     public function importJson(ImportSessionRequest $request): RedirectResponse
     {
+        if (!auth()->user()->isAdmin()) {
+            return $this->errorRedirect(__('Only administrators can import sessions.'));
+        }
         try {
             $data = json_decode(file_get_contents($request->file('json_file')->getRealPath()), true);
 

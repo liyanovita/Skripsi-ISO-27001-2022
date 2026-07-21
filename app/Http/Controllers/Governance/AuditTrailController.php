@@ -17,8 +17,18 @@ class AuditTrailController extends Controller
     {
         $userId = auth()->id();
         
-        $sessions = AssessmentSession::where('user_id', $userId)->orderByDesc('created_at')->get();
+        $sessions = AssessmentSession::where(function($q) use ($userId) {
+            $q->where('user_id', $userId)
+              ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId));
+        })->orderByDesc('created_at')->get();
+
+        $sessionIds = $sessions->pluck('id')->all();
         $selectedId = $request->get('session_id', $sessions->first()?->id);
+
+        if ($selectedId && !in_array($selectedId, $sessionIds)) {
+            $selectedId = $sessions->first()?->id;
+        }
+
         $search = $request->get('search');
         
         $query = $this->buildQuery($userId, $selectedId, $search);
@@ -31,7 +41,19 @@ class AuditTrailController extends Controller
     public function export(Request $request)
     {
         $userId = auth()->id();
+        
+        $sessions = AssessmentSession::where(function($q) use ($userId) {
+            $q->where('user_id', $userId)
+              ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId));
+        })->orderByDesc('created_at')->get();
+
+        $sessionIds = $sessions->pluck('id')->all();
         $selectedId = $request->get('session_id');
+
+        if ($selectedId && !in_array($selectedId, $sessionIds)) {
+            abort(403, 'Unauthorized.');
+        }
+
         $search = $request->get('search');
 
         $query = $this->buildQuery($userId, $selectedId, $search);

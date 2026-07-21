@@ -34,7 +34,7 @@
                     </div>
                     <div>
                         <h6 class="text-[11px] font-bold text-white uppercase tracking-wider mb-1">{{ __('Verify & Evidence') }}</h6>
-                        <p class="text-[9px] text-slate-400 leading-relaxed font-medium">{!! __('Select a maturity score from <strong>0-5</strong>. Scores 0-3 are classified as gaps and will require evidence and corrective actions (CAPA).') !!}</p>
+                        <p class="text-[9px] text-slate-400 leading-relaxed font-medium">{!! __('Select a maturity score from <strong>0-5</strong>. Scores 0-3 are classified as gaps and will require evidence and improvement tracking.') !!}</p>
                     </div>
                 </div>
 
@@ -54,12 +54,12 @@
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
             @php
                 $guides = [
-                    0 => ['title' => 'Non-existent', 'desc' => 'Lack of policies, procedures, controls, etc.', 'color' => 'bg-slate-100 text-slate-400 border-slate-200'],
-                    1 => ['title' => 'Initial', 'desc' => 'Development has just started and will require significant effort to meet the requirements.', 'color' => 'bg-blue-50 text-blue-400 border-blue-100'],
-                    2 => ['title' => 'Limited/Repeatable', 'desc' => 'Progress is reasonably good but not yet complete.', 'color' => 'bg-blue-100 text-blue-600 border-blue-200'],
-                    3 => ['title' => 'Defined', 'desc' => 'Development is more or less complete, although details are still lacking and/or it has not been fully implemented, enforced, and actively supported by management.', 'color' => 'bg-indigo-500 text-white border-indigo-400'],
-                    4 => ['title' => 'Managed', 'desc' => 'Development is complete, processes/controls have been implemented and are newly operational.', 'color' => 'bg-indigo-700 text-white border-indigo-600'],
-                    5 => ['title' => 'Optimized', 'desc' => 'Requirements are fully met, operating completely as expected, actively monitored and improved, and there is substantial evidence that can be provided to auditors.', 'color' => 'bg-slate-900 text-white border-slate-900'],
+                    0 => ['title' => 'Non-existent', 'desc' => 'Control is not implemented', 'color' => 'bg-slate-100 text-slate-400 border-slate-200'],
+                    1 => ['title' => 'Initial', 'desc' => 'Control is planned but not consistently implemented', 'color' => 'bg-blue-50 text-blue-400 border-blue-100'],
+                    2 => ['title' => 'Limited/Repeatable', 'desc' => 'Control is partially implemented', 'color' => 'bg-blue-100 text-blue-600 border-blue-200'],
+                    3 => ['title' => 'Defined', 'desc' => 'Control is implemented according to defined procedures', 'color' => 'bg-indigo-500 text-white border-indigo-400'],
+                    4 => ['title' => 'Managed', 'desc' => 'Control is consistently implemented and its effectiveness is monitored', 'color' => 'bg-indigo-700 text-white border-indigo-600'],
+                    5 => ['title' => 'Optimized', 'desc' => 'Control is optimally implemented and supported by continuous improvement', 'color' => 'bg-slate-900 text-white border-slate-900'],
                 ];
             @endphp
             @foreach($guides as $v => $g)
@@ -113,7 +113,7 @@
                 aiPlan: @js(is_array($result->corrective_action_plan) ? implode("\n", $result->corrective_action_plan) : ($result->corrective_action_plan ?? '')),
                 aiInsight: @js(is_array($result->control_insight) ? ($result->control_insight['gap'] ?? '') : ($result->control_insight ?? '')),
                 aiPriority: @js($result->risk_priority ?? ''),
-                aiValidation: @js($result->evidence_validation ?? ''),
+                aiValidation: '',
                 aiImpact: @js($result->impact_interpretation ?? ''),
                 nextId: {{ $nextId ?? 'null' }},
                 evidenceFiles: @js(is_array($result->evidence_file) ? $result->evidence_file : (empty($result->evidence_file) ? [] : [$result->evidence_file])),
@@ -143,6 +143,15 @@
                         'non-compliant': 'bg-rose-100 text-rose-800 border-rose-200',
                     };
                     return info[this.complianceStatus?.toLowerCase()] || 'bg-slate-100 text-slate-700 border-slate-200';
+                },
+
+                get complianceTooltip() {
+                    const desc = {
+                        'compliant': '{{ __('Control is implemented according to ISO/IEC 27001:2022 standard requirements and demonstrates adequate implementation.') }}',
+                        'partially compliant': '{{ __('Control is partially implemented, but there are still gaps or aspects that need improvement to meet standard requirements.') }}',
+                        'non-compliant': '{{ __('Control is not implemented or its implementation does not meet the requirements specified in the ISO/IEC 27001:2022 standard.') }}',
+                    };
+                    return desc[this.complianceStatus?.toLowerCase()] || '';
                 },
 
                 get riskInfo() {
@@ -232,7 +241,7 @@
                                                          : (aiResult.corrective_action_plan || '');
                                     self.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null) ? (aiResult.control_insight.gap || '') : (aiResult.control_insight || '');
                                     self.aiPriority   = aiResult.risk_priority || '';
-                                    self.aiValidation = aiResult.evidence_validation || '';
+                                    self.aiValidation = '';
                                     self.aiImpact     = aiResult.impact_interpretation || '';
                                     self.aiLoading    = false;
                                     window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('AI analysis received successfully!') }}', type: 'success' } }));
@@ -282,7 +291,7 @@
                                                      : (aiResult.corrective_action_plan || '');
                                 self.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null) ? (aiResult.control_insight.gap || '') : (aiResult.control_insight || '');
                                 self.aiPriority   = aiResult.risk_priority || '';
-                                self.aiValidation = aiResult.evidence_validation || '';
+                                self.aiValidation = '';
                                 self.aiImpact     = aiResult.impact_interpretation || '';
                             }
                             Swal.fire({
@@ -330,7 +339,7 @@
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-all duration-700 border shadow-sm"
                          :class="ratingInfo.color">
-                        <span class="text-[7px] font-bold uppercase mb-0.5 tracking-widest opacity-60">{{ $isClause ? 'Clause' : 'Annex' }}</span>
+                        <span class="text-[7px] font-bold uppercase mb-0.5 tracking-widest opacity-60">{{ $isClause ? __('Clause') : __('Annex') }}</span>
                         <span class="text-lg font-black tracking-tighter">{{ $result->standard->code }}</span>
                     </div>
                     <div>
@@ -351,10 +360,10 @@
                             </template>
                             <template x-if="isApplicable && isAssessed && rating !== null">
                                 <div class="flex items-center gap-2 pl-3 border-l border-slate-200">
-                                    <span class="text-[9px] font-bold text-blue-600 uppercase tracking-widest" x-text="'Lvl ' + rating"></span>
+                                    <span class="text-[9px] font-bold text-blue-600 uppercase tracking-widest" x-text="'{{ __('Lvl') }} ' + rating"></span>
                                     <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[8px] font-bold uppercase tracking-widest" x-text="ratingInfo.title"></span>
                                     <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest ml-1" :class="riskInfo" x-text="risk"></span>
-                                    <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest ml-1 border" :class="complianceColorInfo" x-text="complianceStatus"></span>
+                                    <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest ml-1 border cursor-help" :class="complianceColorInfo" :title="complianceTooltip" x-text="complianceStatus"></span>
                                 </div>
                             </template>
                         </div>
@@ -466,12 +475,12 @@
                                 <div class="grid grid-cols-3 md:grid-cols-6 gap-1.5">
                                     @php
                                         $options = [
-                                            0 => ['title' => 'Non-existent', 'desc' => 'Lack of policies, procedures, controls, etc.', 'color' => 'bg-slate-100 text-slate-400 border-slate-200'],
-                                            1 => ['title' => 'Initial', 'desc' => 'Development has just started and will require significant effort to meet the requirements.', 'color' => 'bg-blue-50 text-blue-400 border-blue-100'],
-                                            2 => ['title' => 'Limited/Repeatable', 'desc' => 'Progress is reasonably good but not yet complete.', 'color' => 'bg-blue-100 text-blue-600 border-blue-200'],
-                                            3 => ['title' => 'Defined', 'desc' => 'Development is more or less complete, although details are still lacking and/or it has not been fully implemented, enforced, and actively supported by management.', 'color' => 'bg-indigo-500 text-white border-indigo-400'],
-                                            4 => ['title' => 'Managed', 'desc' => 'Development is complete, processes/controls have been implemented and are newly operational.', 'color' => 'bg-indigo-700 text-white border-indigo-600'],
-                                            5 => ['title' => 'Optimized', 'desc' => 'Requirements are fully met, operating completely as expected, actively monitored and improved, and there is substantial evidence that can be provided to auditors.', 'color' => 'bg-slate-900 text-white border-slate-900'],
+                                            0 => ['title' => 'Non-existent', 'desc' => 'Control is not implemented', 'color' => 'bg-slate-100 text-slate-400 border-slate-200'],
+                                            1 => ['title' => 'Initial', 'desc' => 'Control is planned but not consistently implemented', 'color' => 'bg-blue-50 text-blue-400 border-blue-100'],
+                                            2 => ['title' => 'Limited/Repeatable', 'desc' => 'Control is partially implemented', 'color' => 'bg-blue-100 text-blue-600 border-blue-200'],
+                                            3 => ['title' => 'Defined', 'desc' => 'Control is implemented according to defined procedures', 'color' => 'bg-indigo-500 text-white border-indigo-400'],
+                                            4 => ['title' => 'Managed', 'desc' => 'Control is consistently implemented and its effectiveness is monitored', 'color' => 'bg-indigo-700 text-white border-indigo-600'],
+                                            5 => ['title' => 'Optimized', 'desc' => 'Control is optimally implemented and supported by continuous improvement', 'color' => 'bg-slate-900 text-white border-slate-900'],
                                         ];
                                     @endphp
                                     @foreach($options as $val => $opt)
@@ -628,7 +637,7 @@
                                             plan: aiPlan,
                                             insight: aiInsight,
                                             priority: aiPriority,
-                                            validation: aiValidation,
+                                            validation: '',
                                             impact: aiImpact
                                         }}))"
                                         class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shadow-md shadow-indigo-600/20">

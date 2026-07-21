@@ -17,16 +17,7 @@ use Illuminate\Validation\ValidationException;
  *     @OA\Property(property="email", type="string", format="email", example="user@example.com"),
  *     @OA\Property(property="password", type="string", format="password", example="password123")
  * )
- * 
- * @OA\Schema(
- *     schema="RegisterRequest",
- *     type="object",
- *     required={"name", "email", "password", "password_confirmation"},
- *     @OA\Property(property="name", type="string", minLength=2, maxLength=255, example="John Doe"),
- *     @OA\Property(property="email", type="string", format="email", maxLength=255, example="john.doe@example.com"),
- *     @OA\Property(property="password", type="string", format="password", minLength=8, example="password123"),
- *     @OA\Property(property="password_confirmation", type="string", format="password", example="password123")
- * )
+
  * 
  * @OA\Schema(
  *     schema="AuthResponse",
@@ -115,68 +106,6 @@ class AuthApiController extends BaseApiController
                 'email' => $user->email,
             ],
         ], 'Login successful');
-    }
-
-    /**
-     * @OA\Post(
-     *     path="/api/auth/register",
-     *     operationId="registerUser",
-     *     tags={"Authentication"},
-     *     summary="User registration",
-     *     description="Register a new user account and return access token",
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/RegisterRequest")
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Registration successful",
-     *         @OA\JsonContent(ref="#/components/schemas/AuthResponse")
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Validation failed"),
-     *             @OA\Property(
-     *                 property="errors",
-     *                 type="object",
-     *                 @OA\Property(
-     *                     property="email",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="The email has already been taken.")
-     *                 )
-     *             )
-     *         )
-     *     )
-     * )
-     */
-    public function register(Request $request): JsonResponse
-    {
-        $request->validate([
-            'name' => 'required|string|min:2|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        $token = $user->createToken('api-token')->plainTextToken;
-
-        return $this->successResponse([
-            'token' => $token,
-            'token_type' => 'Bearer',
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-            ],
-        ], 'Registration successful', 201);
     }
 
     /**

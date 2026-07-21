@@ -4,17 +4,17 @@
 @section('header_title', 'My Profile & Settings')
 
 @section('content')
-<div class="max-w-2xl">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-8">
 
     {{-- Profile Info Form --}}
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between">
         <div class="p-5 border-b border-slate-200 bg-slate-50">
             <h2 class="font-bold text-slate-800 flex items-center gap-2">
                 <i class="fa-solid fa-user-gear text-blue-600"></i> Profile Information
             </h2>
             <p class="text-sm text-slate-500 mt-0.5">Update admin display name and email address.</p>
         </div>
-        <form method="POST" action="{{ route('admin.profile.update') }}" class="p-6">
+        <form method="POST" action="{{ route('admin.profile.update') }}" class="p-6 flex-1 flex flex-col justify-between">
             @csrf
             @method('PUT')
 
@@ -31,7 +31,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+            <div class="space-y-5 mb-6">
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1.5">Full Name <span class="text-red-500">*</span></label>
                     <input type="text" name="name" value="{{ old('name', $admin->name) }}"
@@ -59,18 +59,18 @@
     </div>
 
     {{-- Password Form --}}
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between">
         <div class="p-5 border-b border-slate-200 bg-slate-50">
             <h2 class="font-bold text-slate-800 flex items-center gap-2">
                 <i class="fa-solid fa-key text-amber-500"></i> Change Password
             </h2>
             <p class="text-sm text-slate-500 mt-0.5">For security, use a strong password of at least 8 characters.</p>
         </div>
-        <form method="POST" action="{{ route('admin.profile.password') }}" class="p-6">
+        <form method="POST" action="{{ route('admin.profile.password') }}" class="p-6 flex-1 flex flex-col justify-between">
             @csrf
             @method('PUT')
 
-            <div class="space-y-5 mb-5">
+            <div class="space-y-5 mb-8">
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1.5">Current Password <span class="text-red-500">*</span></label>
                     <input type="password" name="current_password"

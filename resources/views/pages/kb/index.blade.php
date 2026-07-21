@@ -9,6 +9,7 @@
         'title' => $r->title,
         'category' => $r->category,
         'category_label' => $r->category === 'sop' ? 'SOP' : __(ucfirst($r->category)),
+        'category_class' => $r->category === 'guides' ? 'bg-indigo-50/80 text-indigo-700 border-indigo-100' : ($r->category === 'templates' ? 'bg-emerald-50/80 text-emerald-700 border-emerald-100' : ($r->category === 'sop' ? 'bg-amber-50/80 text-amber-700 border-amber-100' : 'bg-rose-50/80 text-rose-700 border-rose-100')),
         'type' => $r->format ? strtoupper($r->format) : 'PDF',
         'desc' => collect(preg_split('/(?<=[.?!])\s+(?=[A-Za-z])/', $r->description ?? ''))->take(1)->implode(' '),
         'content' => $r->content,
@@ -38,6 +39,7 @@
                 <p class="text-slate-400 font-bold uppercase tracking-widest text-[8px] mt-0.5">{{ __('Internal Documentation & Resources') }}</p>
             </div>
         </div>
+        @if(auth()->user()->isAdmin())
         <div class="flex flex-col sm:flex-row gap-2">
             <a href="{{ route('knowledge-base.export-json') }}" data-turbo="false" class="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2">
                 <i class="fa-solid fa-file-export"></i> {{ __('Export') }}
@@ -53,18 +55,10 @@
                 <i class="fa-solid fa-plus"></i> {{ __('Add Resource') }}
             </a>
         </div>
+        @endif
     </div>
 
-    {{-- Privacy Notice Banner --}}
-    <div class="flex items-start gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/60 rounded-2xl p-4 shadow-sm">
-        <div class="w-8 h-8 rounded-lg bg-blue-100/80 text-blue-600 flex items-center justify-center text-sm shrink-0 shadow-sm">
-            <i class="fa-solid fa-user-shield"></i>
-        </div>
-        <div class="space-y-0.5">
-            <h4 class="text-xs font-black text-blue-900 uppercase tracking-wide">{{ __('Document Privacy Notice') }}</h4>
-            <p class="text-[11px] font-bold text-blue-700/80 leading-relaxed">{{ __('All custom documents uploaded by you are strictly private. They can only be accessed and managed by your account, and are hidden from administrators and other users.') }}</p>
-        </div>
-    </div>
+
 
     {{-- ===== KNOWLEDGE BASE CONTENT ===== --}}
     <div class="space-y-4">
@@ -90,12 +84,9 @@
                                 <i class="fa-solid fa-circle-xmark text-sm"></i>
                             </a>
                         @endif
-                        @if(($selectedSource ?? 'all') !== 'all')
-                            <input type="hidden" name="source" value="{{ $selectedSource }}">
-                        @endif
                     </div>
 
-                    <div class="relative min-w-44">
+                    <div class="relative min-w-48">
                         <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
                             <i class="fa-solid fa-tag"></i>
                         </div>
@@ -132,40 +123,9 @@
                         @if(($selectedCategory ?? 'all') !== 'all')
                             <span>{{ __('Category') }}: {{ $selectedCategory === 'sop' ? 'SOP' : __(ucfirst($selectedCategory)) }}</span>
                         @endif
-                        @if(($selectedSource ?? 'all') !== 'all')
-                            <span>{{ __('Source') }}: {{ __(ucfirst($selectedSource)) }}</span>
-                        @endif
                     </div>
                 @endif
 
-                <div class="flex items-center gap-2 overflow-x-auto pb-1">
-                    <a href="{{ route('knowledge-base.index', array_filter(['q' => $search ?: null, 'category' => ($selectedCategory ?? 'all') !== 'all' ? $selectedCategory : null, 'sort' => ($selectedSort ?? 'latest') !== 'latest' ? $selectedSort : null])) }}"
-                        @class([
-                            'px-4 py-2.5 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap',
-                            'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' => ($selectedSource ?? 'all') === 'all',
-                            'bg-slate-100 text-slate-500 hover:bg-slate-200' => ($selectedSource ?? 'all') !== 'all',
-                        ])>
-                        <i class="fa-solid fa-layer-group"></i> {{ __('All Sources') }} ({{ $totalCount }})
-                    </a>
-
-                    <a href="{{ route('knowledge-base.index', array_filter(['q' => $search ?: null, 'category' => ($selectedCategory ?? 'all') !== 'all' ? $selectedCategory : null, 'source' => 'official', 'sort' => ($selectedSort ?? 'latest') !== 'latest' ? $selectedSort : null])) }}"
-                        @class([
-                            'px-4 py-2.5 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap',
-                            'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' => ($selectedSource ?? 'all') === 'official',
-                            'bg-slate-100 text-slate-500 hover:bg-slate-200' => ($selectedSource ?? 'all') !== 'official',
-                        ])>
-                        <i class="fa-solid fa-circle-check"></i> {{ __('Official Only') }} ({{ $statistics['system_resources'] }})
-                    </a>
-
-                    <a href="{{ route('knowledge-base.index', array_filter(['q' => $search ?: null, 'category' => ($selectedCategory ?? 'all') !== 'all' ? $selectedCategory : null, 'source' => 'custom', 'sort' => ($selectedSort ?? 'latest') !== 'latest' ? $selectedSort : null])) }}"
-                        @class([
-                            'px-4 py-2.5 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap',
-                            'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' => ($selectedSource ?? 'all') === 'custom',
-                            'bg-slate-100 text-slate-500 hover:bg-slate-200' => ($selectedSource ?? 'all') !== 'custom',
-                        ])>
-                        <i class="fa-solid fa-user-pen"></i> {{ __('Custom Only') }} ({{ $statistics['user_resources'] }})
-                    </a>
-                </div>
             </form>
         </div>
 
@@ -178,14 +138,7 @@
                         <div class="flex items-start justify-between mb-3">
                             <div class="flex-1">
                                 <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
-                                    <template x-if="res.is_system">
-                                        <span class="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[8px] font-black uppercase tracking-widest border border-indigo-100 flex items-center gap-1">
-                                            <i class="fa-solid fa-circle-check"></i>{{ __('Official') }}</span>
-                                    </template>
-                                    <template x-if="!res.is_system">
-                                        <span class="px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded text-[8px] font-black uppercase tracking-widest border border-slate-200 flex items-center gap-1">{{ __('Custom') }}</span>
-                                    </template>
-                                    <span class="px-1.5 py-0.5 bg-slate-50 text-slate-400 rounded text-[8px] font-black uppercase tracking-widest border border-slate-100/60" x-text="res.category_label"></span>
+                                    <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border" :class="res.category_class" x-text="res.category_label"></span>
                                 </div>
                                 <h3 class="text-base font-bold text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors leading-snug mb-1" x-text="res.title"></h3>
                                 <p class="text-xs text-slate-500 font-medium leading-snug" x-text="res.desc"></p>
@@ -246,6 +199,7 @@
                                     </a>
                                 </template>
 
+                                @if(auth()->user()->isAdmin())
                                 <template x-if="!res.is_system">
                                     <div class="flex items-center gap-1.5">
                                         <a :href="res.edit_url" @click.stop class="w-8 h-8 bg-slate-100 text-slate-400 rounded-lg flex items-center justify-center hover:bg-emerald-50 hover:text-emerald-600 transition-all shadow-sm" title="{{ __('Edit') }}">
@@ -278,6 +232,7 @@
                                         </button>
                                     </div>
                                 </template>
+                                @endif
                             </div>
                         </div>
                     </div>

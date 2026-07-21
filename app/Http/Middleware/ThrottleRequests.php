@@ -25,7 +25,6 @@ class ThrottleRequests
         
         // Authentication endpoints
         'login' => ['limit' => 5, 'decay' => 15],
-        'register' => ['limit' => 3, 'decay' => 60],
         'password-reset' => ['limit' => 3, 'decay' => 60],
         
         // File upload endpoints
@@ -104,9 +103,6 @@ class ThrottleRequests
 
         if (str_contains($path, '/login')) {
             return 'login';
-        }
-        if (str_contains($path, '/register')) {
-            return 'register';
         }
         if (str_contains($path, '/password')) {
             return 'password-reset';

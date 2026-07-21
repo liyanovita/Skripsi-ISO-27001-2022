@@ -99,6 +99,10 @@ class AdminUsersTest extends TestCase
     public function test_admin_can_create_new_user(): void
     {
         $admin = $this->adminUser();
+        $org = \App\Models\Organization::create([
+            'name' => 'Test Corp',
+            'code' => 'TSTCP',
+        ]);
 
         $this->actingAs($admin)
             ->post(route('admin.users.store'), [
@@ -108,9 +112,7 @@ class AdminUsersTest extends TestCase
                 'password_confirmation' => 'password123',
                 'role'              => 'user',
                 'status'            => 'active',
-                'organization_name' => 'Test Corp',
-                'business_sector'   => 'Technology',
-                'organization_scale'=> 'SME',
+                'organization_id'   => $org->id,
             ])
             ->assertRedirect(route('admin.users.index'))
             ->assertSessionHas('success');
@@ -118,6 +120,7 @@ class AdminUsersTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => 'newtest@example.com',
             'name'  => 'New Test User',
+            'organization_id' => $org->id,
         ]);
     }
 
@@ -126,7 +129,11 @@ class AdminUsersTest extends TestCase
     public function test_admin_can_view_user_detail(): void
     {
         $admin = $this->adminUser();
-        $user  = $this->regularUser(['organization_name' => 'Acme Corp']);
+        $org = \App\Models\Organization::create([
+            'name' => 'Acme Corp',
+            'code' => 'ACME',
+        ]);
+        $user  = $this->regularUser(['organization_id' => $org->id]);
 
         AssessmentSession::create([
             'user_id' => $user->id,
@@ -149,6 +156,10 @@ class AdminUsersTest extends TestCase
     {
         $admin = $this->adminUser();
         $user  = $this->regularUser();
+        $org = \App\Models\Organization::create([
+            'name' => 'New Org',
+            'code' => 'NEWORG',
+        ]);
 
         $this->actingAs($admin)
             ->get(route('admin.users.edit', $user))
@@ -160,12 +171,12 @@ class AdminUsersTest extends TestCase
                 'email'             => $user->email,
                 'role'              => 'user',
                 'status'            => 'active',
-                'organization_name' => 'New Org',
+                'organization_id'   => $org->id,
             ])
             ->assertRedirect(route('admin.users.show', $user))
             ->assertSessionHas('success');
 
-        $this->assertDatabaseHas('users', ['id' => $user->id, 'name' => 'Updated Name']);
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'name' => 'Updated Name', 'organization_id' => $org->id]);
     }
 
     public function test_admin_cannot_demote_themselves(): void

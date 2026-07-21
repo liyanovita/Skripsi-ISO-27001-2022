@@ -27,11 +27,12 @@ class IsoClauseSeeder extends Seeder
             'level'       => 'requirement',
             'code'        => '4.1',
             'title'       => 'Understanding the organization and its context',
-            'description' => 'The organization must determine external and internal issues that are relevant to its purpose and that affect its ability to achieve the intended outcome(s) of its information security management system.',
+            'description' => 'The organization must determine external and internal issues that are relevant to its purpose and that affect its ability to achieve the intended outcome(s) of its information security management system. Per ISO/IEC 27001:2022/AMD 1:2024, the organization shall also determine whether climate change is a relevant issue to its context.',
             'questions'   => [
-                'To what extent has the organization identified and reviewed internal issues (such as culture, values, performance) and external issues (such as legal, technological, market) that affect the objectives of the ISMS?'
+                'To what extent has the organization identified and reviewed internal issues (such as culture, values, performance) and external issues (such as legal, technological, market) that affect the objectives of the ISMS?',
+                'Has the organization determined whether climate change is a relevant issue to its context, and if so, has this been documented and reflected in the risk assessment? (ISO/IEC 27001:2022/AMD 1:2024)'
             ],
-            'implementation_guidance' => 'There should be a SWOT or PESTLE Analysis document covering legal, regulatory, technological, and organizational culture aspects, reviewed at least annually.'
+            'implementation_guidance' => 'There should be a SWOT or PESTLE Analysis document covering legal, regulatory, technological, and organizational culture aspects, reviewed at least annually. As required by AMD 1:2024, the analysis must explicitly address whether climate change (e.g., extreme weather events disrupting data centers, power supply risks, physical security of facilities) constitutes a relevant internal or external issue for the organization\'s ISMS scope.'
         ]);
 
         IsoStandard::create([
@@ -40,11 +41,12 @@ class IsoClauseSeeder extends Seeder
             'level'       => 'requirement',
             'code'        => '4.2',
             'title'       => 'Understanding the needs and expectations of interested parties',
-            'description' => 'The organization must determine interested parties, their requirements, and which of these requirements will be addressed through the ISMS.',
+            'description' => 'The organization must determine interested parties, their requirements, and which of these requirements will be addressed through the ISMS. Note (ISO/IEC 27001:2022/AMD 1:2024): Relevant interested parties can have requirements related to climate change.',
             'questions'   => [
-                'To what extent has the organization identified relevant interested parties and documented their requirements (legal, regulatory, contractual)?'
+                'To what extent has the organization identified relevant interested parties and documented their requirements (legal, regulatory, contractual)?',
+                'Has the organization considered whether any interested parties (e.g., regulators, investors, customers, supply chain partners) have requirements or expectations related to climate change that may impact information security operations? (ISO/IEC 27001:2022/AMD 1:2024)'
             ],
-            'implementation_guidance' => 'The Stakeholder Register must include Shareholders, Employees, Customers, and Government Agencies, along with their legal/contractual obligations.'
+            'implementation_guidance' => 'The Stakeholder Register must include Shareholders, Employees, Customers, and Government Agencies, along with their legal/contractual obligations. Per AMD 1:2024, the register should also capture climate-related requirements from interested parties — for example, ESG (Environmental, Social, and Governance) reporting requirements from investors, or regulatory mandates on business continuity in response to climate-related events that could affect data center operations or information availability.'
         ]);
 
         IsoStandard::create([

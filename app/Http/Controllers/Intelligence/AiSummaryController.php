@@ -113,25 +113,32 @@ class AiSummaryController extends Controller
 
         $html = '';
 
-        if (!empty($parsed['overall_assessment_conclusion'])) {
+        if (!empty($parsed['overall_assessment_summary'])) {
             $html .= '<div class="summary-section">'
-                   . '<div class="summary-section-title"><i class="fa-solid fa-chart-line"></i> Overall Assessment Conclusion</div>'
-                   . '<p class="summary-section-body">' . e($parsed['overall_assessment_conclusion']) . '</p>'
+                   . '<div class="summary-section-title"><i class="fa-solid fa-chart-line"></i> Overall Assessment Summary</div>'
+                   . '<p class="summary-section-body">' . e($parsed['overall_assessment_summary']) . '</p>'
                    . '</div>';
         }
 
-        if (!empty($parsed['overall_risk_areas'])) {
+        if (!empty($parsed['control_insight'])) {
             $html .= '<div class="summary-section">'
-                   . '<div class="summary-section-title"><i class="fa-solid fa-triangle-exclamation"></i> Overall Risk Areas</div>'
-                   . '<p class="summary-section-body">' . e($parsed['overall_risk_areas']) . '</p>'
+                   . '<div class="summary-section-title"><i class="fa-solid fa-lightbulb"></i> Control Insight</div>'
+                   . '<p class="summary-section-body">' . e($parsed['control_insight']) . '</p>'
                    . '</div>';
         }
 
-        if (!empty($parsed['executive_strategic_recommendations'])) {
-            $recs = $parsed['executive_strategic_recommendations'];
+        if (!empty($parsed['impact_interpretation'])) {
+            $html .= '<div class="summary-section">'
+                   . '<div class="summary-section-title"><i class="fa-solid fa-circle-nodes"></i> Impact Interpretation</div>'
+                   . '<p class="summary-section-body">' . e($parsed['impact_interpretation']) . '</p>'
+                   . '</div>';
+        }
+
+        if (!empty($parsed['strategic_recommendation'])) {
+            $recs = $parsed['strategic_recommendation'];
             if (is_string($recs)) $recs = [$recs];
             $html .= '<div class="summary-section">'
-                   . '<div class="summary-section-title"><i class="fa-solid fa-bullseye"></i> Executive Strategic Recommendations</div>'
+                   . '<div class="summary-section-title"><i class="fa-solid fa-bullseye"></i> Strategic Recommendation</div>'
                    . '<ol class="summary-recs-list">';
             foreach ($recs as $rec) {
                 $html .= '<li>' . e($rec) . '</li>';
@@ -139,10 +146,10 @@ class AiSummaryController extends Controller
             $html .= '</ol></div>';
         }
 
-        if (!empty($parsed['assessment_confidence'])) {
+        if (!empty($parsed['action_plan'])) {
             $html .= '<div class="summary-section">'
-                   . '<div class="summary-section-title"><i class="fa-solid fa-circle-check"></i> Assessment Confidence</div>'
-                   . '<p class="summary-section-body">' . e($parsed['assessment_confidence']) . '</p>'
+                   . '<div class="summary-section-title"><i class="fa-solid fa-circle-check"></i> Action Plan</div>'
+                   . '<p class="summary-section-body">' . e($parsed['action_plan']) . '</p>'
                    . '</div>';
         }
 

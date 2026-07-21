@@ -46,7 +46,7 @@ class AdminSessionsTest extends TestCase
             ->assertOk()
             ->assertSee('Audit Sessions')
             ->assertSee('Total Sessions')
-            ->assertSee('In Progress')
+            ->assertSee('Active')
             ->assertSee('Completed')
             ->assertSee('Test Audit Session');
     }

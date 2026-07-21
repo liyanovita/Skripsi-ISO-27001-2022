@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -23,12 +24,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
         'password',
         'role',
         'status',
-        'organization_name',
-        'business_sector',
-        'organization_scale',
-        'it_governance_structure',
-        'isms_scope',
-        'organization_description',
+        'organization_id',
         'provider',
         'provider_id',
         'avatar',
@@ -52,6 +48,17 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return $this->role === 'admin';
     }
 
+    public function isSuperAdmin(): bool
+    {
+        // Superadmin role has been removed — admin is now the highest privilege role.
+        return false;
+    }
+
+    public function hasAdminAccess(): bool
+    {
+        return $this->role === 'admin';
+    }
+
     public function isActive(): bool
     {
         return $this->status === 'active';
@@ -59,16 +66,22 @@ class User extends Authenticatable implements MustVerifyEmailContract
 
     public function isProfileComplete(): bool
     {
-        if ($this->isAdmin()) {
+        if ($this->hasAdminAccess()) {
             return true;
         }
 
-        return !empty($this->organization_name) &&
-               !empty($this->business_sector) &&
-               !empty($this->organization_scale) &&
-               !empty($this->it_governance_structure) &&
-               !empty($this->isms_scope) &&
-               !empty($this->organization_description);
+        return $this->organization_id !== null &&
+               $this->organization &&
+               !empty($this->organization->name) &&
+               !empty($this->organization->business_sector) &&
+               !empty($this->organization->organization_scale) &&
+               !empty($this->organization->it_governance_structure) &&
+               !empty($this->organization->isms_scope);
+    }
+
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
     }
 
     /**
@@ -79,13 +92,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return $this->hasMany(AssessmentSession::class);
     }
 
-    /**
-     * Get all community templates created by this user
-     */
-    public function communityTemplates()
-    {
-        return $this->hasMany(CommunityTemplate::class);
-    }
+
 
     /**
      * Get all audit trail entries for this user
@@ -93,5 +100,15 @@ class User extends Authenticatable implements MustVerifyEmailContract
     public function auditTrails()
     {
         return $this->hasMany(AuditTrail::class);
+    }
+
+    /**
+     * Get all sessions where this user is invited as a collaborator
+     */
+    public function invitedSessions(): BelongsToMany
+    {
+        return $this->belongsToMany(AssessmentSession::class, 'assessment_session_users', 'user_id', 'session_id')
+                    ->withPivot('role')
+                    ->withTimestamps();
     }
 }

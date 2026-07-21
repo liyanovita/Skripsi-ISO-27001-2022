@@ -4,6 +4,10 @@ namespace App\Services\Compliance;
 
 use App\Models\AssessmentSession;
 use App\Models\AssessmentResult;
+use App\Models\User;
+use App\Mail\TaskAssignedMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class WorkspaceService
 {
@@ -19,7 +23,7 @@ class WorkspaceService
     {
         // Load sessions with results and standards in one query
         $sessions = AssessmentSession::with(['results.standard'])
-            ->where('user_id', $userId)
+            ->when(!auth()->user() || !auth()->user()->isAdmin(), fn($q) => $q->where(function($q) use ($userId) { $q->where('user_id', $userId)->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId)); }))
             ->orderByDesc('created_at')
             ->get();
 
@@ -61,9 +65,32 @@ class WorkspaceService
      */
     public function updateEntry(int $resultId, int $userId, array $data): AssessmentResult
     {
-        $result = AssessmentResult::with('standard')
-            ->whereHas('session', fn($query) => $query->where('user_id', $userId))
-            ->findOrFail($resultId);
+        $user = auth()->user();
+        $query = AssessmentResult::with(['standard', 'session']);
+        if (!$user || !$user->isAdmin()) {
+            $query->whereHas('session', function($q) use ($userId) {
+                $q->where('user_id', $userId)
+                  ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId));
+            });
+        }
+        $result = $query->findOrFail($resultId);
+
+        $isLead = false;
+        if ($user) {
+            $isLead = $user->isAdmin() || 
+                      ($result->session->user_id === $user->id) || 
+                      $result->session->invitedUsers()
+                          ->where('assessment_session_users.user_id', $user->id)
+                          ->where('assessment_session_users.role', 'lead')
+                          ->exists();
+        }
+
+        if ($user && !$user->isAdmin()) {
+            $isPic = ($result->treatment_pic == $user->id) || ($result->treatment_pic === $user->name);
+            if (!$isLead && !$isPic) {
+                abort(403, __('Unauthorized. You are not the assigned PIC for this control.'));
+            }
+        }
 
         $updateData = [];
 
@@ -77,8 +104,18 @@ class WorkspaceService
         if (array_key_exists('treatment_due_date', $data)) {
             $updateData['treatment_due_date'] = $data['treatment_due_date'] ?: null;
         }
+        $assignedUser = null;
         if (array_key_exists('treatment_pic', $data)) {
-            $updateData['treatment_pic'] = $data['treatment_pic'];
+            if ($isLead) {
+                $newPic = $data['treatment_pic'];
+                $oldPic = $result->treatment_pic;
+                if ($newPic !== $oldPic) {
+                    $updateData['treatment_pic'] = $newPic;
+                    if (!empty($newPic)) {
+                        $assignedUser = User::where('name', $newPic)->first();
+                    }
+                }
+            }
         }
         if (array_key_exists('treatment_status', $data)) {
             $allowed = ['open', 'in_progress', 'closed'];
@@ -88,6 +125,21 @@ class WorkspaceService
         }
 
         $result->update($updateData);
+
+        if ($assignedUser) {
+            try {
+                Mail::to($assignedUser->email)->send(new TaskAssignedMail($result, $assignedUser));
+            } catch (\Exception $e) {
+                Log::error('Failed to send task assignment email: ' . $e->getMessage());
+            }
+
+            // Database & Email Notification
+            try {
+                $assignedUser->notify(new \App\Notifications\CorrectiveActionRequiredNotification($result, auth()->user() ?: $assignedUser));
+            } catch (\Exception $e) {
+                Log::error('Failed to send corrective action notification: ' . $e->getMessage());
+            }
+        }
 
         return $result;
     }
@@ -100,9 +152,15 @@ class WorkspaceService
      */
     public function getSoaData(int $sessionId, int $userId): AssessmentSession
     {
-        return AssessmentSession::with(['results.standard.parent'])
-            ->where('user_id', $userId)
-            ->findOrFail($sessionId);
+        $user = auth()->user();
+        $query = AssessmentSession::with(['results.standard.parent']);
+        if (!$user || !$user->isAdmin()) {
+            $query->where(function($q) use ($userId) {
+                $q->where('user_id', $userId)
+                  ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId));
+            });
+        }
+        return $query->findOrFail($sessionId);
     }
 
     protected function isAssessableResult(AssessmentResult $result): bool

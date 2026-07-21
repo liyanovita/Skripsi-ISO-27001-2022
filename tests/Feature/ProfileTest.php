@@ -100,9 +100,7 @@ class ProfileTest extends TestCase
     public function test_is_profile_complete_returns_false_for_newly_created_user(): void
     {
         $user = User::factory()->create([
-            'organization_name' => null,
-            'business_sector' => null,
-            'organization_scale' => null,
+            'organization_id' => null,
         ]);
 
         $this->assertFalse($user->isProfileComplete());
@@ -110,13 +108,18 @@ class ProfileTest extends TestCase
 
     public function test_is_profile_complete_returns_true_when_all_required_details_are_filled(): void
     {
-        $user = User::factory()->create([
-            'organization_name' => 'Kopikita Corp',
+        $organization = \App\Models\Organization::create([
+            'name' => 'Kopikita Corp',
+            'code' => 'KPKT',
             'business_sector' => 'Beverage & IT',
             'organization_scale' => 'Medium',
             'it_governance_structure' => 'IT Manager',
             'isms_scope' => 'All networks',
-            'organization_description' => 'A local coffee company.',
+            'description' => 'A local coffee company.',
+        ]);
+
+        $user = User::factory()->create([
+            'organization_id' => $organization->id,
         ]);
 
         $this->assertTrue($user->isProfileComplete());

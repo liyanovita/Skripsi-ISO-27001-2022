@@ -146,25 +146,50 @@ class IsoStandardController extends Controller
         
         $csvData = [];
         if (($handle = fopen($filePath, "r")) !== FALSE) {
+            // Detect delimiter: Read first line as raw string to analyze
+            $firstLine = fgets($handle);
+            rewind($handle);
+
+            $delimiter = ",";
+            if ($firstLine !== false) {
+                // If there are more semicolons than commas, use semicolon
+                $semicolons = substr_count($firstLine, ';');
+                $commas = substr_count($firstLine, ',');
+                if ($semicolons > $commas) {
+                    $delimiter = ";";
+                }
+            }
+
             // Get headers
-            $headers = fgetcsv($handle, 1000, ",");
+            $headers = fgetcsv($handle, 1000, $delimiter);
             if ($headers && count($headers) === 1 && strpos($headers[0], 'sep=') === 0) {
-                $headers = fgetcsv($handle, 1000, ",");
+                $headers = fgetcsv($handle, 1000, $delimiter);
             }
             
-            // Read all rows
-            while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-                if (count($data) >= count($headers)) {
-                    $csvData[] = array_combine($headers, array_slice($data, 0, count($headers)));
+            if ($headers) {
+                // Read all rows
+                while (($data = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
+                    if (count($data) >= count($headers)) {
+                        $csvData[] = array_combine($headers, array_slice($data, 0, count($headers)));
+                    }
                 }
             }
             fclose($handle);
+        }
+
+        if (empty($csvData)) {
+            return back()->with('error', 'The uploaded CSV file is empty or invalid.');
         }
 
         // Run transaction
         \DB::transaction(function () use ($csvData) {
             // Step 1: Create/Update all standards without parent_id (or keep it null for now) to prevent key issues
             foreach ($csvData as $row) {
+                // Validate required fields in each row to prevent crashes on bad files
+                if (empty($row['code']) || empty($row['type']) || empty($row['level']) || empty($row['title'])) {
+                    continue;
+                }
+
                 // Decode questions
                 $questions = null;
                 if (!empty($row['questions'])) {
@@ -187,6 +212,10 @@ class IsoStandardController extends Controller
 
             // Step 2: Update parent_id based on parent_code from CSV
             foreach ($csvData as $row) {
+                if (empty($row['code'])) {
+                    continue;
+                }
+
                 if (!empty($row['parent_code'])) {
                     $parent = \App\Models\IsoStandard::where('code', $row['parent_code'])->first();
                     if ($parent) {

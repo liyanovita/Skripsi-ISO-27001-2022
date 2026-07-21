@@ -22,7 +22,7 @@ class StrategicAnalyticsTest extends TestCase
             ->actingAs($user)
             ->get(route('reports.strategic'))
             ->assertOk()
-            ->assertSee('No Strategic Data Yet')
+            ->assertSee('No Assessment Data Yet')
             ->assertSee('Create Session');
     }
 
@@ -81,7 +81,7 @@ class StrategicAnalyticsTest extends TestCase
             ->get(route('reports.strategic'))
             ->assertOk()
             ->assertViewHas('selectedId', $session->id)
-            ->assertSee('Strategic Analytics')
+            ->assertSee('Assessment Result')
             ->assertSee('Compliant')
             ->assertSee('Partial')
             ->assertSee('Non-Compliant')
@@ -263,12 +263,10 @@ class StrategicAnalyticsTest extends TestCase
 
         $payload = [
             'session_id' => $session->id,
-            'summary' => json_encode([
-                'overall_assessment_conclusion' => 'Safe Summary conclusion',
-                'overall_risk_areas' => 'Some risk areas',
-                'executive_strategic_recommendations' => ['Rec 1', 'Rec 2'],
-                'assessment_confidence' => 'High confidence'
-            ])
+            'overall_assessment_conclusion' => 'Safe Summary conclusion',
+            'overall_risk_areas' => 'Some risk areas',
+            'executive_strategic_recommendations' => ['Rec 1', 'Rec 2'],
+            'assessment_confidence' => 'High confidence',
         ];
 
         // Hit the webhook endpoint
@@ -285,11 +283,17 @@ class StrategicAnalyticsTest extends TestCase
         $statusResponse->assertOk()
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.status', 'completed')
-            ->assertJsonPath('data.structured.overall_assessment_conclusion', 'Safe Summary conclusion');
+            ->assertJsonPath('data.structured.overall_assessment_summary', 'Safe Summary conclusion')
+            ->assertJsonPath('data.structured.control_insight', 'Some risk areas')
+            ->assertJsonPath('data.structured.impact_interpretation', 'High confidence')
+            ->assertJsonPath('data.structured.action_plan', '');
             
         // Check that HTML is returned and contains the translated sections and content
         $html = $statusResponse->json('data.summary_html');
-        $this->assertStringContainsString('Overall Assessment Conclusion', $html);
+        $this->assertStringContainsString('Overall Assessment Summary', $html);
+        $this->assertStringContainsString('Control Insight', $html);
+        $this->assertStringContainsString('Impact Interpretation', $html);
+        $this->assertStringContainsString('Strategic Recommendation', $html);
         $this->assertStringContainsString('Safe Summary conclusion', $html);
         $this->assertStringContainsString('Rec 1', $html);
     }

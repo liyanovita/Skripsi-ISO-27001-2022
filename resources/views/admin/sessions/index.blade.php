@@ -11,10 +11,13 @@
         <h2 class="text-xl font-black text-slate-800">Audit Sessions</h2>
         <p class="text-sm text-slate-500">Monitor, inspect, and manage all user audit sessions across the platform.</p>
     </div>
+    <a href="{{ route('admin.sessions.create') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm">
+        <i class="fa-solid fa-plus"></i> Launch Session
+    </a>
 </div>
 
 {{-- KPI Stats --}}
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
         <div class="w-11 h-11 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-lg shrink-0">
             <i class="fa-solid fa-clipboard-list"></i>
@@ -25,11 +28,20 @@
         </div>
     </div>
     <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-        <div class="w-11 h-11 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 text-lg shrink-0">
+        <div class="w-11 h-11 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 text-lg shrink-0">
+            <i class="fa-solid fa-pen-to-square"></i>
+        </div>
+        <div>
+            <span class="block text-xs font-bold uppercase tracking-wider text-slate-400">Draft</span>
+            <span class="block text-2xl font-black text-slate-800 mt-0.5">{{ number_format($draftSessions) }}</span>
+        </div>
+    </div>
+    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div class="w-11 h-11 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-lg shrink-0">
             <i class="fa-solid fa-spinner"></i>
         </div>
         <div>
-            <span class="block text-xs font-bold uppercase tracking-wider text-slate-400">In Progress</span>
+            <span class="block text-xs font-bold uppercase tracking-wider text-slate-400">Active</span>
             <span class="block text-2xl font-black text-slate-800 mt-0.5">{{ number_format($activeSessions) }}</span>
         </div>
     </div>
@@ -83,7 +95,8 @@
                 <select name="status" x-on:change="$el.closest('form').requestSubmit()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white font-semibold text-slate-700">
                     <option value="">All Status</option>
                     <option value="archive"     {{ $statusFilter === 'archive'     ? 'selected' : '' }}>Archive</option>
-                    <option value="in_progress" {{ $statusFilter === 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                    <option value="draft"       {{ $statusFilter === 'draft'       ? 'selected' : '' }}>Draft</option>
+                    <option value="in_progress" {{ $statusFilter === 'in_progress' ? 'selected' : '' }}>Active</option>
                     <option value="completed"   {{ $statusFilter === 'completed'   ? 'selected' : '' }}>Completed</option>
                 </select>
                 @if($search || $statusFilter || $month)
@@ -118,7 +131,19 @@
                             class="font-bold text-slate-900 hover:text-blue-600 transition-colors">
                             {{ $session->name }}
                         </a>
-                        <div class="text-xs text-slate-400 mt-0.5">Created {{ $session->created_at->format('d M Y') }}</div>
+                        <div class="flex items-center gap-2 mt-1 flex-wrap">
+                            <div class="text-[10px] text-slate-400 font-semibold">Created {{ $session->created_at->format('d M Y') }}</div>
+                            @if($session->organization)
+                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+                                    <i class="fa-solid fa-building text-[8px]"></i> {{ $session->organization->name }}
+                                </span>
+                            @endif
+                            @if($session->deadline)
+                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider {{ $session->deadline->isPast() ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-amber-50 text-amber-600 border border-amber-200' }}">
+                                    <i class="fa-solid fa-hourglass-half text-[8px]"></i> Deadline: {{ $session->deadline->format('d M Y') }}
+                                </span>
+                            @endif
+                        </div>
                     </td>
                     <td class="px-5 py-4">
                         <a href="{{ route('admin.users.show', $session->user_id) }}" class="flex items-center gap-2 hover:opacity-80">
@@ -127,25 +152,25 @@
                             </div>
                             <div>
                                 <div class="font-semibold text-slate-800 text-xs">{{ $session->user->name ?? 'Unknown' }}</div>
-                                <div class="text-[10px] text-slate-400">{{ $session->user->organization_name ?? '' }}</div>
+                                <div class="text-[10px] text-slate-400">{{ $session->organization->name ?? '' }}</div>
                             </div>
                         </a>
                     </td>
                     <td class="px-5 py-4">
                         @if($session->trashed())
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-orange-100 text-orange-700">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border bg-orange-50 text-orange-600 border-orange-100">
                                 <i class="fa-solid fa-box-archive mr-1 text-[8px]"></i>
                                 Archived
                             </span>
                         @else
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest
-                                {{ $session->status === 'completed'   ? 'bg-emerald-100 text-emerald-700' :
-                                   ($session->status === 'in_progress' ? 'bg-amber-100 text-amber-700'   : 'bg-slate-100 text-slate-600') }}">
-                                @if($session->status === 'completed') <i class="fa-solid fa-check mr-1 text-[8px]"></i>
-                                @elseif($session->status === 'in_progress') <i class="fa-solid fa-spinner mr-1 text-[8px]"></i>
-                                @else <i class="fa-solid fa-pen mr-1 text-[8px]"></i>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border
+                                {{ $session->status === 'completed'   ? 'bg-green-50 text-green-600 border-green-100' :
+                                   ($session->status === 'in_progress' ? 'bg-blue-50 text-blue-600 border-blue-100'   : 'bg-slate-50 text-slate-600 border-slate-200') }}">
+                                @if($session->status === 'completed') <i class="fa-solid fa-circle-check mr-1 text-[8px]"></i>
+                                @elseif($session->status === 'in_progress') <i class="fa-solid fa-circle-notch animate-spin mr-1 text-[8px]"></i>
+                                @else <i class="fa-solid fa-pen-to-square mr-1 text-[8px]"></i>
                                 @endif
-                                {{ str_replace('_', ' ', $session->status) }}
+                                {{ $session->status === 'in_progress' ? 'Active' : str_replace('_', ' ', $session->status) }}
                             </span>
                         @endif
                     </td>
@@ -175,6 +200,11 @@
                                 class="w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 hover:bg-blue-50 border border-blue-200 bg-white transition-colors"
                                 title="View Detail">
                                 <i class="fa-solid fa-eye text-xs"></i>
+                            </a>
+                            <a href="{{ route('admin.sessions.edit', $session) }}"
+                                class="w-8 h-8 rounded-lg flex items-center justify-center text-emerald-600 hover:bg-emerald-50 border border-emerald-200 bg-white transition-colors"
+                                title="Edit Session">
+                                <i class="fa-solid fa-pen text-xs"></i>
                             </a>
                             <form method="POST" action="{{ route('admin.sessions.destroy', $session) }}"
                                 x-data

@@ -12,7 +12,7 @@ class AssessmentResult extends Model
         'notes', 'evidence_file', 'status', 'ai_recommendation',
         'corrective_action_plan', 'risk_priority', 'control_insight',
         'evidence_validation', 'impact_interpretation', 'is_applicable', 'soa_justification', 'implementation_status',
-        'treatment_due_date', 'treatment_pic', 'treatment_status',
+        'treatment_due_date', 'treatment_pic', 'treatment_status', 'treatment_progress', 'evidence_after_improvement',
         'ai_data_hash',
     ];
 
@@ -23,6 +23,7 @@ class AssessmentResult extends Model
         'evidence_file' => 'array',
         'is_applicable' => 'boolean',
         'treatment_due_date' => 'date',
+        'treatment_progress' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -40,7 +41,8 @@ class AssessmentResult extends Model
         static::updated(function ($result) {
             $trackedFields = [
                 'maturity_rating', 'is_applicable', 'implementation_status',
-                'treatment_due_date', 'treatment_pic', 'treatment_status'
+                'treatment_due_date', 'treatment_pic', 'treatment_status',
+                'treatment_progress', 'evidence_after_improvement'
             ];
             
             foreach ($trackedFields as $field) {
@@ -97,10 +99,9 @@ class AssessmentResult extends Model
         }
 
         return match((int)$this->maturity_rating) {
-            0       => $this->status === 'completed' ? 'Critical' : 'Unassessed',
-            1       => 'Critical',
-            2       => 'High',
-            3       => 'Medium',
+            0       => $this->status === 'completed' ? 'High' : 'Unassessed',
+            1       => 'High',
+            2, 3    => 'Medium',
             4, 5    => 'Low',
             default => $this->status === 'completed' ? 'Low' : 'Unassessed'
         };

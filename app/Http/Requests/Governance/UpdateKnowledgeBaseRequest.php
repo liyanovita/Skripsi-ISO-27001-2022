@@ -2,9 +2,7 @@
 
 namespace App\Http\Requests\Governance;
 
-use App\Services\Governance\KnowledgeBaseService;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 /**
  * Form Request for updating knowledge base resources
@@ -25,14 +23,14 @@ class UpdateKnowledgeBaseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|max:255|min:5',
-            'category' => ['required', 'string', Rule::in(KnowledgeBaseService::CATEGORIES)],
-            'description' => 'nullable|string|max:1000',
-            'content' => 'nullable|string',
-            'format' => 'nullable|string|max:50',
-            'size' => 'nullable|string|max:50',
+            'title'      => 'required|string|max:255|min:5',
+            'description'=> 'nullable|string|max:1000',
+            'content'    => 'nullable|string',
+            'category'   => 'required|string|in:guides,templates,sop,evidence',
+            'format'     => 'nullable|string|max:50',
+            'size'       => 'nullable|string|max:50',
             'attachment' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,txt,md,csv|max:10240',
-            'icon' => 'nullable|string|max:100',
+            'icon'       => 'nullable|string|max:100',
         ];
     }
 
@@ -67,8 +65,6 @@ class UpdateKnowledgeBaseRequest extends FormRequest
             'title.string' => 'Title must be valid text.',
             'title.max' => 'Title cannot exceed 255 characters.',
             'title.min' => 'Title must be at least 5 characters.',
-            'category.required' => 'Category is required.',
-            'category.in' => 'Category must be one of: guides, templates, sop, evidence.',
             'attachment.mimes' => 'Attachment must be a PDF, Word, Excel, text, Markdown, or CSV file.',
             'attachment.max' => 'Attachment cannot exceed 10 MB.',
         ];
@@ -81,7 +77,6 @@ class UpdateKnowledgeBaseRequest extends FormRequest
     {
         return [
             'title' => 'resource title',
-            'category' => 'resource category',
             'description' => 'resource description',
             'content' => 'resource content',
             'format' => 'file format',

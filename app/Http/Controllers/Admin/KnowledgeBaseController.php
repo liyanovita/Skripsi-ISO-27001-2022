@@ -62,7 +62,7 @@ class KnowledgeBaseController extends Controller
 
         if ($request->hasFile('attachment')) {
             $file = $request->file('attachment');
-            $path = $file->store('knowledge-base', 'public');
+            $path = $file->store('knowledge-base', 'local');
             
             $kb->attachment_path = $path;
             $kb->attachment_name = $file->getClientOriginalName();
@@ -115,11 +115,11 @@ class KnowledgeBaseController extends Controller
         if ($request->hasFile('attachment')) {
             // Delete old file if exists
             if ($knowledge->attachment_path) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($knowledge->attachment_path);
+                \Illuminate\Support\Facades\Storage::disk('local')->delete($knowledge->attachment_path);
             }
 
             $file = $request->file('attachment');
-            $path = $file->store('knowledge-base', 'public');
+            $path = $file->store('knowledge-base', 'local');
             
             $knowledge->attachment_path = $path;
             $knowledge->attachment_name = $file->getClientOriginalName();
@@ -140,7 +140,7 @@ class KnowledgeBaseController extends Controller
             abort(404);
         }
         if ($knowledge->attachment_path) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($knowledge->attachment_path);
+            \Illuminate\Support\Facades\Storage::disk('local')->delete($knowledge->attachment_path);
         }
 
         $knowledge->delete();

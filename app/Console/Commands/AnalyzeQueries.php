@@ -67,7 +67,6 @@ class AnalyzeQueries extends Command
         try {
             DB::table('assessment_sessions')->where('user_id', 1)->get();
             DB::table('assessment_results')->where('session_id', 1)->get();
-            DB::table('community_templates')->latest()->take(10)->get();
         } catch (\Exception $e) {
             // Ignore errors during analysis
         }

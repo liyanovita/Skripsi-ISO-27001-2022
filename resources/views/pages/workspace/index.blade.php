@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', 'Compliance Center')
-@section('view_name', 'Compliance Center')
+@section('title', 'Improvement Tracking')
+@section('view_name', 'Improvement Tracking')
 
 @section('content')
 @php
@@ -171,7 +171,7 @@
                 <i class="fa-solid fa-table-cells-large text-lg"></i>
             </div>
             <div class="leading-none">
-                <h1 class="text-xl font-black text-slate-900 tracking-tighter uppercase">{{ __('Compliance Center') }}</h1>
+                <h1 class="text-xl font-black text-slate-900 tracking-tighter uppercase">{{ __('Improvement Tracking') }}</h1>
                 <p class="text-slate-400 font-bold uppercase tracking-widest text-[8px] mt-0.5">{{ __('Gap Report, SoA & Treatment Management') }}</p>
             </div>
         </div>
@@ -458,6 +458,9 @@
                             editingJust: false,
                             isGap: {{ $isGap ? 'true' : 'false' }},
                             isScored: {{ $isScored ? 'true' : 'false' }},
+                            get canEdit() {
+                                return {{ $isSessionLead ? 'true' : 'false' }} || (this.pic === @js(auth()->user()->name) || this.pic == @js(auth()->id()));
+                            },
                             async toggleApplicable() {
                                 const previous = this.isApplicable;
                                 this.isApplicable = !this.isApplicable;
@@ -536,7 +539,7 @@
                                             plan: @js($aiPlan),
                                             insight: @js(is_array($result->control_insight) ? ($result->control_insight['gap'] ?? '') : ($result->control_insight ?? '')),
                                             priority: @js($result->risk_priority ?? ''),
-                                            validation: @js($result->evidence_validation ?? ''),
+                                            validation: '',
                                             impact: @js($result->impact_interpretation ?? '')
                                         })"
                                         class="inline-flex items-center gap-1.5 px-2.5 py-1.5 border {{ $aiBtnClass }} rounded-lg text-[8px] font-black uppercase tracking-widest transition-all leading-none shrink-0 shadow-sm hover:scale-105 active:scale-95 cursor-pointer group/aibtn">
@@ -556,7 +559,7 @@
                             @if(!$isClause && $isScored)
                             <span :class="isApplicable ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-rose-50 text-rose-500 border border-rose-100'"
                                 class="px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest inline-block w-16 text-center cursor-default select-none">
-                                <span x-text="isApplicable ? 'Yes' : 'No'"></span>
+                                <span x-text="isApplicable ? '{{ __('Yes') }}' : '{{ __('No') }}'"></span>
                             </span>
                             @endif
                         </td>
@@ -600,8 +603,14 @@
                                         'partially compliant' => 'text-amber-700 bg-amber-50 border-amber-100',
                                         default               => 'text-rose-700 bg-rose-50 border-rose-100',
                                     };
+                                    $complianceTooltip = match(strtolower($complianceStatus)) {
+                                        'compliant'           => __('Control is implemented according to ISO/IEC 27001:2022 standard requirements and demonstrates adequate implementation.'),
+                                        'partially compliant' => __('Control is partially implemented, but there are still gaps or aspects that need improvement to meet standard requirements.'),
+                                        default               => __('Control is not implemented or its implementation does not meet the requirements specified in the ISO/IEC 27001:2022 standard.'),
+                                    };
                                 @endphp
-                                <span class="px-2.5 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wider inline-block text-center w-32 {{ $complianceClass }}">
+                                <span class="px-2.5 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wider inline-block text-center w-32 cursor-help {{ $complianceClass }}"
+                                      title="{{ $complianceTooltip }}">
                                     {{ $complianceStatus }}
                                 </span>
                             @else
@@ -623,13 +632,21 @@
                             {{-- Gap --}}
                             @if($isScored && $isApplicable)
                                 @php
-                                    $gapPct = $isGap ? (5 - $result->maturity_rating) * 20 : 0;
+                                    $gapValue = 5 - $result->maturity_rating;
+                                    $gapPct = $gapValue * 20;
                                 @endphp
-                                <div class="flex items-center gap-2 justify-center">
-                                    <div class="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                        <div class="h-full rounded-full transition-all {{ $gapPct > 0 ? 'bg-rose-500' : 'bg-slate-200' }}" style="width: {{ $gapPct }}%"></div>
+                                <div class="flex flex-col items-center gap-1 justify-center">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-12 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                            <div class="h-full rounded-full transition-all {{ $gapValue > 0 ? 'bg-rose-500' : 'bg-slate-200' }}" style="width: {{ $gapPct }}%"></div>
+                                        </div>
+                                        <span class="text-[9px] font-bold text-slate-500 w-8">{{ $gapPct }}%</span>
                                     </div>
-                                    <span class="text-[10px] font-bold text-slate-500 w-8">{{ $gapPct }}%</span>
+                                    @if($gapValue > 0)
+                                        <span class="text-[8px] font-black text-rose-600 bg-rose-50 px-1 py-0.5 rounded border border-rose-100 leading-none">Gap: {{ $gapValue }}</span>
+                                    @else
+                                        <span class="text-[8px] font-black text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded border border-emerald-100 leading-none">Gap: 0</span>
+                                    @endif
                                 </div>
                             @else
                                 <div class="text-center">
@@ -638,16 +655,26 @@
                             @endif
                         </td>
                         <td class="px-3 py-3">
-                            <input type="date" x-model="dueDate" @change="save('treatment_due_date', dueDate)" :disabled="!isApplicable || !isGap"
+                            <input type="date" x-model="dueDate" @change="save('treatment_due_date', dueDate)" :disabled="!isApplicable || !isGap || !canEdit"
                                 class="w-full text-[9px] font-bold text-slate-700 border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all bg-white disabled:opacity-30 disabled:cursor-not-allowed">
                         </td>
                         <td class="px-3 py-3">
-                            <input type="text" x-model="pic" @blur="save('treatment_pic', pic)" @keydown.enter.prevent="$event.target.blur()" :disabled="!isApplicable || !isGap"
-                                placeholder="{{ __('PIC Name/Role') }}"
-                                class="w-full text-[9px] font-medium text-slate-700 border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all bg-white disabled:opacity-30 disabled:cursor-not-allowed">
+                            @if($isSessionLead)
+                                <select x-model="pic" @change="save('treatment_pic', pic)" :disabled="!isApplicable || !isGap"
+                                    class="w-full text-[9px] font-medium text-slate-700 border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all bg-white disabled:opacity-30 disabled:cursor-not-allowed">
+                                    <option value="">{{ __('Unassigned') }}</option>
+                                    @foreach($users as $userOption)
+                                        <option value="{{ $userOption->name }}">{{ $userOption->name }} ({{ $userOption->email }})</option>
+                                    @endforeach
+                                </select>
+                            @else
+                                <input type="text" x-model="pic" :disabled="true"
+                                    placeholder="{{ __('Unassigned') }}"
+                                    class="w-full text-[9px] font-medium text-slate-700 border border-slate-200 rounded-lg px-2 py-1.5 bg-slate-50 disabled:opacity-75 cursor-not-allowed">
+                            @endif
                         </td>
                         <td class="px-3 py-3">
-                            <select x-model="status" @change="changeStatus()" :disabled="!isApplicable || !isGap"
+                            <select x-model="status" @change="changeStatus()" :disabled="!isApplicable || !isGap || !canEdit"
                                 class="w-full text-[8px] font-black uppercase tracking-widest border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all bg-white disabled:opacity-30 disabled:cursor-not-allowed"
                                 :class="{
                                     'text-rose-600 bg-rose-50 border-rose-200': status === 'open' && isGap,
@@ -833,17 +860,11 @@
                 </div>
 
             </div>
+            {{-- Footer Badges --}}
             <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-2" x-show="activeAiDetails.priority">
-                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Risk Tier:</span>
+                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">{{ __('Risk Tier:') }}</span>
                     <span class="px-2.5 py-1 bg-rose-50 text-rose-600 border border-rose-100 text-[8px] font-black rounded-lg uppercase tracking-wider leading-none" x-text="activeAiDetails.priority"></span>
-                </div>
-                <div class="flex items-start gap-2 max-w-md bg-slate-50 border border-slate-200/50 p-2.5 rounded-xl flex-1 sm:ml-auto" x-show="activeAiDetails.validation">
-                    <i class="fa-solid fa-circle-check text-indigo-500 text-xs mt-0.5"></i>
-                    <div class="text-left">
-                        <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">{{ __('Evidence Validation') }}</span>
-                        <p class="text-[10px] text-slate-600 font-medium mt-0.5 leading-relaxed" x-html="formatMarkdown(activeAiDetails.validation)"></p>
-                    </div>
                 </div>
             </div>
         </div>

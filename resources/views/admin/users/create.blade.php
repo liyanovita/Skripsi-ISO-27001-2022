@@ -34,23 +34,28 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div x-data="{ show: false }">
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Password *</label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5" x-data="{ password: '', password_confirmation: '', showPass: false, generate() { const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()'; let pass = ''; for (let i = 0; i < 12; i++) { pass += chars.charAt(Math.floor(Math.random() * chars.length)); } this.password = pass; this.password_confirmation = pass; this.showPass = true; } }">
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-sm font-bold text-slate-700">Password *</label>
+                        <button type="button" @click="generate()" class="text-xs font-bold text-amber-600 hover:underline flex items-center gap-1">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Generate
+                        </button>
+                    </div>
                     <div class="relative">
-                        <input :type="show ? 'text' : 'password'" name="password" required class="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                        <button type="button" @click="show = !show" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
-                            <i class="fa-solid" :class="show ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        <input :type="showPass ? 'text' : 'password'" name="password" x-model="password" required class="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <button type="button" @click="showPass = !showPass" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                            <i class="fa-solid" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
                         </button>
                     </div>
                     @error('password') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                 </div>
-                <div x-data="{ show: false }">
+                <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1.5">Confirm Password *</label>
                     <div class="relative">
-                        <input :type="show ? 'text' : 'password'" name="password_confirmation" required class="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                        <button type="button" @click="show = !show" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
-                            <i class="fa-solid" :class="show ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        <input :type="showPass ? 'text' : 'password'" name="password_confirmation" x-model="password_confirmation" required class="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <button type="button" @click="showPass = !showPass" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                            <i class="fa-solid" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
                         </button>
                     </div>
                 </div>
@@ -61,7 +66,7 @@
                     <label class="block text-sm font-bold text-slate-700 mb-1.5">Role *</label>
                     <select name="role" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         <option value="user" {{ old('role', 'user') === 'user' ? 'selected' : '' }}>User</option>
-                        <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
+                        <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin (Auditor)</option>
                     </select>
                 </div>
                 <div>
@@ -76,28 +81,25 @@
             <hr class="border-slate-200">
 
             <h4 class="font-bold text-sm text-slate-600 flex items-center gap-2">
-                <i class="fa-solid fa-building text-slate-400"></i> Organization Info (Optional)
+                <i class="fa-solid fa-building text-slate-400"></i> Organization (Optional)
             </h4>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Organization Name</label>
-                    <input type="text" name="organization_name" value="{{ old('organization_name') }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Business Sector</label>
-                    <input type="text" name="business_sector" value="{{ old('business_sector') }}" placeholder="e.g. Finance, Healthcare, IT" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                </div>
-            </div>
-
             <div>
-                <label class="block text-sm font-bold text-slate-700 mb-1.5">Organization Scale</label>
-                <select name="organization_scale" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                    <option value="">Select scale...</option>
-                    <option value="Kecil" {{ old('organization_scale') === 'Kecil' ? 'selected' : '' }}>Kecil (1-50 karyawan)</option>
-                    <option value="Menengah" {{ old('organization_scale') === 'Menengah' ? 'selected' : '' }}>Menengah (51-250 karyawan)</option>
-                    <option value="Besar" {{ old('organization_scale') === 'Besar' ? 'selected' : '' }}>Besar (250+ karyawan)</option>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Select Organization</label>
+                    <a href="{{ route('admin.organizations.create') }}" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
+                        <i class="fa-solid fa-plus-circle"></i> Buat Organisasi Baru
+                    </a>
+                </div>
+                <select name="organization_id" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                    <option value="">Select organization...</option>
+                    @foreach($organizations as $org)
+                        <option value="{{ $org->id }}" {{ old('organization_id') == $org->id ? 'selected' : '' }}>
+                            {{ $org->name }} ({{ $org->code }})
+                        </option>
+                    @endforeach
                 </select>
+                @error('organization_id') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-4">

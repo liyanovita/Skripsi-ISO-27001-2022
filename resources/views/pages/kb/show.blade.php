@@ -11,7 +11,7 @@
             <i class="fa-solid fa-arrow-left text-[9px]"></i> {{ __('Back') }}
         </a>
         <div class="flex items-center gap-2">
-            @if(!$resource->is_system)
+            @if(auth()->user()->isAdmin() && !$resource->is_system)
                 <a href="{{ route('knowledge-base.edit', $resource->id) }}" 
                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200/80 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm">
                     <i class="fa-solid fa-pen-to-square"></i> {{ __('Edit Article') }}
@@ -66,7 +66,7 @@
                     'sop' => 'bg-amber-50/80 text-amber-700 border-amber-100',
                     default => 'bg-rose-50/80 text-rose-700 border-rose-100',
                 };
-                
+
                 $readingTime = max(1, ceil(str_word_count(strip_tags($resource->content)) / 150));
                 $displaySize = $resource->size ?: ($resource->is_system ? round(strlen($resource->content) / 1024 + 12) . 'KB' : '');
 
@@ -87,15 +87,6 @@
                 <span class="px-2.5 py-0.5 bg-slate-100/80 text-slate-600 rounded-full text-[8px] font-black uppercase tracking-widest border border-slate-200/60 shadow-sm">
                     <i class="fa-solid fa-file-code mr-1"></i>{{ $resource->format ? strtoupper($resource->format) : 'PDF' }}
                 </span>
-                @if($resource->is_system)
-                    <span class="px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[8px] font-black uppercase tracking-widest border border-blue-100 flex items-center gap-1 shadow-sm">
-                        <i class="fa-solid fa-circle-check text-blue-500"></i> {{ __('Official') }}
-                    </span>
-                @else
-                    <span class="px-2.5 py-0.5 bg-violet-50 text-violet-600 rounded-full text-[8px] font-black uppercase tracking-widest border border-violet-100 flex items-center gap-1 shadow-sm">
-                        <i class="fa-solid fa-user-pen text-violet-500"></i> {{ __('Custom') }}
-                    </span>
-                @endif
             </div>
 
             <h1 class="text-xl md:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">

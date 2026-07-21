@@ -4,108 +4,34 @@
 
 @if(auth()->user()->isAdmin())
 @push('styles')
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 <style>
-    .ck-editor__editable_inline {
-        min-height: 350px !important;
-        border-color: #e2e8f0 !important;
-        border-bottom-left-radius: 0.75rem !important;
-        border-bottom-right-radius: 0.75rem !important;
-        background-color: #f8fafc !important;
-        color: #334155 !important;
+    #quill-editor {
+        min-height: 380px;
+        font-size: 14px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: #334155;
+        background: #fff;
     }
-    .ck.ck-editor__main>.ck-editor__editable:not(.ck-focused) {
-        border-color: #e2e8f0 !important;
+    .ql-toolbar.ql-snow {
+        border-radius: 0.75rem 0.75rem 0 0;
+        border-color: #e2e8f0;
+        background: #f8fafc;
+        padding: 10px 8px;
     }
-    .ck.ck-editor__main>.ck-editor__editable.ck-focused {
-        border-color: #94a3b8 !important;
-        background-color: #ffffff !important;
-        box-shadow: 0 0 0 4px rgba(30, 41, 59, 0.05) !important;
+    .ql-container.ql-snow {
+        border-radius: 0 0 0.75rem 0.75rem;
+        border-color: #e2e8f0;
+        background: #fff;
     }
-    .ck.ck-toolbar {
-        border-color: #e2e8f0 !important;
-        border-top-left-radius: 0.75rem !important;
-        border-top-right-radius: 0.75rem !important;
-        background-color: #f8fafc !important;
-    }
+    .ql-toolbar.ql-snow .ql-formats { margin-right: 10px; }
+    .ql-editor.ql-blank::before { color: #94a3b8; font-style: italic; }
 </style>
-@endpush
-
-@push('head_scripts')
-<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
 @endpush
 @endif
 
 @section('content')
-<div class="w-full pb-12" x-data="{
-    content: @js(old('content', $resource->content ?? '')),
-    categoryVal: @js(old('category', $resource->category ?? '')),
-    previewHtml: '',
-    easyMDE: null,
-    init() {
-        @if(auth()->user()->isAdmin())
-        this.refreshPreview();
-        
-        const textarea = document.getElementById('content-textarea');
-        if (textarea && typeof ClassicEditor !== 'undefined') {
-            class Base64UploadAdapter {
-                constructor(loader) {
-                    this.loader = loader;
-                }
-                upload() {
-                    return this.loader.file
-                        .then(file => new Promise((resolve, reject) => {
-                            const reader = new FileReader();
-                            reader.onload = () => {
-                                resolve({ default: reader.result });
-                            };
-                            reader.onerror = error => {
-                                reject(error);
-                            };
-                            reader.readAsDataURL(file);
-                        }));
-                }
-                abort() {}
-            }
-
-            ClassicEditor
-                .create(textarea, {
-                    placeholder: @js(__('Enter the full policy text, SOP steps, or guide content here...')),
-                    extraPlugins: [
-                        function(editor) {
-                            editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
-                                return new Base64UploadAdapter(loader);
-                            };
-                        }
-                    ],
-                    toolbar: [
-                        'heading', '|',
-                        'bold', 'italic', 'link', '|',
-                        'bulletedList', 'numberedList', 'outdent', 'indent', '|',
-                        'blockQuote', 'insertTable', 'uploadImage', '|',
-                        'undo', 'redo'
-                    ]
-                })
-                .then(editor => {
-                    this.easyMDE = editor;
-                    editor.setData(this.content || '');
-                    
-                    editor.model.document.on('change:data', () => {
-                        this.content = editor.getData();
-                        this.refreshPreview();
-                    });
-                })
-                .catch(error => {
-                    console.error(error);
-                });
-        }
-        @endif
-    },
-    refreshPreview() {
-        @if(auth()->user()->isAdmin())
-        this.previewHtml = this.content || '<p class=\'text-slate-400 italic\'>' + @js(__('Start typing to preview this resource...')) + '</p>';
-        @endif
-    }
-}">
+<div class="w-full pb-12">
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         
         {{-- Header --}}
@@ -126,7 +52,7 @@
 
         {{-- Form --}}
         <div class="px-8 py-6">
-            <form action="{{ isset($resource) ? route('knowledge-base.update', $resource->id) : route('knowledge-base.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4" @submit="if(typeof tinymce !== 'undefined') { tinymce.triggerSave(); }">
+            <form id="kb-form" action="{{ isset($resource) ? route('knowledge-base.update', $resource->id) : route('knowledge-base.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                 @csrf
                 @if(isset($resource))
                     @method('PUT')
@@ -151,29 +77,27 @@
                 </div>
                 @endif
 
-                {{-- Title & Category --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Resource Title') }} <span class="text-rose-500">*</span></label>
-                        <input type="text" name="title" value="{{ old('title', $resource->title ?? '') }}" required
-                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:bg-white outline-none focus:ring-4 focus:ring-slate-800/5 focus:border-slate-400 transition-all shadow-sm"
-                            placeholder="{{ __('e.g. Password Policy 2026') }}">
-                        @error('title') <p class="text-xs text-rose-500 font-bold">{{ $message }}</p> @enderror
-                    </div>
+                {{-- Title --}}
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Resource Title') }} <span class="text-rose-500">*</span></label>
+                    <input type="text" name="title" value="{{ old('title', $resource->title ?? '') }}" required
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:bg-white outline-none focus:ring-4 focus:ring-slate-800/5 focus:border-slate-400 transition-all shadow-sm"
+                        placeholder="{{ __('e.g. Password Policy 2026') }}">
+                    @error('title') <p class="text-xs text-rose-500 font-bold">{{ $message }}</p> @enderror
+                </div>
 
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Category') }} <span class="text-rose-500">*</span></label>
-                        <select name="category" required x-model="categoryVal"
-                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:bg-white outline-none focus:ring-4 focus:ring-slate-800/5 focus:border-slate-400 transition-all shadow-sm cursor-pointer"
-                            :class="categoryVal === '' ? 'text-slate-400' : 'text-slate-700'">
-                            <option value="" disabled selected hidden class="text-slate-400">-- {{ __('Select Category') }} --</option>
-                            <option value="guides" class="text-slate-700">{{ __('Implementation Guides') }}</option>
-                            <option value="templates" class="text-slate-700">{{ __('Policy Templates') }}</option>
-                            <option value="sop" class="text-slate-700">{{ __('Standard Operating Procedures') }}</option>
-                            <option value="evidence" class="text-slate-700">{{ __('Evidence Examples') }}</option>
-                        </select>
-                        @error('category') <p class="text-xs text-rose-500 font-bold">{{ $message }}</p> @enderror
-                    </div>
+                {{-- Category --}}
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Resource Category') }} <span class="text-rose-500">*</span></label>
+                    <select name="category" required
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:bg-white outline-none focus:ring-4 focus:ring-slate-800/5 focus:border-slate-400 transition-all shadow-sm cursor-pointer">
+                        <option value="" disabled {{ !old('category', $resource->category ?? '') ? 'selected' : '' }}>{{ __('Select a category...') }}</option>
+                        <option value="guides" {{ old('category', $resource->category ?? '') === 'guides' ? 'selected' : '' }}>{{ __('Guides') }}</option>
+                        <option value="templates" {{ old('category', $resource->category ?? '') === 'templates' ? 'selected' : '' }}>{{ __('Templates') }}</option>
+                        <option value="sop" {{ old('category', $resource->category ?? '') === 'sop' ? 'selected' : '' }}>{{ __('SOP') }}</option>
+                        <option value="evidence" {{ old('category', $resource->category ?? '') === 'evidence' ? 'selected' : '' }}>{{ __('Evidence') }}</option>
+                    </select>
+                    @error('category') <p class="text-xs text-rose-500 font-bold">{{ $message }}</p> @enderror
                 </div>
 
                 {{-- Description --}}
@@ -223,9 +147,11 @@
                         </div>
                     </div>
 
-                    <textarea id="content-textarea" name="content" rows="12"
-                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono text-slate-700 focus:bg-white outline-none focus:ring-4 focus:ring-slate-800/5 focus:border-slate-400 transition-all shadow-sm resize-y custom-scrollbar"
-                        placeholder="{{ __('Enter the full policy text, SOP steps, or guide content here...') }}">{{ old('content', $resource->content ?? '') }}</textarea>
+                    {{-- Quill Editor --}}
+                    <div class="rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div id="quill-editor">{!! old('content', $resource->content ?? '') !!}</div>
+                    </div>
+                    <input type="hidden" name="content" id="content-input" value="{{ old('content', $resource->content ?? '') }}">
                     @error('content') <p class="text-xs text-rose-500 font-bold">{{ $message }}</p> @enderror
                 </div>
 
@@ -234,7 +160,9 @@
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Content Preview') }}</label>
                         <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">{{ __('Live preview') }}</span>
                     </div>
-                    <div class="prose prose-sm prose-slate max-w-none min-h-32 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700" x-html="previewHtml"></div>
+                    <div id="content-preview" class="prose prose-sm prose-slate max-w-none min-h-32 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700">
+                        {!! old('content', $resource->content ?? '') ?: '<p class="text-slate-400 italic">' . __('Start typing to preview this resource...') . '</p>' !!}
+                    </div>
                 </div>
                 @endif
 
@@ -249,4 +177,41 @@
         </div>
     </div>
 </div>
+
+@if(auth()->user()->isAdmin())
+<script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
+<script>
+const quill = new Quill('#quill-editor', {
+    theme: 'snow',
+    placeholder: '{{ __("Enter the full policy text, SOP steps, or guide content here...") }}',
+    modules: {
+        toolbar: [
+            [{ 'font': [] }, { 'size': ['small', false, 'large', 'huge'] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'script': 'sub' }, { 'script': 'super' }],
+            ['blockquote', 'code-block'],
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+            [{ 'direction': 'rtl' }, { 'align': [] }],
+            ['link', 'image'],
+            ['clean']
+        ]
+    }
+});
+
+const preview = document.getElementById('content-preview');
+quill.on('text-change', function() {
+    const html = quill.root.innerHTML;
+    document.getElementById('content-input').value = html;
+    preview.innerHTML = quill.getText().trim()
+        ? html
+        : '<p class="text-slate-400 italic">{{ __("Start typing to preview this resource...") }}</p>';
+});
+
+document.getElementById('kb-form').addEventListener('submit', function() {
+    document.getElementById('content-input').value = quill.root.innerHTML;
+});
+</script>
+@endif
 @endsection

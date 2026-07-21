@@ -190,12 +190,12 @@
             <!-- Security Badge -->
             <div class="mt-6 pt-6 border-t border-gray-100 flex items-center justify-center gap-4 text-xs text-gray-400">
                 <div class="flex items-center gap-1.5">
-                    <i class="fa-solid fa-shield-halved text-green-500"></i>
+                    <i class="fa-solid fa-shield-halved text-teal-500"></i>
                     <span>{{ __('Secure') }}</span>
                 </div>
                 <div class="w-1 h-1 bg-gray-300 rounded-full"></div>
                 <div class="flex items-center gap-1.5">
-                    <i class="fa-solid fa-lock text-green-500"></i>
+                    <i class="fa-solid fa-lock text-teal-500"></i>
                     <span>{{ __('Encrypted') }}</span>
                 </div>
             </div>

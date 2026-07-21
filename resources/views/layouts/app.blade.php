@@ -260,7 +260,7 @@
                 <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-10 h-10 rounded-xl shrink-0 shadow-lg object-contain bg-white p-0.5">
                 <div x-show="sidebarOpen" x-transition.opacity.duration.500ms class="overflow-hidden flex-1">
                     <p class="font-black text-base leading-none tracking-tight">
-                        <span style="color: #f8fafc;">Audit</span><span style="color: #2dd4bf;">Guard</span>
+                        <span style="color: #f8fafc;">Audit</span><span style="color: #38BDF8;">Guard</span>
                     </p>
                     <p class="text-[8px] text-blue-300 font-bold mt-1 uppercase tracking-widest whitespace-nowrap">{{ __('ISO 27001:2022') }}</p>
                 </div>
@@ -272,6 +272,7 @@
             <nav class="flex-1 px-3 space-y-0.5 mt-4 pb-4">
 
                 {{-- Quick Action --}}
+                @if(auth()->user()->isAdmin())
                 <div class="px-2 mb-6" x-show="sidebarOpen">
                     <a href="{{ route('sessions.index', ['create' => 'true']) }}" 
                        class="flex items-center justify-center gap-2 w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-blue-100 font-black text-[11px] uppercase tracking-wider rounded-xl transition-all hover:-translate-y-0.5 backdrop-blur-sm">
@@ -285,11 +286,11 @@
                         <i class="fa-solid fa-plus text-sm"></i>
                     </a>
                 </div>
+                @endif
 
                 {{-- Dashboard --}}
                 <a href="{{ route('dashboard') }}" 
                    id="sidebar-dashboard"
-                   @click="if(window.innerWidth < 1024) toggleSidebar()"
                    title="{{ __('Dashboard') }}"
                    class="sidebar-nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('dashboard') ? 'bg-blue-600/80 text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] border border-blue-500/50' : 'text-blue-100 hover:bg-white/10' }}">
                     <div class="w-6 flex justify-center shrink-0">
@@ -308,7 +309,6 @@
                 {{-- Audit Sessions --}}
                 <a href="{{ route('sessions.index') }}" 
                    id="sidebar-sessions"
-                   @click="if(window.innerWidth < 1024) toggleSidebar()"
                    title="{{ __('Audit Sessions') }}"
                    class="sidebar-nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('sessions.*') ? 'bg-blue-600/80 text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] border border-blue-500/50' : 'text-blue-100 hover:bg-white/10' }}">
                     <div class="w-6 flex justify-center shrink-0 relative">
@@ -326,11 +326,10 @@
 
 
 
-                {{-- Compliance Center --}}
+                {{-- Improvement Tracking --}}
                 <a href="{{ route('workspace.index') }}" 
                    id="sidebar-workspace"
-                   @click="if(window.innerWidth < 1024) toggleSidebar()"
-                   title="{{ __('Compliance Center') }}"
+                   title="{{ __('Improvement Tracking') }}"
                    class="sidebar-nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('workspace.*') ? 'bg-blue-600/80 text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] border border-blue-500/50' : 'text-blue-100 hover:bg-white/10' }}">
                     <div class="w-6 flex justify-center shrink-0 relative">
                         <i class="fa-solid fa-diagram-project text-base"></i>
@@ -338,11 +337,11 @@
                         <span class="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-rose-500 rounded-full flex items-center justify-center text-[7px] font-black text-white leading-none">{{ min($sidebarOpenGaps, 9) }}{{ $sidebarOpenGaps > 9 ? '+' : '' }}</span>
                         @endif
                     </div>
-                    <span x-show="sidebarOpen" class="text-sm font-bold tracking-tight sidebar-text flex-1">{{ __('Compliance Center') }}</span>
+                    <span x-show="sidebarOpen" class="text-sm font-bold tracking-tight sidebar-text flex-1">{{ __('Improvement Tracking') }}</span>
                     @if($sidebarOpenGaps > 0)
                     <span x-show="sidebarOpen" class="ml-auto px-1.5 py-0.5 bg-rose-500/20 text-rose-300 rounded text-[8px] font-black leading-none">{{ $sidebarOpenGaps }} gaps</span>
                     @endif
-                    <span x-show="!sidebarOpen" class="sidebar-tooltip">{{ __('Compliance Center') }}{{ $sidebarOpenGaps > 0 ? ' Ã‚Â· '.$sidebarOpenGaps.' gaps' : '' }}</span>
+                    <span x-show="!sidebarOpen" class="sidebar-tooltip">{{ __('Improvement Tracking') }}{{ $sidebarOpenGaps > 0 ? ' · '.$sidebarOpenGaps.' gaps' : '' }}</span>
                 </a>
 
                 {{-- Divider: INTELLIGENCE & REPORTS --}}
@@ -351,17 +350,16 @@
                 </div>
                 <div x-show="!sidebarOpen" class="border-t border-blue-800/40 my-2 mx-2"></div>
 
-                {{-- Strategic Analytics --}}
+                {{-- Assessment Result --}}
                 <a href="{{ route('reports.strategic') }}" 
                    id="sidebar-analytics"
-                   @click="if(window.innerWidth < 1024) toggleSidebar()"
-                   title="{{ __('Strategic Analytics') }}"
+                   title="{{ __('Assessment Result') }}"
                    class="sidebar-nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('reports.strategic') ? 'bg-blue-600/80 text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] border border-blue-500/50' : 'text-blue-100 hover:bg-white/10' }}">
                     <div class="w-6 flex justify-center shrink-0">
                         <i class="fa-solid fa-chart-line text-base"></i>
                     </div>
-                    <span x-show="sidebarOpen" class="text-sm font-bold tracking-tight sidebar-text">{{ __('Strategic Analytics') }}</span>
-                    <span x-show="!sidebarOpen" class="sidebar-tooltip">{{ __('Strategic Analytics') }}</span>
+                    <span x-show="sidebarOpen" class="text-sm font-bold tracking-tight sidebar-text">{{ __('Assessment Result') }}</span>
+                    <span x-show="!sidebarOpen" class="sidebar-tooltip">{{ __('Assessment Result') }}</span>
                 </a>
 
                 {{-- Divider: RESOURCES & GOVERNANCE --}}
@@ -373,7 +371,6 @@
                 {{-- Knowledge Base --}}
                 <a href="{{ route('knowledge-base.index') }}" 
                    id="sidebar-knowledge"
-                   @click="if(window.innerWidth < 1024) toggleSidebar()"
                    title="{{ __('Knowledge Base') }}"
                    class="sidebar-nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('knowledge-base.*') ? 'bg-blue-600/80 text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] border border-blue-500/50' : 'text-blue-100 hover:bg-white/10' }}">
                     <div class="w-6 flex justify-center shrink-0">
@@ -386,41 +383,23 @@
                     <span x-show="!sidebarOpen" class="sidebar-tooltip">{{ __('Knowledge Base') }}</span>
                 </a>
 
-                {{-- Community Hub --}}
-                <a href="{{ route('community.index') }}" 
-                   id="sidebar-community"
-                   @click="if(window.innerWidth < 1024) toggleSidebar()"
-                   title="{{ __('Community Hub') }}"
-                   class="sidebar-nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('community.*') ? 'bg-blue-600/80 text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] border border-blue-500/50' : 'text-blue-100 hover:bg-white/10' }}">
-                    <div class="w-6 flex justify-center shrink-0">
-                        <i class="fa-solid fa-users text-base"></i>
-                    </div>
-                    <span x-show="sidebarOpen" class="text-sm font-bold tracking-tight sidebar-text flex-1">{{ __('Community Hub') }}</span>
-                    @if($sidebarCommunityCount > 0)
-                    <span x-show="sidebarOpen" class="ml-auto px-1.5 py-0.5 bg-white/10 text-blue-200 rounded text-[8px] font-black leading-none">{{ $sidebarCommunityCount }}</span>
-                    @endif
-                    <span x-show="!sidebarOpen" class="sidebar-tooltip">{{ __('Community Hub') }}</span>
-                </a>
-
-
 
                 {{-- Audit Trail --}}
                 <a href="{{ route('audit-trail.index') }}" 
                    id="sidebar-audit-trail"
-                   @click="if(window.innerWidth < 1024) toggleSidebar()"
                    title="{{ __('Audit Trail') }}"
                    class="sidebar-nav-item relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('audit-trail.*') ? 'bg-blue-600/80 text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] border border-blue-500/50' : 'text-blue-100 hover:bg-white/10' }}">
                     <div class="w-6 flex justify-center shrink-0 relative">
                         <i class="fa-solid fa-clock-rotate-left text-base"></i>
                         @if($sidebarTodayTrail > 0)
-                        <span class="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-emerald-400 rounded-full flex items-center justify-center text-[7px] font-black text-slate-900 leading-none">{{ min($sidebarTodayTrail, 9) }}</span>
+                        <span class="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-teal-400 rounded-full flex items-center justify-center text-[7px] font-black text-slate-900 leading-none">{{ min($sidebarTodayTrail, 9) }}</span>
                         @endif
                     </div>
                     <span x-show="sidebarOpen" class="text-sm font-bold tracking-tight sidebar-text flex-1">{{ __('Audit Trail') }}</span>
                     @if($sidebarTodayTrail > 0)
-                    <span x-show="sidebarOpen" class="ml-auto px-1.5 py-0.5 bg-emerald-400/20 text-emerald-300 rounded text-[8px] font-black leading-none">{{ $sidebarTodayTrail }} today</span>
+                    <span x-show="sidebarOpen" class="ml-auto px-1.5 py-0.5 bg-teal-400/20 text-teal-300 rounded text-[8px] font-black leading-none">{{ $sidebarTodayTrail }} today</span>
                     @endif
-                    <span x-show="!sidebarOpen" class="sidebar-tooltip">{{ __('Audit Trail') }}{{ $sidebarTodayTrail > 0 ? ' Ã‚Â· '.$sidebarTodayTrail.' today' : '' }}</span>
+                    <span x-show="!sidebarOpen" class="sidebar-tooltip">{{ __('Audit Trail') }}{{ $sidebarTodayTrail > 0 ? ' · '.$sidebarTodayTrail.' today' : '' }}</span>
                 </a>
 
             </nav>
@@ -443,8 +422,7 @@
 
         </aside>
 
-        <main class="flex-1 flex flex-col min-w-0 bg-[#F8FAFC] overflow-hidden transition-all duration-300"
-              @click="if(sidebarOpen && window.innerWidth >= 1024) { sidebarOpen = false; localStorage.setItem('sidebarOpen', false); }">
+        <main class="flex-1 flex flex-col min-w-0 bg-[#F8FAFC] overflow-hidden transition-all duration-300">
             
             <header class="h-16 border-b border-slate-200 flex items-center justify-between px-6 z-40 bg-white shrink-0">
                 {{-- Breadcrumb --}}
@@ -459,10 +437,9 @@
                             if (request()->routeIs('dashboard'))             $crumbs = [['label' => 'Dashboard', 'url' => null]];
                             elseif (request()->routeIs('sessions.*'))        $crumbs = [['label' => 'Core Operations', 'url' => null], ['label' => 'Sessions', 'url' => null]];
                             elseif (request()->routeIs('results.*'))         $crumbs = [['label' => 'Core Operations', 'url' => null], ['label' => 'Assessment', 'url' => null]];
-                            elseif (request()->routeIs('workspace.*'))       $crumbs = [['label' => 'Core Operations', 'url' => null], ['label' => 'Compliance Center', 'url' => null]];
-                            elseif (request()->routeIs('reports.strategic')) $crumbs = [['label' => 'Intelligence & Reports', 'url' => null], ['label' => 'Strategic Analytics', 'url' => null]];
+                            elseif (request()->routeIs('workspace.*'))       $crumbs = [['label' => 'Core Operations', 'url' => null], ['label' => 'Improvement Tracking', 'url' => null]];
+                            elseif (request()->routeIs('reports.strategic')) $crumbs = [['label' => 'Intelligence & Reports', 'url' => null], ['label' => 'Assessment Result', 'url' => null]];
                             elseif (request()->routeIs('knowledge-base.*'))  $crumbs = [['label' => 'Resources & Governance', 'url' => null], ['label' => 'Knowledge Base', 'url' => null]];
-                            elseif (request()->routeIs('community.*'))       $crumbs = [['label' => 'Resources & Governance', 'url' => null], ['label' => 'Community Hub', 'url' => null]];
                             elseif (request()->routeIs('audit-trail.*'))     $crumbs = [['label' => 'Resources & Governance', 'url' => null], ['label' => 'Audit Trail', 'url' => null]];
                             elseif (request()->routeIs('profile.*'))         $crumbs = [['label' => 'Account', 'url' => null], ['label' => 'Profile', 'url' => null]];
                             else $crumbs = [['label' => 'Page', 'url' => null]];
@@ -535,11 +512,17 @@
                                 ->where('updated_at', '<', now()->subDays(7))
                                 ->get();
                                 
-                            $totalNotifs = $overdueTasks->count() + $upcomingTasks->count() + $stagnantSessions->count();
+                            // 4. Database Notifications (Real-time assignments / CAPAs)
+                            $dbNotifications = auth()->user()->unreadNotifications()->take(5)->get();
+                            $dbNotificationsCount = auth()->user()->unreadNotifications()->count();
+                                
+                            $totalNotifs = $overdueTasks->count() + $upcomingTasks->count() + $stagnantSessions->count() + $dbNotificationsCount;
                         } else {
                             $overdueTasks = collect();
                             $upcomingTasks = collect();
                             $stagnantSessions = collect();
+                            $dbNotifications = collect();
+                            $dbNotificationsCount = 0;
                             $totalNotifs = 0;
                         }
                     @endphp
@@ -575,7 +558,51 @@
                             </div>
                             
                             <div class="max-h-80 overflow-y-auto custom-scrollbar p-2">
-                                
+                                {{-- Database Notifications --}}
+                                @if($dbNotifications->count() > 0)
+                                    <div class="px-3 py-1 mt-1 mb-1 text-[8px] font-black text-indigo-500 uppercase tracking-widest">{{ __('Notifications') }}</div>
+                                    @foreach($dbNotifications as $notif)
+                                        @php $notifType = $notif->data['type'] ?? 'general'; @endphp
+                                        <div class="flex items-start gap-2.5 p-2.5 hover:bg-slate-50 rounded-xl transition-colors group relative">
+                                            @if($notifType === 'audit_session')
+                                                <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center shrink-0 border border-blue-100">
+                                                    <i class="fa-solid fa-list-check text-[10px]"></i>
+                                                </div>
+                                            @elseif($notifType === 'corrective_action')
+                                                <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center shrink-0 border border-amber-100">
+                                                    <i class="fa-solid fa-triangle-exclamation text-[10px]"></i>
+                                                </div>
+                                            @else
+                                                <div class="w-7 h-7 rounded-lg bg-slate-50 text-slate-500 flex items-center justify-center shrink-0 border border-slate-200">
+                                                    <i class="fa-solid fa-bell text-[10px]"></i>
+                                                </div>
+                                            @endif
+                                            <div class="min-w-0 flex-1">
+                                                @if($notifType === 'audit_session' && !empty($notif->data['session_id']))
+                                                    <a href="{{ route('workspace.index', ['session_id' => $notif->data['session_id']]) }}" class="block text-[10px] font-bold text-slate-900 leading-tight hover:underline">
+                                                        {{ $notif->data['message'] ?? '' }}
+                                                    </a>
+                                                @elseif($notifType === 'corrective_action' && !empty($notif->data['session_id']))
+                                                    <a href="{{ route('workspace.index', ['session_id' => $notif->data['session_id'], 'focus' => $notif->data['result_id'] ?? null]) }}" class="block text-[10px] font-bold text-slate-900 leading-tight hover:underline">
+                                                        {{ $notif->data['message'] ?? '' }}
+                                                    </a>
+                                                @else
+                                                    <p class="text-[10px] font-bold text-slate-900 leading-tight">{{ $notif->data['message'] ?? '' }}</p>
+                                                @endif
+                                                <p class="text-[8px] font-bold text-indigo-500 uppercase tracking-widest mt-1">{{ $notif->created_at->diffForHumans() }}</p>
+                                            </div>
+                                            
+                                            {{-- Inline Mark as Read --}}
+                                            <form method="POST" action="{{ route('notifications.read', $notif->id) }}" class="shrink-0 self-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                @csrf
+                                                <button type="submit" title="{{ __('Mark as read') }}" class="w-6 h-6 rounded-md bg-slate-100 hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 flex items-center justify-center transition-colors">
+                                                    <i class="fa-solid fa-check text-[10px]"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @endforeach
+                                @endif
+
                                 {{-- Overdue Tasks --}}
                                 @if($overdueTasks->count() > 0)
                                     <div class="px-3 py-1 mt-1 mb-1 text-[8px] font-black text-rose-500 uppercase tracking-widest">{{ __('Overdue Tasks') }}</div>
@@ -647,14 +674,16 @@
                                 @endif
                             </div>
                             
-                            @if($totalNotifs > 0)
-                            <div class="p-2 border-t border-slate-100">
+                            <div class="p-1.5 border-t border-slate-100 bg-slate-50 flex gap-1">
+                                <a href="{{ route('notifications.index') }}" 
+                                    class="block w-1/2 py-2 text-center text-[9px] font-black text-indigo-600 hover:bg-indigo-50 rounded-lg border border-indigo-100 transition-all uppercase tracking-widest">
+                                    {{ __('Notification Center') }}
+                                </a>
                                 <a href="{{ route('workspace.index') }}" 
-                                    class="block w-full py-2 text-center text-[9px] font-black text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all uppercase tracking-widest">
-                                    {{ __('Open Compliance Center') }} →
+                                    class="block w-1/2 py-2 text-center text-[9px] font-black text-slate-600 hover:bg-slate-200 rounded-lg border border-slate-200 transition-all uppercase tracking-widest">
+                                    {{ __('Compliance Center') }}
                                 </a>
                             </div>
-                            @endif
                         </div>
                     </div>
                     
@@ -747,14 +776,12 @@
                                 <div :class="{
                                     'bg-blue-100 text-blue-600': result.type === 'session',
                                     'bg-rose-100 text-rose-600': result.type === 'gap',
-                                    'bg-emerald-100 text-emerald-600': result.type === 'kb',
-                                    'bg-purple-100 text-purple-600': result.type === 'community'
+                                    'bg-teal-100 text-teal-600': result.type === 'kb'
                                 }" class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0">
                                     <i class="text-[10px]" :class="{
                                         'fa-solid fa-list-check': result.type === 'session',
                                         'fa-solid fa-triangle-exclamation': result.type === 'gap',
-                                        'fa-solid fa-book-open': result.type === 'kb',
-                                        'fa-solid fa-users': result.type === 'community'
+                                        'fa-solid fa-book-open': result.type === 'kb'
                                     }"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
@@ -765,8 +792,7 @@
                                     :class="{
                                         'bg-blue-50 text-blue-500': result.type === 'session',
                                         'bg-rose-50 text-rose-500': result.type === 'gap',
-                                        'bg-emerald-50 text-emerald-500': result.type === 'kb',
-                                        'bg-purple-50 text-purple-500': result.type === 'community'
+                                        'bg-teal-50 text-teal-500': result.type === 'kb'
                                     }" x-text="result.type"></span>
                             </a>
                         </template>
@@ -783,9 +809,8 @@
                             @foreach([
                                 ['label' => 'Audit Sessions',      'icon' => 'fa-list-check',        'url' => route('sessions.index'),        'color' => 'blue'],
                                 ['label' => 'Compliance Center',   'icon' => 'fa-diagram-project',   'url' => route('workspace.index'),       'color' => 'indigo'],
-                                ['label' => 'Strategic Analytics', 'icon' => 'fa-chart-line',        'url' => route('reports.strategic'),     'color' => 'violet'],
-                                ['label' => 'Knowledge Base',      'icon' => 'fa-book-open',         'url' => route('knowledge-base.index'),  'color' => 'emerald'],
-                                ['label' => 'Community Hub',       'icon' => 'fa-users',             'url' => route('community.index'),       'color' => 'purple'],
+                                ['label' => 'Assessment Result',   'icon' => 'fa-chart-line',        'url' => route('reports.strategic'),     'color' => 'violet'],
+                                ['label' => 'Knowledge Base',      'icon' => 'fa-book-open',         'url' => route('knowledge-base.index'),  'color' => 'teal'],
                                 ['label' => 'Audit Trail',         'icon' => 'fa-clock-rotate-left', 'url' => route('audit-trail.index'),     'color' => 'amber'],
                             ] as $shortcut)
                             <a href="{{ $shortcut['url'] }}" @click="closeQuickSearch()"
@@ -914,26 +939,26 @@
                         </div>
                         <div class="min-w-0">
                             <p class="text-sm font-bold text-slate-900">{{ __('Compliance Center') }}</p>
-                            <p class="text-[11px] font-medium text-slate-500 leading-snug mt-0.5">{{ __('Fill in control evaluations, identify gaps, and manage remediation plans (CAPA).') }}</p>
+                            <p class="text-[11px] font-medium text-slate-500 leading-snug mt-0.5">{{ __('Fill in control evaluations, identify gaps, and manage Improvement Tracking.') }}</p>
                         </div>
                     </a>
 
-                    {{-- Strategic Analytics --}}
+                    {{-- Assessment Result --}}
                     <a href="{{ route('reports.strategic') }}" @click="dismissGuide()"
                         class="flex items-start gap-3 p-4 bg-violet-50 hover:bg-violet-100 border border-violet-100 rounded-2xl transition-all group cursor-pointer">
                         <div class="w-10 h-10 bg-violet-600 text-white rounded-xl flex items-center justify-center shrink-0 shadow-md shadow-violet-600/20 group-hover:scale-110 transition-transform">
                             <i class="fa-solid fa-chart-line text-sm"></i>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-sm font-bold text-slate-900">{{ __('Strategic Analytics') }}</p>
+                            <p class="text-sm font-bold text-slate-900">{{ __('Assessment Result') }}</p>
                             <p class="text-[11px] font-medium text-slate-500 leading-snug mt-0.5">{{ __('View compliance trend charts, maturity radar, and executive summary reports.') }}</p>
                         </div>
                     </a>
 
                     {{-- Knowledge Base --}}
                     <a href="{{ route('knowledge-base.index') }}" @click="dismissGuide()"
-                        class="flex items-start gap-3 p-4 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 rounded-2xl transition-all group cursor-pointer">
-                        <div class="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center shrink-0 shadow-md shadow-emerald-600/20 group-hover:scale-110 transition-transform">
+                        class="flex items-start gap-3 p-4 bg-teal-50 hover:bg-teal-100 border border-teal-100 rounded-2xl transition-all group cursor-pointer">
+                        <div class="w-10 h-10 bg-teal-600 text-white rounded-xl flex items-center justify-center shrink-0 shadow-md shadow-teal-600/20 group-hover:scale-110 transition-transform">
                             <i class="fa-solid fa-book-open text-sm"></i>
                         </div>
                         <div class="min-w-0">
@@ -941,19 +966,6 @@
                             <p class="text-[11px] font-medium text-slate-500 leading-snug mt-0.5">{{ __('Access reference articles, implementation guides, and ISO 27001 best practices.') }}</p>
                         </div>
                     </a>
-
-                    {{-- Community Hub --}}
-                    <a href="{{ route('community.index') }}" @click="dismissGuide()"
-                        class="flex items-start gap-3 p-4 bg-purple-50 hover:bg-purple-100 border border-purple-100 rounded-2xl transition-all group cursor-pointer">
-                        <div class="w-10 h-10 bg-purple-600 text-white rounded-xl flex items-center justify-center shrink-0 shadow-md shadow-purple-600/20 group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-users text-sm"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-sm font-bold text-slate-900">{{ __('Community Hub') }}</p>
-                            <p class="text-[11px] font-medium text-slate-500 leading-snug mt-0.5">{{ __('Share and download blank document templates with other ISO practitioners.') }}</p>
-                        </div>
-                    </a>
-
                     {{-- Audit Trail --}}
                     <a href="{{ route('audit-trail.index') }}" @click="dismissGuide()"
                         class="flex items-start gap-3 p-4 bg-amber-50 hover:bg-amber-100 border border-amber-100 rounded-2xl transition-all group cursor-pointer">
@@ -1048,7 +1060,6 @@
             workspace:  '{{ route('workspace.index') }}',
             analytics:  '{{ route('reports.strategic') }}',
             knowledge:  '{{ route('knowledge-base.index') }}',
-            community:  '{{ route('community.index') }}',
             auditTrail: '{{ route('audit-trail.index') }}'
         };
         var LS_ACTIVE = 'gt_active';
@@ -1099,7 +1110,7 @@
             /* ── 11: Compliance Center Workspace Tab ─────────── */
             { path: ROUTES.workspace,  target: '#tab-soa-workspace',   icon: 'fa-table-cells-large', color: '#0891b2',
               title: @js(__('Compliance Center – Statement of Applicability')),
-              text:  @js(__('Click this tab to manage your Statement of Applicability (SoA) and compile the CAPA remediation plan.')) },
+              text:  @js(__('Click this tab to manage your Statement of Applicability (SoA) and compile the Improvement Tracking.')) },
             /* ── 12: Compliance Center Controls Table ───────── */
             { path: ROUTES.workspace,  target: '#workspace-controls-table', icon: 'fa-list-check',   color: '#0891b2',
               title: @js(__('Compliance Center – Controls Table')),
@@ -1107,15 +1118,15 @@
 
             /* ── 13: Analytics Sidebar ──────────────────────── */
             { path: ROUTES.analytics,  target: '#sidebar-analytics',   icon: 'fa-chart-line',        color: '#059669',
-              title: @js(__('Strategic Analytics – Trends')),
+              title: @js(__('Assessment Result – Trends')),
               text:  @js(__('View your compliance progress over time with trend charts. Compare scores across multiple audit sessions to measure improvement.')) },
             /* ── 14: Analytics Radar Scope ───────────────────── */
             { path: ROUTES.analytics,  target: '#analytics-radar-section', icon: 'fa-compass',        color: '#059669',
-              title: @js(__('Strategic Analytics – Domain Pillars')),
+              title: @js(__('Assessment Result – Domain Pillars')),
               text:  @js(__('The maturity scope radar and pillar breakdown show your organization\'s strengths and weaknesses across ISO 27001:2022 pillars.')) },
             /* ── 15: Analytics Generate Summary ──────────────── */
             { path: ROUTES.analytics,  target: '#btn-generate-summary', icon: 'fa-wand-magic-sparkles', color: '#059669',
-              title: @js(__('Strategic Analytics – AI Executive Summary')),
+              title: @js(__('Assessment Result – AI Executive Summary')),
               text:  @js(__('Click \'Regenerate Summary\' to generate a one-click AI Executive Summary report powered by the local Ollama engine.')) },
 
             /* ── 16: Knowledge Base Sidebar ──────────────────── */
@@ -1130,19 +1141,6 @@
             { path: ROUTES.knowledge,  target: '#btn-create-article',  icon: 'fa-plus-circle',       color: '#d97706',
               title: @js(__('Knowledge Base – Create Articles')),
               text:  @js(__('Click \'Add New\' to create your own knowledge article. You can attach PDF or DOCX files as evidence references.')) },
-
-            /* ── 19: Community Sidebar ──────────────────────── */
-            { path: ROUTES.community,  target: '#sidebar-community',   icon: 'fa-users',             color: '#9333ea',
-              title: @js(__('Community Hub – Browse Templates')),
-              text:  @js(__('Explore blank document templates shared by other ISO 27001:2022 practitioners. Templates contain NO real company data – only structural formats.')) },
-            /* ── 20: Community Template Grid ────────────────── */
-            { path: ROUTES.community,  target: '#community-template-grid', icon: 'fa-grip',          color: '#9333ea',
-              title: @js(__('Community Hub – Template Grid')),
-              text:  @js(__('Review available templates, check their ratings, popularity, and descriptions before importing them.')) },
-            /* ── 21: Community Clone Button ──────────────────── */
-            { path: ROUTES.community,  target: '#btn-clone-first',     icon: 'fa-clone',             color: '#9333ea',
-              title: @js(__('Community Hub – Clone a Template')),
-              text:  @js(__('Found a useful template? Click \'Clone\' to instantly copy it into your own Knowledge Base for customization.')) },
 
             /* ── 22: Audit Trail Sidebar ────────────────────── */
             { path: ROUTES.auditTrail, target: '#sidebar-audit-trail', icon: 'fa-clock-rotate-left', color: '#ea580c',
@@ -1397,7 +1395,7 @@
                         $helpItems = [
                             ['icon' => 'fa-plus', 'color' => 'blue', 'text' => __("Click '+ New Assessment' in the sidebar or the button on this page to create a new session.")],
                             ['icon' => 'fa-layer-group', 'color' => 'indigo', 'text' => __('Each session is independent — you can run multiple sessions for different periods or departments.')],
-                            ['icon' => 'fa-arrow-right', 'color' => 'emerald', 'text' => __('After creating a session, click on it to start answering the 93 ISO 27001:2022 controls.')],
+                            ['icon' => 'fa-arrow-right', 'color' => 'teal', 'text' => __('After creating a session, click on it to start answering the 93 ISO 27001:2022 controls.')],
                         ];
                         $helpLinks = [
                             ['label' => __('Compliance Center'), 'url' => route('workspace.index')],
@@ -1420,44 +1418,32 @@
                         $helpLinks = [
                             ['label' => __('Audit Sessions'), 'url' => route('sessions.index')],
                         ];
-                    } elseif (request()->routeIs('community.*')) {
-                        $helpTitle = __('Community Guide');
-                        $helpItems = [
-                            ['icon' => 'fa-search', 'color' => 'blue', 'text' => __('Browse templates shared by other ISO 27001 practitioners.')],
-                            ['icon' => 'fa-shield-halved', 'color' => 'rose', 'text' => __('Only share BLANK templates — never upload documents containing real company data.')],
-                            ['icon' => 'fa-clone', 'color' => 'purple', 'text' => __("Click 'Clone' to copy a template into your own Knowledge Base for customization.")],
-                        ];
-                        $helpLinks = [
-                            ['label' => __('Knowledge Base'), 'url' => route('knowledge-base.index')],
-                        ];
                     } elseif (request()->routeIs('knowledge-base.*')) {
                         $helpTitle = __('Knowledge Base Guide');
                         $helpItems = [
                             ['icon' => 'fa-magnifying-glass', 'color' => 'blue', 'text' => __('Search for articles, policies, or guides using the search bar at the top.')],
-                            ['icon' => 'fa-plus-circle', 'color' => 'emerald', 'text' => __("Create your own knowledge articles using the 'Add New' button.")],
+                            ['icon' => 'fa-plus-circle', 'color' => 'teal', 'text' => __("Create your own knowledge articles using the 'Add New' button.")],
                             ['icon' => 'fa-paperclip', 'color' => 'indigo', 'text' => __('Attach files (PDF, DOCX) as evidence references to each article.')],
                         ];
-                        $helpLinks = [
-                            ['label' => __('Community Hub'), 'url' => route('community.index')],
-                        ];
+                        $helpLinks = [];
                     } elseif (request()->routeIs('audit-trail.*')) {
                         $helpTitle = __('Audit Trail Guide');
                         $helpItems = [
                             ['icon' => 'fa-clock-rotate-left', 'color' => 'amber', 'text' => __('This page records all changes made to assessment controls in the system.')],
                             ['icon' => 'fa-calendar', 'color' => 'blue', 'text' => __('Use the date filter to narrow down activity for a specific period.')],
-                            ['icon' => 'fa-file-excel', 'color' => 'emerald', 'text' => __('Export the log as Excel for offline review or compliance reporting.')],
+                            ['icon' => 'fa-file-excel', 'color' => 'teal', 'text' => __('Export the log as Excel for offline review or compliance reporting.')],
                         ];
                         $helpLinks = [];
                     } else {
                         $helpTitle = __('Platform Guide');
                         $helpItems = [
                             ['icon' => 'fa-list-check', 'color' => 'blue', 'text' => __('Audit Sessions') . ': ' . __('Create and manage your ISO 27001:2022 assessment sessions. Each session covers all 93 controls.')],
-                            ['icon' => 'fa-diagram-project', 'color' => 'indigo', 'text' => __('Compliance Center') . ': ' . __('Fill in control evaluations, identify gaps, and manage remediation plans (CAPA).')],
+                            ['icon' => 'fa-diagram-project', 'color' => 'indigo', 'text' => __('Compliance Center') . ': ' . __('Fill in control evaluations, identify gaps, and manage Improvement Tracking.')],
                         ];
                         $helpLinks = [
                             ['label' => __('Audit Sessions'), 'url' => route('sessions.index')],
                             ['label' => __('Compliance Center'), 'url' => route('workspace.index')],
-                            ['label' => __('Strategic Analytics'), 'url' => route('reports.strategic')],
+                            ['label' => __('Assessment Result'), 'url' => route('reports.strategic')],
                         ];
                     }
                 @endphp

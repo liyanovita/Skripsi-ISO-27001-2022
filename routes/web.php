@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -23,8 +22,7 @@ use App\Http\Controllers\Intelligence\AiSummaryController;
 // Compliance Domain
 use App\Http\Controllers\Compliance\WorkspaceController;
 
-// Community Domain
-use App\Http\Controllers\Community\TemplateController as CommunityController;
+
 
 // Integration Domain
 use App\Http\Controllers\Integration\WebhookController;
@@ -60,10 +58,7 @@ Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'
 Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.update');
 
-Route::controller(RegisteredUserController::class)->group(function () {
-    Route::get('/register', 'create')->name('register');
-    Route::post('/register', 'store');
-});
+
 
 // OAuth Routes
 Route::controller(SocialAuthController::class)->prefix('auth')->name('auth.')->group(function () {
@@ -79,8 +74,6 @@ Route::controller(SocialAuthController::class)->prefix('auth')->name('auth.')->g
 Route::prefix('webhook')->middleware('webhook.auth')->group(function () {
     Route::post('/n8n', [WebhookController::class, 'handleN8nResponse'])->name('webhook.n8n');
     Route::post('/n8n-summary', [WebhookController::class, 'handleSessionSummary'])->name('webhook.n8n.summary');
-    Route::get('/n8n/reminders', [WebhookController::class, 'getReminders'])->name('webhook.n8n.reminders');
-    Route::post('/n8n/send-notification', [WebhookController::class, 'sendNotification'])->name('webhook.n8n.send-notification');
 });
 
 /*
@@ -166,21 +159,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/audit-trail', [AuditTrailController::class, 'index'])->name('audit-trail.index');
     Route::get('/audit-trail/export', [AuditTrailController::class, 'export'])->name('audit-trail.export');
 
-    // Community Domain
-    Route::controller(CommunityController::class)->prefix('community')->name('community.')->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::get('/create', 'create')->name('create');
-        Route::post('/store', 'store')->name('store');
-        Route::get('/{id}/edit', 'edit')->name('edit');
-        Route::put('/{id}', 'update')->name('update');
-        Route::delete('/{id}', 'destroy')->name('destroy');
-        Route::get('/attachment/{id}', 'downloadAttachment')->name('attachment');
-        Route::post('/use', 'useTemplate')->name('use');
-        Route::get('/{id}', 'show')->name('show');
-        Route::post('/{id}/upvote', 'upvote')->name('upvote');
-        Route::post('/{id}/rate', 'rate')->name('rate');
-        Route::post('/{id}/clone', 'clone')->name('clone');
-    });
+
 
     // Governance Domain - Knowledge Base
     Route::controller(KnowledgeBaseController::class)->prefix('knowledge-base')->name('knowledge-base.')->group(function () {
@@ -206,55 +185,76 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/password', 'updatePassword')->name('password.update');
     });
 
+    // Governance Domain - Notifications
+    Route::controller(\App\Http\Controllers\Governance\NotificationController::class)->prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/{id}/read', 'markAsRead')->name('read');
+        Route::post('/{id}/unread', 'markAsUnread')->name('unread');
+        Route::post('/read-all', 'markAllAsRead')->name('read-all');
+    });
+
     // Admin Domain
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
         
-        // ISO Standards Management
-        Route::get('standards-export', [\App\Http\Controllers\Admin\IsoStandardController::class, 'export'])->name('standards.export');
-        Route::post('standards-import', [\App\Http\Controllers\Admin\IsoStandardController::class, 'import'])->name('standards.import');
-        Route::resource('standards', \App\Http\Controllers\Admin\IsoStandardController::class);
-
-        // Knowledge Base Management
-        Route::resource('knowledge', \App\Http\Controllers\Admin\KnowledgeBaseController::class);
-
-        // CAPA Plan Management
-        Route::get('capa/export', [\App\Http\Controllers\Admin\CapaController::class, 'exportCsv'])->name('capa.export');
-        Route::resource('capa', \App\Http\Controllers\Admin\CapaController::class)->only(['index', 'edit', 'update']);
-
-        // System Logs / Audit Trail
-        Route::get('logs', [\App\Http\Controllers\Admin\AuditTrailController::class, 'index'])->name('logs.index');
-        Route::get('logs/export', [\App\Http\Controllers\Admin\AuditTrailController::class, 'exportCsv'])->name('logs.export');
-
-        // Compliance Reports
-        Route::get('reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
-        Route::get('reports/export', [\App\Http\Controllers\Admin\ReportController::class, 'exportCsv'])->name('reports.export_csv');
-        Route::get('reports/pdf', [\App\Http\Controllers\Admin\ReportController::class, 'exportPdf'])->name('reports.export_pdf');
-
-        // User Management
-        Route::controller(\App\Http\Controllers\Admin\UserController::class)->prefix('users')->name('users.')->group(function () {
+        // Notifications Domain
+        Route::controller(\App\Http\Controllers\Governance\NotificationController::class)->prefix('notifications')->name('notifications.')->group(function () {
             Route::get('/', 'index')->name('index');
-            Route::get('/create', 'create')->name('create');
-            Route::post('/', 'store')->name('store');
-            Route::get('/{user}', 'show')->name('show');
-            Route::get('/{user}/edit', 'edit')->name('edit');
-            Route::put('/{user}', 'update')->name('update');
-            Route::patch('/{user}/toggle-status', 'toggleStatus')->name('toggle-status');
-            Route::post('/{user}/reset-password', 'resetPassword')->name('reset-password');
-            Route::delete('/{user}', 'destroy')->name('destroy');
+            Route::post('/{id}/read', 'markAsRead')->name('read');
+            Route::post('/{id}/unread', 'markAsUnread')->name('unread');
+            Route::post('/read-all', 'markAllAsRead')->name('read-all');
         });
+        
+        // 2. Assessment Management Group (Admin)
+        Route::middleware(['role:admin'])->group(function () {
+            // User Management
+            Route::controller(\App\Http\Controllers\Admin\UserController::class)->prefix('users')->name('users.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/create', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{user}', 'show')->name('show');
+                Route::get('/{user}/edit', 'edit')->name('edit');
+                Route::put('/{user}', 'update')->name('update');
+                Route::patch('/{user}/toggle-status', 'toggleStatus')->name('toggle-status');
+                Route::post('/{user}/reset-password', 'resetPassword')->name('reset-password');
+                Route::delete('/{user}', 'destroy')->name('destroy');
+            });
 
-        // Audit Sessions (Cross-User)
-        Route::controller(\App\Http\Controllers\Admin\SessionController::class)->prefix('sessions')->name('sessions.')->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/{session}', 'show')->name('show')->withTrashed();
-            Route::delete('/{session}', 'destroy')->name('destroy')->withTrashed();
-        });
+            // System Logs / Audit Trail
+            Route::get('logs', [\App\Http\Controllers\Admin\AuditTrailController::class, 'index'])->name('logs.index');
+            Route::get('logs/export', [\App\Http\Controllers\Admin\AuditTrailController::class, 'exportCsv'])->name('logs.export');
 
-        // Community Moderation
-        Route::controller(\App\Http\Controllers\Admin\CommunityController::class)->prefix('community')->name('community.')->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::delete('/{template}', 'destroy')->name('destroy');
+            // ISO Standards Management
+            Route::get('standards-export', [\App\Http\Controllers\Admin\IsoStandardController::class, 'export'])->name('standards.export');
+            Route::post('standards-import', [\App\Http\Controllers\Admin\IsoStandardController::class, 'import'])->name('standards.import');
+            Route::resource('standards', \App\Http\Controllers\Admin\IsoStandardController::class);
+
+            // Knowledge Base Management
+            Route::resource('knowledge', \App\Http\Controllers\Admin\KnowledgeBaseController::class);
+
+            // Organizations Management
+            Route::resource('organizations', \App\Http\Controllers\Admin\OrganizationController::class);
+
+            // CAPA Plan Management
+            Route::get('capa/export', [\App\Http\Controllers\Admin\CapaController::class, 'exportCsv'])->name('capa.export');
+            Route::resource('capa', \App\Http\Controllers\Admin\CapaController::class)->only(['index', 'edit', 'update']);
+
+            // Compliance Reports
+            Route::get('reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
+            Route::get('reports/export', [\App\Http\Controllers\Admin\ReportController::class, 'exportCsv'])->name('reports.export_csv');
+            Route::get('reports/pdf', [\App\Http\Controllers\Admin\ReportController::class, 'exportPdf'])->name('reports.export_pdf');
+
+            // Audit Sessions (Cross-User)
+            Route::controller(\App\Http\Controllers\Admin\SessionController::class)->prefix('sessions')->name('sessions.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/create', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{session}/workspace', 'workspace')->name('workspace')->withTrashed();
+                Route::get('/{session}', 'show')->name('show')->withTrashed();
+                Route::get('/{session}/edit', 'edit')->name('edit')->withTrashed();
+                Route::put('/{session}', 'update')->name('update')->withTrashed();
+                Route::delete('/{session}', 'destroy')->name('destroy')->withTrashed();
+            });
         });
 
         // Admin Profile & Settings

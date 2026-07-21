@@ -28,7 +28,10 @@ trait SessionLoader
         ?int $limit = null
     ): Collection {
         $query = AssessmentSession::with(['results.standard'])
-            ->where('user_id', $userId)
+            ->when(!auth()->user() || !auth()->user()->isAdmin(), fn($q) => $q->where(function($q) use ($userId) {
+                $q->where('user_id', $userId)
+                  ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId));
+            }))
             ->orderBy($orderBy, $direction);
 
         if ($limit) {

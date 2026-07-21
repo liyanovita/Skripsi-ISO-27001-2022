@@ -62,8 +62,8 @@ class AdminCapaTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.capa.index'))
             ->assertOk()
-            ->assertSee('Corrective')
-            ->assertSee('Preventive Actions')
+            ->assertSee('Improvement')
+            ->assertSee('Tracking')
             ->assertSee($user->name)
             ->assertSee('Context of the organization')
             ->assertSee('4.1');
@@ -139,8 +139,8 @@ class AdminCapaTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.capa.edit', $capa))
             ->assertOk()
-            ->assertSee('Manage Corrective Action')
-            ->assertSee('CAPA Modification Timeline')
+            ->assertSee('Improvement Tracking')
+            ->assertSee('Improvement Modification Timeline')
             ->assertSee('treatment status')
             ->assertSee('in_progress');
     }
@@ -152,24 +152,30 @@ class AdminCapaTest extends TestCase
         $capa = $this->setupCapaData($user, '4.3', 'Scope', [
             'treatment_status' => 'open',
             'risk_priority' => 'High',
+            'treatment_progress' => 0,
+            'evidence_after_improvement' => null,
         ]);
 
         $this->actingAs($admin)
             ->put(route('admin.capa.update', $capa), [
                 'treatment_status' => 'in_progress',
-                'risk_priority' => 'Critical',
+                'risk_priority' => 'Medium',
                 'treatment_pic' => 'Jane Doe',
                 'treatment_due_date' => now()->addDays(10)->toDateString(),
                 'corrective_action_plan_text' => 'New Action Description',
+                'treatment_progress' => 50,
+                'evidence_after_improvement' => 'Policies drafted and shared with management',
             ])
             ->assertRedirect(route('admin.capa.index'))
             ->assertSessionHas('success');
 
         $capa->refresh();
         $this->assertEquals('in_progress', $capa->treatment_status);
-        $this->assertEquals('Critical', $capa->risk_priority);
+        $this->assertEquals('Medium', $capa->risk_priority);
         $this->assertEquals('Jane Doe', $capa->treatment_pic);
         $this->assertEquals('New Action Description', $capa->corrective_action_plan['action']);
+        $this->assertEquals(50, $capa->treatment_progress);
+        $this->assertEquals('Policies drafted and shared with management', $capa->evidence_after_improvement);
 
         // Assert AuditTrail is automatically written
         $this->assertDatabaseHas('audit_trails', [
@@ -178,6 +184,14 @@ class AdminCapaTest extends TestCase
             'field_changed' => 'treatment_status',
             'old_value' => 'open',
             'new_value' => 'in_progress',
+        ]);
+
+        $this->assertDatabaseHas('audit_trails', [
+            'model_type' => get_class($capa),
+            'model_id' => $capa->id,
+            'field_changed' => 'treatment_progress',
+            'old_value' => '0',
+            'new_value' => '50',
         ]);
     }
 
@@ -192,7 +206,7 @@ class AdminCapaTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        $response->assertHeader('Content-Disposition', 'attachment; filename=capa_plan_' . date('Y-m-d') . '.xlsx');
+        $response->assertHeader('Content-Disposition', 'attachment; filename=improvement_tracking_' . date('Y-m-d') . '.xlsx');
     }
 
     public function test_non_admin_cannot_export_capa_csv(): void

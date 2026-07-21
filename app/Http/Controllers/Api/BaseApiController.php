@@ -47,11 +47,7 @@ use OpenApi\Annotations as OA;
  *     name="Assessment Results",
  *     description="Manage assessment results and findings"
  * )
- * 
- * @OA\Tag(
- *     name="Community Templates",
- *     description="Share and use community assessment templates"
- * )
+
  * 
  * @OA\Tag(
  *     name="Intelligence & Analytics",

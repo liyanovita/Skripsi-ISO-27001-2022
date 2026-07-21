@@ -17,9 +17,22 @@
             <i class="fa-solid fa-folder-open text-2xl text-slate-300"></i>
         </div>
         <h3 class="text-lg font-bold text-slate-900">{{ __('No Assessment Data Yet') }}</h3>
-        <p class="text-slate-500 mt-1 max-w-sm mx-auto font-medium text-sm">{{ __('Start your first ISO 27001:2022 audit session to see compliance insights here.') }}</p>
-        <a href="{{ route('sessions.index') }}" class="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg active:scale-95">
-            <i class="fa-solid fa-plus"></i>{{ __('Start First Session') }}</a>
+        <p class="text-slate-500 mt-1 max-w-sm mx-auto font-medium text-sm">
+            @if(auth()->user()->isAdmin())
+                {{ __('Start your first ISO 27001:2022 audit session to see compliance insights here.') }}
+            @else
+                {{ __('Waiting to be invited to an audit session by the administrator.') }}
+            @endif
+        </p>
+        @if(auth()->user()->isAdmin())
+            <a href="{{ route('sessions.index') }}" class="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg active:scale-95">
+                <i class="fa-solid fa-plus"></i>{{ __('Start First Session') }}
+            </a>
+        @else
+            <a href="{{ route('sessions.index') }}" class="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg active:scale-95">
+                <i class="fa-solid fa-layer-group"></i>{{ __('View My Sessions') }}
+            </a>
+        @endif
     </div>
     @else
 
@@ -43,74 +56,110 @@
 
 
     {{-- Stats Grid --}}
-    <div id="dashboard-kpi-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {{-- Overall Compliance --}}
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+    <div id="dashboard-kpi-grid" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {{-- Card 1: Compliance Overview --}}
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between h-[122px]">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{{ __('Overall Compliance') }}</p>
-                    <h3 class="text-3xl font-bold text-blue-600 tracking-tight">{{ $complianceScore }}%</h3>
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Compliance Score') }}</p>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <h3 class="text-2xl font-black text-emerald-600 tracking-tight">{{ $complianceScore }}%</h3>
+                        @php
+                            $statusText = 'Non-Compliant';
+                            if ($complianceScore >= 80) {
+                                $statusText = 'Compliant';
+                            } elseif ($complianceScore >= 50) {
+                                $statusText = 'Partially Compliant';
+                            }
+                            $statusColor = match($statusText) {
+                                'Compliant' => 'text-emerald-700 bg-emerald-50 border-emerald-200',
+                                'Partially Compliant' => 'text-amber-700 bg-amber-50 border-amber-200',
+                                default => 'text-rose-700 bg-rose-50 border-rose-200',
+                            };
+                        @endphp
+                        <span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase tracking-wider {{ $statusColor }}">
+                            {{ __($statusText) }}
+                        </span>
+                    </div>
                 </div>
-                <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                    <i class="fa-solid fa-chart-line"></i>
+                <div class="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center border border-emerald-100 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                    <i class="fa-solid fa-shield-halved"></i>
                 </div>
             </div>
-            @if($complianceScore >= 80)
-                <div class="mt-3 flex items-center text-[10px] font-bold text-emerald-600 bg-emerald-50 w-fit px-2 py-0.5 rounded-lg border border-emerald-100">
-                    <i class="fa-solid fa-shield-check mr-1.5"></i>{{ __('Optimal Posture') }}
+            <div>
+                <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-emerald-500 rounded-full" style="width: {{ $complianceScore }}%"></div>
                 </div>
-            @elseif($complianceScore >= 50)
-                <div class="mt-3 flex items-center text-[10px] font-bold text-amber-600 bg-amber-50 w-fit px-2 py-0.5 rounded-lg border border-amber-100">
-                    <i class="fa-solid fa-shield-halved mr-1.5"></i>{{ __('Needs Improvement') }}
-                </div>
-            @else
-                <div class="mt-3 flex items-center text-[10px] font-bold text-rose-600 bg-rose-50 w-fit px-2 py-0.5 rounded-lg border border-rose-100">
-                    <i class="fa-solid fa-shield-virus mr-1.5"></i>{{ __('Critical Risk') }}
-                </div>
-            @endif
+            </div>
         </div>
 
-
-
-        {{-- High Priority Gaps --}}
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+        {{-- Card 2: Overall Maturity --}}
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between h-[122px]">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{{ __('Priority Gaps') }}</p>
-                    <h3 class="text-3xl font-bold text-orange-600 tracking-tight">{{ $totalGaps }}</h3>
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Overall Maturity Score') }}</p>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <h3 class="text-2xl font-black text-indigo-600 tracking-tight">{{ number_format($averageMaturity, 2) }}/5</h3>
+                        @php
+                            $cleanLevel = str_replace([' (Level 5)', ' (Level 4)', ' (Level 3)', ' (Level 2)', ' (Level 1)', ' (Level 0)'], '', $statusKematangan);
+                        @endphp
+                        <span class="px-2 py-0.5 rounded border border-indigo-100 bg-indigo-50 text-indigo-750 text-[8px] font-black uppercase tracking-wider">
+                            {{ __($cleanLevel) }}
+                        </span>
+                    </div>
                 </div>
-                <div class="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center border border-orange-100 group-hover:bg-orange-600 group-hover:text-white transition-all">
+                <div class="w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                    <i class="fa-solid fa-gauge-high"></i>
+                </div>
+            </div>
+            <div>
+                <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-indigo-500 rounded-full" style="width: {{ min(($averageMaturity / 5) * 100, 100) }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Card 3: Risk & Gap Analysis --}}
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between h-[122px] text-slate-700">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Risk Priority') }}</p>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        @php
+                            $riskColor = match($riskPriority) {
+                                'High' => 'text-rose-600',
+                                'Medium' => 'text-amber-600',
+                                default => 'text-emerald-600',
+                            };
+                            $riskColorBadge = match($riskPriority) {
+                                'High' => 'bg-rose-50 text-rose-700 border-rose-100 group-hover:bg-rose-500 group-hover:text-white',
+                                'Medium' => 'bg-amber-50 text-amber-700 border-amber-100 group-hover:bg-amber-500 group-hover:text-white',
+                                default => 'bg-emerald-50 text-emerald-700 border-emerald-100 group-hover:bg-emerald-500 group-hover:text-white',
+                            };
+                        @endphp
+                        <h3 class="text-2xl font-black {{ $riskColor }} tracking-tight">{{ __($riskPriority) }}</h3>
+                        <span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase tracking-wider {{ $riskColorBadge }}">
+                            {{ $totalGaps }} {{ __('Gaps') }}
+                        </span>
+                    </div>
+                </div>
+                <div class="w-9 h-9 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center border border-rose-100 group-hover:bg-rose-600 group-hover:text-white transition-all duration-300 shadow-sm">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
             </div>
-            <div class="mt-3 flex items-center gap-2">
-                <span class="px-2 py-0.5 bg-rose-50 text-rose-600 rounded-lg border border-rose-100 text-[9px] font-black uppercase tracking-widest">
-                    {{ $criticalGapCount }} Critical
-                </span>
-                <span class="px-2 py-0.5 bg-orange-50 text-orange-600 rounded-lg border border-orange-100 text-[9px] font-black uppercase tracking-widest">
-                    {{ $highGapCount }} High
-                </span>
-            </div>
-        </div>
-
-        {{-- Maturity Level --}}
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{{ __('Maturity Level') }}</p>
-                    <h3 class="text-xl font-bold text-purple-600 tracking-tight leading-tight">{{ $statusKematangan }}</h3>
+            <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-widest text-slate-450">
+                    <span class="text-rose-500">{{ $criticalGapCount }} {{ __('Critical') }}</span>
+                    <span>&bull;</span>
+                    <span class="text-orange-500">{{ $highGapCount }} {{ __('High') }}</span>
                 </div>
-                <div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center border border-purple-100 group-hover:bg-purple-600 group-hover:text-white transition-all">
-                    <i class="fa-solid fa-gauge"></i>
-                </div>
-            </div>
-            <div class="mt-3">
-                <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest mb-1.5">
-                    <span class="text-slate-400">{{ __('Score') }}</span>
-                    <span class="text-purple-600">{{ number_format($averageMaturity, 2) }}/5</span>
-                </div>
-                <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-purple-500 rounded-full" style="width: {{ min(($averageMaturity / 5) * 100, 100) }}%"></div>
+                <div class="flex items-center gap-1">
+                    <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">
+                        {{ __('AI Rec Status') }}:
+                    </span>
+                    <span class="inline-flex px-1.5 py-0.5 rounded border text-[7px] font-black uppercase tracking-wider {{ $aiRecBadge }}">
+                        {{ __($aiRecStatus) }}
+                    </span>
                 </div>
             </div>
         </div>
@@ -170,8 +219,8 @@
                     @php
                         $statusLabel = match($session->status) {
                             'completed'   => __('Completed'),
-                            'in_progress' => __('In Progress'),
-                            default       => __('In Progress'),
+                            'in_progress' => __('Active'),
+                            default       => __('Active'),
                         };
                         $statusColor = match($session->status) {
                             'completed' => 'bg-emerald-100 text-emerald-700',
@@ -186,7 +235,7 @@
                     @if($session->status === 'completed')
                         <div class="flex items-center gap-1.5">
                             <span class="text-xs font-black text-slate-800">{{ number_format(($session->overall_maturity_score / 5) * 100) }}%</span>
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Score</span>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Score') }}</span>
                         </div>
                     @else
                         <div class="flex-1 mr-3 bg-slate-200 rounded-full h-1.5 overflow-hidden">
@@ -242,7 +291,7 @@
 
             <div class="flex items-center gap-3 mb-4 relative z-10 shrink-0">
                 <h3 class="text-sm font-bold tracking-tight">{{ __('Compliance & Maturity Overview') }}</h3>
-                <span class="ml-auto px-2 py-0.5 bg-blue-500/50 text-blue-100 rounded-lg text-[9px] font-black uppercase tracking-widest border border-blue-400/30">Auto Generated</span>
+                <span class="ml-auto px-2 py-0.5 bg-blue-500/50 text-blue-100 rounded-lg text-[9px] font-black uppercase tracking-widest border border-blue-400/30">{{ __('Auto Generated') }}</span>
             </div>
 
             <div class="relative z-10 flex-1 flex flex-col gap-3 min-h-0 overflow-hidden">
@@ -260,42 +309,8 @@
 
     </div>
 
-    {{-- Community Spotlight & Audit Trail Row --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-        {{-- Community Spotlight Widget --}}
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full" style="min-height: 280px; max-height: 340px;">
-            <div class="flex items-center justify-between mb-4 shrink-0">
-                <h3 class="text-sm font-bold text-slate-900">{{ __('Community Spotlight') }}</h3>
-                <a href="{{ route('community.index') }}" class="text-[9px] font-bold text-blue-600 hover:underline uppercase tracking-widest">{{ __('Explore') }}</a>
-            </div>
-            <div class="flex-1 flex flex-col gap-3 overflow-y-auto pr-1
-                        [&::-webkit-scrollbar]:w-1
-                        [&::-webkit-scrollbar-track]:bg-slate-50
-                        [&::-webkit-scrollbar-track]:rounded-full
-                        [&::-webkit-scrollbar-thumb]:bg-slate-200
-                        [&::-webkit-scrollbar-thumb]:rounded-full">
-                @forelse($topTemplates ?? [] as $template)
-                    <a href="{{ route('community.show', $template->id) }}" class="flex items-center gap-3 p-3 bg-slate-50 hover:bg-blue-50 rounded-xl border border-slate-100 transition-colors group">
-                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-file-shield text-[10px]"></i>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="text-[10px] font-bold text-slate-900 truncate group-hover:text-blue-700 transition-colors">{{ $template->title }}</p>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest"><i class="fa-solid fa-arrow-up text-emerald-500 mr-0.5"></i>{{ $template->upvotes }}</span>
-                                <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest"><i class="fa-solid fa-star text-amber-400 mr-0.5"></i>{{ $template->avg_rating }}</span>
-                            </div>
-                        </div>
-                    </a>
-                @empty
-                    <div class="flex flex-col items-center justify-center h-full text-center opacity-50">
-                        <i class="fa-solid fa-users text-2xl text-slate-300 mb-2"></i>
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">{{ __('No Templates Yet') }}</p>
-                    </div>
-                @endforelse
-            </div>
-        </div>
-
+    {{-- Live Audit Trail Row --}}
+    <div class="grid grid-cols-1 gap-5 mb-5">
         {{-- Live Audit Trail Widget --}}
         <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full" style="min-height: 280px; max-height: 340px;">
             <div class="flex items-center justify-between mb-4 shrink-0">
@@ -314,7 +329,7 @@
                             <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
                         </div>
                         <div class="min-w-0 flex-1">
-                            <p class="text-[10px] font-bold text-slate-900 truncate">{{ $trail->model?->standard?->code ?? 'N/A' }} <span class="text-slate-400 font-medium ml-1">updated</span></p>
+                            <p class="text-[10px] font-bold text-slate-900 truncate">{{ $trail->model?->standard?->code ?? 'N/A' }} <span class="text-slate-400 font-medium ml-1">{{ __('updated') }}</span></p>
                             <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">{{ str_replace('_', ' ', Str::title($trail->field_changed)) }}</p>
                             <p class="text-[10px] text-slate-500 mt-1 truncate flex items-center gap-1.5">
                                 <span class="line-through text-rose-400">{{ $trail->old_value }}</span> 
@@ -345,11 +360,11 @@
                 </div>
                 <div>
                     <h3 class="text-sm font-bold text-slate-900 tracking-tight">{{ __('Active Remediation Tasks') }}</h3>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('CAPA Tracking') }}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Improvement Tracking') }}</p>
                 </div>
             </div>
             <span class="px-2.5 py-1 bg-indigo-50 text-indigo-600 border border-indigo-100 text-[9px] font-bold rounded-lg uppercase tracking-widest">
-                {{ $activeTasks->count() }} Active
+                {{ $activeTasks->count() }} {{ __('Active') }}
             </span>
         </div>
 
@@ -373,7 +388,7 @@
                         <td class="py-3 px-3">
                             <span class="font-bold text-slate-900 text-xs group-hover:text-blue-600 transition-colors">{{ $task->standard->code }}</span>
                             <p class="text-[10px] text-slate-500 font-medium truncate max-w-[180px]">{{ $task->standard->title }}</p>
-                            <p class="text-[9px] font-bold text-indigo-500 bg-indigo-50 w-fit px-1.5 py-0.5 rounded mt-1 truncate max-w-[180px]" title="{{ $task->session->name ?? 'Unknown Session' }}">{{ $task->session->name ?? 'Unknown Session' }}</p>
+                            <p class="text-[9px] font-bold text-indigo-500 bg-indigo-50 w-fit px-1.5 py-0.5 rounded mt-1 truncate max-w-[180px]" title="{{ $task->session->name ?? __('Unknown Session') }}">{{ $task->session->name ?? __('Unknown Session') }}</p>
                         </td>
                         <td class="py-3 px-3">
                             <span class="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest {{ 
@@ -398,9 +413,9 @@
                                 {{ $task->treatment_due_date->format('d M Y') }}
                             </span>
                             <p class="text-[9px] font-bold uppercase tracking-widest {{ $isOverdue && $daysLeft > 0 ? 'text-rose-400' : 'text-slate-400' }}">
-                                @if($isOverdue && $daysLeft > 0) Overdue {{ $daysLeft }}d
-                                @elseif($daysLeft == 0) Due today
-                                @else {{ $daysLeft }}d left
+                                @if($isOverdue && $daysLeft > 0) {{ __('Overdue') }} {{ $daysLeft }}d
+                                @elseif($daysLeft == 0) {{ __('Due Today') }}
+                                @else {{ $daysLeft }}d {{ __('left') }}
                                 @endif
                             </p>
                         </td>
@@ -420,7 +435,7 @@
             </div>
             <div>
                 <h3 class="text-sm font-bold text-slate-900 tracking-tight">{{ __('Remediation Tasks') }}</h3>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('CAPA Tracking') }}</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Improvement Tracking') }}</p>
             </div>
         </div>
         <div class="py-6 text-center">

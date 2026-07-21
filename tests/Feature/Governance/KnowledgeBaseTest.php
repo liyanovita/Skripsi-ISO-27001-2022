@@ -94,27 +94,29 @@ class KnowledgeBaseTest extends TestCase
         $user = User::factory()->create();
         $resource = $this->createKnowledgeResource(['is_system' => true]);
 
+        // Non-admin users are blocked by the admin middleware on these routes
         $this
             ->actingAs($user)
             ->get(route('knowledge-base.edit', $resource->id))
-            ->assertRedirect(route('knowledge-base.index'));
+            ->assertRedirect(route('dashboard'));
 
         $this
             ->actingAs($user)
             ->put(route('knowledge-base.update', $resource->id), $this->validPayload([
                 'title' => 'Tampered Official Asset',
             ]))
-            ->assertRedirect(route('knowledge-base.index'));
+            ->assertRedirect(route('dashboard'));
 
         $this
             ->actingAs($user)
             ->delete(route('knowledge-base.destroy', $resource->id))
-            ->assertRedirect(route('knowledge-base.index'));
+            ->assertRedirect(route('dashboard'));
 
+        // The resource must remain untouched
         $this->assertDatabaseHas('knowledge_bases', [
-            'id' => $resource->id,
-            'title' => $resource->title,
-            'is_system' => true,
+            'id'       => $resource->id,
+            'title'    => $resource->title,
+            'is_system'=> true,
         ]);
     }
 
@@ -122,7 +124,7 @@ class KnowledgeBaseTest extends TestCase
     {
         Storage::fake('local');
 
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => 'admin']);
 
         $this
             ->actingAs($user)
@@ -299,10 +301,10 @@ class KnowledgeBaseTest extends TestCase
 
     public function test_knowledge_base_preview_renders_safe_markdown(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['role' => 'admin']);
 
         $this
-            ->actingAs($user)
+            ->actingAs($admin)
             ->postJson(route('knowledge-base.preview'), [
                 'content' => 'Use **strong controls** <script>alert("xss")</script>',
             ])
@@ -318,7 +320,7 @@ class KnowledgeBaseTest extends TestCase
     {
         Storage::fake('local');
 
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => 'admin']);
 
         // 1. Create a resource with an attachment file on disk
         $filename = 'knowledge-base/exported-test-file.xlsx';
@@ -395,8 +397,8 @@ class KnowledgeBaseTest extends TestCase
 
     public function test_knowledge_base_api_create_update_delete_and_system_protection(): void
     {
-        $user = User::factory()->create();
-        Sanctum::actingAs($user);
+        $admin = User::factory()->create(['role' => 'admin']);
+        Sanctum::actingAs($admin);
 
         $createResponse = $this
             ->postJson('/api/knowledge-base', $this->validPayload([
@@ -566,7 +568,7 @@ class KnowledgeBaseTest extends TestCase
 
     public function test_optional_content_and_sentence_truncation_logic(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => 'admin']);
 
         $payload = $this->validPayload([
             'title' => 'Optional Content Playbook',
@@ -643,11 +645,9 @@ class KnowledgeBaseTest extends TestCase
         $this
             ->actingAs($user)
             ->post(route('knowledge-base.store'), $payload)
-            ->assertRedirect(route('knowledge-base.index'));
+            ->assertRedirect(route('dashboard'));
 
-        $resource = KnowledgeBase::where('title', 'Standard User Resource')->firstOrFail();
-        // Should be forced to empty string
-        $this->assertEquals('', $resource->content);
+        $this->assertDatabaseMissing('knowledge_bases', ['title' => 'Standard User Resource']);
     }
 
     public function test_standard_user_cannot_update_existing_content(): void
@@ -662,7 +662,7 @@ class KnowledgeBaseTest extends TestCase
             'user_id' => $user->id,
         ]);
 
-        // Standard user attempts to update the resource's title and attempts to modify content
+        // Standard user attempts to update
         $payload = $this->validPayload([
             'title' => 'Updated Policy Title by User',
             'content' => 'Maliciously changed content.',
@@ -671,11 +671,10 @@ class KnowledgeBaseTest extends TestCase
         $this
             ->actingAs($user)
             ->put(route('knowledge-base.update', $resource->id), $payload)
-            ->assertRedirect(route('knowledge-base.index'));
+            ->assertRedirect(route('dashboard'));
 
         $resource->refresh();
-        $this->assertEquals('Updated Policy Title by User', $resource->title);
-        // Pre-existing content MUST be preserved and not modified!
+        $this->assertEquals('Important Policy document', $resource->title);
         $this->assertEquals('Pre-existing high value policy content.', $resource->content);
     }
 
@@ -683,6 +682,7 @@ class KnowledgeBaseTest extends TestCase
     {
         Storage::fake('local');
 
+        $admin = User::factory()->create(['role' => 'admin']);
         $user = User::factory()->create();
         $resource = $this->createKnowledgeResource([
             'title' => 'Inline PDF Guide',
@@ -695,7 +695,7 @@ class KnowledgeBaseTest extends TestCase
         // Store PDF attachment
         $file = UploadedFile::fake()->create('guide.pdf', 64, 'application/pdf');
         $this
-            ->actingAs($user)
+            ->actingAs($admin)
             ->put(route('knowledge-base.update', $resource->id), array_merge($this->validPayload(), [
                 'attachment' => $file,
             ]))
@@ -751,14 +751,12 @@ class KnowledgeBaseTest extends TestCase
         $this
             ->actingAs($user2)
             ->get(route('knowledge-base.edit', $resource->id))
-            ->assertRedirect(route('knowledge-base.index'))
-            ->assertSessionHas('error', 'Resource not found.');
+            ->assertRedirect(route('dashboard'));
 
         // User 2 tries to delete User 1's custom resource
         $this
             ->actingAs($user2)
             ->delete(route('knowledge-base.destroy', $resource->id))
-            ->assertRedirect(route('knowledge-base.index'))
-            ->assertSessionHas('error', 'Resource not found.');
+            ->assertRedirect(route('dashboard'));
     }
 }

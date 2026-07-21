@@ -34,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'webhook.auth' => \App\Http\Middleware\VerifyWebhookToken::class,
             'admin' => \App\Http\Middleware\IsAdmin::class,
             'redirect.admin' => \App\Http\Middleware\RedirectIfAdmin::class,
+            'role' => \App\Http\Middleware\CheckRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

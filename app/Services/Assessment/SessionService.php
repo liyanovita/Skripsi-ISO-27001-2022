@@ -12,31 +12,53 @@ class SessionService
 {
     public function getUserSessions(int $userId): Collection
     {
-        return AssessmentSession::withCount([
-            'results' => function ($query) {
-                $query->where('is_applicable', true)
-                    ->whereHas('standard', function ($standardQuery) {
-                        $standardQuery->whereNotNull('questions');
-                    });
-            },
-            'results as answered_count' => function ($query) {
-                $query->where('is_applicable', true)
-                    ->where('status', 'completed')
-                    ->whereHas('standard', function ($standardQuery) {
-                        $standardQuery->whereNotNull('questions');
-                    });
-            }
-        ])
-            ->where('user_id', $userId)
-            ->withTrashed()
-            ->latest()
-            ->get();
+        $query = AssessmentSession::with(['organization'])
+            ->withCount([
+                'results' => function ($query) {
+                    $query->where('is_applicable', true)
+                        ->whereHas('standard', function ($standardQuery) {
+                            $standardQuery->whereNotNull('questions');
+                        });
+                },
+                'results as answered_count' => function ($query) {
+                    $query->where('is_applicable', true)
+                        ->where('status', 'completed')
+                        ->whereHas('standard', function ($standardQuery) {
+                            $standardQuery->whereNotNull('questions');
+                        });
+                }
+            ])
+            ->where(function ($q) use ($userId) {
+                $user = auth()->user();
+                if ($user && $user->isAdmin()) {
+                    $q->where('user_id', $userId)
+                      ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId));
+                } else {
+                    $q->where(function ($sub) use ($userId) {
+                        $sub->where('user_id', $userId)
+                            ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId));
+                    })->whereIn('status', ['in_progress', 'completed']);
+                }
+            });
+
+        $user = auth()->user();
+        if ($user && $user->isAdmin()) {
+            $query->withTrashed();
+        }
+
+        return $query->latest()->get();
     }
 
     public function getSession(int $id, int $userId): AssessmentSession
     {
-        return AssessmentSession::with(['results.standard'])
-            ->where('user_id', $userId)
+        return AssessmentSession::with(['results.standard', 'organization', 'invitedUsers'])
+            ->when(
+                !auth()->user() || !auth()->user()->isAdmin(),
+                fn($q) => $q->where(function ($query) use ($userId) {
+                    $query->where('user_id', $userId)
+                          ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId));
+                })->whereIn('status', ['in_progress', 'completed'])
+            )
             ->findOrFail($id);
     }
 
@@ -45,8 +67,10 @@ class SessionService
         return DB::transaction(function () use ($data) {
             $session = AssessmentSession::create([
                 'user_id' => $data['user_id'],
+                'organization_id' => $data['organization_id'] ?? null,
                 'name' => $data['name'],
-                'status' => 'in_progress',
+                'status' => $data['status'] ?? 'draft',
+                'deadline' => $data['deadline'] ?? null,
             ]);
 
             $this->initializeResults($session);
@@ -57,7 +81,12 @@ class SessionService
 
     public function updateSession(int $id, int $userId, array $data): AssessmentSession
     {
-        $session = AssessmentSession::where('user_id', $userId)->findOrFail($id);
+        $user = auth()->user();
+        $query = AssessmentSession::query();
+        if (!$user || !$user->isAdmin()) {
+            $query->where('user_id', $userId);
+        }
+        $session = $query->findOrFail($id);
         $session->update($data);
         
         return $session;
@@ -65,35 +94,54 @@ class SessionService
 
     public function deleteSession(int $id, int $userId): bool
     {
-        $session = AssessmentSession::where('user_id', $userId)->findOrFail($id);
+        $user = auth()->user();
+        $query = AssessmentSession::query();
+        if (!$user || !$user->isAdmin()) {
+            $query->where('user_id', $userId);
+        }
+        $session = $query->findOrFail($id);
         return $session->delete();
     }
 
     public function restoreSession(int $id, int $userId): bool
     {
-        $session = AssessmentSession::where('user_id', $userId)
-            ->withTrashed()
-            ->findOrFail($id);
+        $user = auth()->user();
+        $query = AssessmentSession::query();
+        if (!$user || !$user->isAdmin()) {
+            $query->withTrashed()->where('user_id', $userId);
+        } else {
+            $query->withTrashed();
+        }
+        $session = $query->findOrFail($id);
         return $session->restore();
     }
 
     public function forceDeleteSession(int $id, int $userId): bool
     {
-        $session = AssessmentSession::where('user_id', $userId)
-            ->withTrashed()
-            ->findOrFail($id);
+        $user = auth()->user();
+        $query = AssessmentSession::query();
+        if (!$user || !$user->isAdmin()) {
+            $query->withTrashed()->where('user_id', $userId);
+        } else {
+            $query->withTrashed();
+        }
+        $session = $query->findOrFail($id);
         return $session->forceDelete();
     }
 
     public function cloneSession(int $id, int $userId): AssessmentSession
     {
-        $original = AssessmentSession::with('results')
-            ->where('user_id', $userId)
-            ->findOrFail($id);
+        $user = auth()->user();
+        $query = AssessmentSession::with('results');
+        if (!$user || !$user->isAdmin()) {
+            $query->where('user_id', $userId);
+        }
+        $original = $query->findOrFail($id);
 
         return DB::transaction(function () use ($original, $userId) {
             $newSession = AssessmentSession::create([
                 'user_id' => $userId,
+                'organization_id' => $original->organization_id,
                 'name' => $original->name . ' (Copy)',
                 'status' => 'in_progress',
                 'overall_maturity_score' => $original->overall_maturity_score

@@ -162,23 +162,27 @@
                             ? ($isBoolLog ? ($log->new_value == '1' ? 'Yes' : 'No') : $log->new_value)
                             : null;
                     @endphp
-                    <td class="px-5 py-3.5 text-xs max-w-[140px] truncate" title="{{ $oldLogDisplay ?? '-' }}">
-                        @if($isBoolLog && !is_null($oldLogDisplay))
-                            <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest {{ $oldLogDisplay === 'Yes' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500' }}">
-                                {{ $oldLogDisplay }}
-                            </span>
-                        @else
-                            <span class="text-slate-500">{{ $oldLogDisplay ?? '-' }}</span>
-                        @endif
+                    <td class="px-5 py-3.5 text-xs">
+                        <div class="max-w-[160px] truncate" title="{{ $oldLogDisplay ?? '-' }}">
+                            @if($isBoolLog && !is_null($oldLogDisplay))
+                                <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest {{ $oldLogDisplay === 'Yes' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500' }}">
+                                    {{ $oldLogDisplay }}
+                                </span>
+                            @else
+                                <span class="text-slate-500">{{ $oldLogDisplay ?? '-' }}</span>
+                            @endif
+                        </div>
                     </td>
-                    <td class="px-5 py-3.5 text-xs max-w-[140px] truncate" title="{{ $newLogDisplay ?? '-' }}">
-                        @if($isBoolLog && !is_null($newLogDisplay))
-                            <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest {{ $newLogDisplay === 'Yes' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500' }}">
-                                {{ $newLogDisplay }}
-                            </span>
-                        @else
-                            <span class="font-semibold text-indigo-600">{{ $newLogDisplay ?? '-' }}</span>
-                        @endif
+                    <td class="px-5 py-3.5 text-xs">
+                        <div class="max-w-[160px] truncate" title="{{ $newLogDisplay ?? '-' }}">
+                            @if($isBoolLog && !is_null($newLogDisplay))
+                                <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest {{ $newLogDisplay === 'Yes' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500' }}">
+                                    {{ $newLogDisplay }}
+                                </span>
+                            @else
+                                <span class="font-semibold text-indigo-600">{{ $newLogDisplay ?? '-' }}</span>
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 @empty

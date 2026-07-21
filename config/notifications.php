@@ -23,7 +23,7 @@ return [
     */
     'channels' => [
         'telegram' => [
-            'enabled' => env('TELEGRAM_ENABLED', true),
+            'enabled' => env('TELEGRAM_ENABLED', false),
             'bot_token' => env('TELEGRAM_BOT_TOKEN'),
             'chat_id' => env('TELEGRAM_CHAT_ID'),
             'parse_mode' => 'Markdown',
@@ -45,7 +45,7 @@ return [
     */
     'capa_reminders' => [
         'enabled' => env('CAPA_REMINDERS_ENABLED', true),
-        'channels' => ['telegram'], // Currently only Telegram
+        'channels' => [], // Removed Telegram
         'days_ahead' => env('CAPA_DAYS_AHEAD', 3),
         'schedule' => env('CAPA_REMINDER_SCHEDULE', '0 8 * * 1-5'), // Weekdays 8AM
     ],

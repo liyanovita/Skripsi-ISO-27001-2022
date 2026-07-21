@@ -288,12 +288,12 @@
                             <div class="grid grid-cols-2 md:grid-cols-6 gap-2">
                                 @php
                                     $labels = [
-                                        0 => ['title' => 'Non-existent', 'desc' => 'Lack of policies, procedures, controls, etc.'],
-                                        1 => ['title' => 'Initial', 'desc' => 'Development has just started and will require significant effort to meet the requirements.'],
-                                        2 => ['title' => 'Limited/Repeatable', 'desc' => 'Progress is reasonably good but not yet complete.'],
-                                        3 => ['title' => 'Defined', 'desc' => 'Development is more or less complete, although details are still lacking and/or it has not been fully implemented, enforced, and actively supported by management.'],
-                                        4 => ['title' => 'Managed', 'desc' => 'Development is complete, processes/controls have been implemented and are newly operational.'],
-                                        5 => ['title' => 'Optimized', 'desc' => 'Requirements are fully met, operating completely as expected, actively monitored and improved, and there is substantial evidence that can be provided to auditors.']
+                                        0 => ['title' => 'Non-existent', 'desc' => 'Control is not implemented'],
+                                        1 => ['title' => 'Initial', 'desc' => 'Control is planned but not consistently implemented'],
+                                        2 => ['title' => 'Limited/Repeatable', 'desc' => 'Control is partially implemented'],
+                                        3 => ['title' => 'Defined', 'desc' => 'Control is implemented according to defined procedures'],
+                                        4 => ['title' => 'Managed', 'desc' => 'Control is consistently implemented and its effectiveness is monitored'],
+                                        5 => ['title' => 'Optimized', 'desc' => 'Control is optimally implemented and supported by continuous improvement']
                                     ];
                                 @endphp
                                 @for($i = 0; $i <= 5; $i++)
@@ -336,6 +336,35 @@
                             @if(!empty($result->ai_recommendation))
                             @php
                                 $aiSections = [];
+                                
+                                // 1. Control Insight / Gap Analysis
+                                $insightText = is_array($result->control_insight) ? ($result->control_insight['gap'] ?? null) : $result->control_insight;
+                                if (!empty($insightText)) {
+                                    $aiSections[] = [
+                                        'key'   => 'gap',
+                                        'icon'  => 'fa-magnifying-glass-chart',
+                                        'color' => 'violet',
+                                        'label' => __('AI Audit Insight (Gap Analysis)'),
+                                        'desc'  => __('Identified gaps against ISO 27001:2022 requirements'),
+                                        'body'  => $insightText,
+                                        'type'  => 'text',
+                                    ];
+                                }
+                                
+                                // 2. Impact Interpretation
+                                if (!empty($result->impact_interpretation)) {
+                                    $aiSections[] = [
+                                        'key'   => 'impact',
+                                        'icon'  => 'fa-triangle-exclamation',
+                                        'color' => 'rose',
+                                        'label' => __('Impact Interpretation'),
+                                        'desc'  => __('Consequences if this condition is not remediated'),
+                                        'body'  => $result->impact_interpretation,
+                                        'type'  => 'text',
+                                    ];
+                                }
+
+                                // 3. Strategic Recommendation
                                 $aiSections[] = [
                                     'key'   => 'strategic',
                                     'icon'  => 'fa-lightbulb',
@@ -345,6 +374,8 @@
                                     'body'  => $result->ai_recommendation,
                                     'type'  => 'text',
                                 ];
+
+                                 // 4. Corrective Action Plan
                                 if (!empty($result->corrective_action_plan)) {
                                     $aiSections[] = [
                                         'key'   => 'cap',
@@ -358,51 +389,19 @@
                                         'type'  => 'pre',
                                     ];
                                 }
-                                $insightText = is_array($result->control_insight) ? ($result->control_insight['gap'] ?? null) : $result->control_insight;
-                                if (!empty($insightText)) {
-                                    $aiSections[] = [
-                                        'key'   => 'gap',
-                                        'icon'  => 'fa-magnifying-glass-chart',
-                                        'color' => 'violet',
-                                        'label' => __('AI Audit Insight (Gap Analysis)'),
-                                        'desc'  => __('Identified gaps against ISO 27001:2022 requirements'),
-                                        'body'  => $insightText,
-                                        'type'  => 'text',
-                                    ];
-                                }
-                                if (!empty($result->evidence_validation)) {
-                                    $aiSections[] = [
-                                        'key'   => 'evidence',
-                                        'icon'  => 'fa-circle-check',
-                                        'color' => 'sky',
-                                        'label' => __('Evidence Validation'),
-                                        'desc'  => __('AI review of submitted supporting evidence'),
-                                        'body'  => $result->evidence_validation,
-                                        'type'  => 'text',
-                                    ];
-                                }
-                                if (!empty($result->impact_interpretation)) {
-                                    $aiSections[] = [
-                                        'key'   => 'impact',
-                                        'icon'  => 'fa-triangle-exclamation',
-                                        'color' => 'rose',
-                                        'label' => __('Impact Interpretation'),
-                                        'desc'  => __('Consequences if this condition is not remediated'),
-                                        'body'  => $result->impact_interpretation,
-                                        'type'  => 'text',
-                                    ];
-                                }
+
                                 $colorMap = [
                                     'indigo'  => ['bg' => 'bg-indigo-600',  'light' => 'bg-indigo-50',  'border' => 'border-indigo-100', 'text' => 'text-indigo-600',  'ring' => 'ring-indigo-600/10'],
                                     'emerald' => ['bg' => 'bg-emerald-600', 'light' => 'bg-emerald-50', 'border' => 'border-emerald-100','text' => 'text-emerald-600', 'ring' => 'ring-emerald-600/10'],
                                     'violet'  => ['bg' => 'bg-violet-600',  'light' => 'bg-violet-50',  'border' => 'border-violet-100', 'text' => 'text-violet-600',  'ring' => 'ring-violet-600/10'],
-                                    'sky'     => ['bg' => 'bg-sky-600',     'light' => 'bg-sky-50',     'border' => 'border-sky-100',    'text' => 'text-sky-600',     'ring' => 'ring-sky-600/10'],
                                     'rose'    => ['bg' => 'bg-rose-600',    'light' => 'bg-rose-50',    'border' => 'border-rose-100',   'text' => 'text-rose-600',    'ring' => 'ring-rose-600/10'],
                                 ];
+                                
+                                $firstSectionKey = !empty($aiSections) ? $aiSections[0]['key'] : 'gap';
                             @endphp
-
-                            <div class="mt-6 rounded-3xl border border-indigo-100 shadow-sm overflow-hidden"
-                                 x-data="{ activeAi_{{ $result->id }}: 'strategic' }">
+ 
+                             <div class="mt-6 rounded-3xl border border-indigo-100 shadow-sm overflow-hidden"
+                                  x-data="{ activeAi_{{ $result->id }}: '{{ $firstSectionKey }}' }">
 
                                 {{-- Card Header --}}
                                 <div class="flex items-center justify-between gap-3 px-5 py-4 bg-gradient-to-r from-indigo-600 to-violet-600">

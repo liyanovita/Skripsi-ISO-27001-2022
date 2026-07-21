@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Strategic Analytics')
+@section('title', 'Assessment Result')
 @section('view_name', 'Audit Intelligence Hub - Strategic')
 
 @push('head_scripts')
@@ -21,7 +21,7 @@
                     <i class="fa-solid fa-microchip text-lg"></i>
                 </div>
                 <div class="leading-none">
-                    <h1 class="text-xl font-black text-slate-900 tracking-tighter uppercase">{{ __('Strategic Analytics') }}</h1>
+                    <h1 class="text-xl font-black text-slate-900 tracking-tighter uppercase">{{ __('Assessment Result') }}</h1>
                     <p class="text-slate-400 font-bold uppercase tracking-widest text-[8px] mt-0.5">{{ __('Unified Strategic Reporting & Technical Analysis') }}</p>
                 </div>
             </div>
@@ -50,8 +50,8 @@
         <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <i class="fa-solid fa-chart-line text-3xl text-slate-300"></i>
         </div>
-        <h3 class="text-base font-bold text-slate-900">{{ __('No Strategic Data Yet') }}</h3>
-        <p class="text-sm text-slate-400 font-medium mt-1">{{ __('Create an audit session first to unlock strategic analytics.') }}</p>
+        <h3 class="text-base font-bold text-slate-900">{{ __('No Assessment Data Yet') }}</h3>
+        <p class="text-sm text-slate-400 font-medium mt-1">{{ __('Create an audit session first to unlock assessment result analytics.') }}</p>
         <a href="{{ route('sessions.index') }}" class="mt-4 inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20">
             <i class="fa-solid fa-plus"></i> {{ __('Create Session') }}
         </a>
@@ -60,108 +60,141 @@
 
     @php
         $latestScore = $comparison['latest_score'] ?? 0;
-        $roundedScore = round($latestScore);
         $maturityLabel = 'Non-existent';
-        if ($roundedScore == 1) $maturityLabel = 'Initial';
-        elseif ($roundedScore == 2) $maturityLabel = 'Limited/Repeatable';
-        elseif ($roundedScore == 3) $maturityLabel = 'Defined';
-        elseif ($roundedScore == 4) $maturityLabel = 'Managed';
-        elseif ($roundedScore >= 5) $maturityLabel = 'Optimized';
+        if ($latestScore >= 4.5) $maturityLabel = 'Optimized';
+        elseif ($latestScore >= 3.5) $maturityLabel = 'Managed';
+        elseif ($latestScore >= 2.5) $maturityLabel = 'Defined';
+        elseif ($latestScore >= 1.5) $maturityLabel = 'Limited/Repeatable';
+        elseif ($latestScore >= 0.5) $maturityLabel = 'Initial';
 
         $totalScored = ($stats['compliant'] ?? 0) + ($stats['partial'] ?? 0) + ($stats['non_compliant'] ?? 0);
         $complianceRate = $totalScored > 0 ? round((($stats['compliant'] ?? 0) / $totalScored) * 100) : 0;
+        
+        $sessionRiskPriority = 'Low';
+        $sessionRiskBadge = 'bg-emerald-50 text-emerald-600 border-emerald-100 group-hover:bg-emerald-600 group-hover:text-white';
+        $sessionRiskText = 'text-emerald-500';
+        if (($stats['critical'] ?? 0) > 0) {
+            $sessionRiskPriority = 'High';
+            $sessionRiskBadge = 'bg-rose-50 text-rose-600 border-rose-100 group-hover:bg-rose-500 group-hover:text-white';
+            $sessionRiskText = 'text-rose-500';
+        } elseif (($stats['total_gaps'] ?? 0) > 0) {
+            $sessionRiskPriority = 'Medium';
+            $sessionRiskBadge = 'bg-amber-50 text-amber-600 border-amber-100 group-hover:bg-amber-500 group-hover:text-white';
+            $sessionRiskText = 'text-amber-500';
+        }
     @endphp
     
     {{-- KPI Stats Grid --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {{-- Overall Maturity --}}
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between">
-            <div class="flex justify-between items-start mb-2">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {{-- Card 1: Compliance Overview --}}
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between h-[116px]">
+            <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Maturity Level') }}</p>
-                    <h3 class="text-2xl font-black text-indigo-600 tracking-tight">{{ number_format($latestScore, 2) }}/5</h3>
-                </div>
-                <div class="w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm">
-                    <i class="fa-solid fa-gauge-high"></i>
-                </div>
-            </div>
-            <div>
-                <div class="flex items-center justify-between text-[8px] font-black uppercase tracking-widest mb-1">
-                    <span class="text-slate-500 font-bold">{{ __($maturityLabel) }}</span>
-                    @if(isset($comparison['delta']) && $comparison['delta'] != 0)
-                        <span class="font-bold {{ $comparison['delta'] > 0 ? 'text-emerald-600 bg-emerald-50' : 'text-rose-600 bg-rose-50' }} px-1.5 py-0.5 rounded">
-                            <i class="fa-solid {{ $comparison['delta'] > 0 ? 'fa-arrow-up' : 'fa-arrow-down' }} mr-0.5"></i>{{ number_format(abs($comparison['delta']), 2) }}
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Compliance Overview') }}</p>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <h3 class="text-2xl font-black text-emerald-600 tracking-tight">{{ $latestSession ? $latestSession->compliance_score : 0 }}%</h3>
+                        @php
+                            $statusText = $latestSession ? $latestSession->compliance_status : 'Non-Compliant';
+                            $statusColor = match($statusText) {
+                                'Compliant' => 'text-emerald-600 bg-emerald-50 border-emerald-100',
+                                'Partially Compliant' => 'text-amber-600 bg-amber-50 border-amber-100',
+                                default => 'text-rose-600 bg-rose-50 border-rose-100',
+                            };
+                        @endphp
+                        <span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase tracking-wider {{ $statusColor }}">
+                            {{ __($statusText) }}
                         </span>
-                    @endif
-                </div>
-                <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-indigo-500 rounded-full" style="width: {{ min(($latestScore / 5) * 100, 100) }}%"></div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Compliance Rate --}}
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between">
-            <div class="flex justify-between items-start mb-2">
-                <div>
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Compliance Rate') }}</p>
-                    <h3 class="text-2xl font-black text-emerald-600 tracking-tight">{{ $complianceRate }}%</h3>
+                    </div>
                 </div>
                 <div class="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center border border-emerald-100 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shadow-sm">
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
             </div>
             <div>
-                <div class="flex items-center justify-between text-[8px] font-black uppercase tracking-widest mb-1">
-                    <span class="text-slate-400">{{ __('Compliant Controls') }}</span>
-                    <span class="text-emerald-600 font-bold">{{ $stats['compliant'] ?? 0 }} / {{ $totalScored }}</span>
-                </div>
                 <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-emerald-500 rounded-full" style="width: {{ $complianceRate }}%"></div>
+                    <div class="h-full bg-emerald-500 rounded-full" style="width: {{ $latestSession ? $latestSession->compliance_score : 0 }}%"></div>
                 </div>
             </div>
         </div>
 
-        {{-- Gaps & Action Items --}}
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between">
-            <div class="flex justify-between items-start mb-2">
+        {{-- Card 2: Overall Maturity --}}
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between h-[116px]">
+            <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Active Gaps') }}</p>
-                    <h3 class="text-2xl font-black text-orange-500 tracking-tight">{{ $stats['total_gaps'] ?? 0 }}</h3>
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Overall Maturity') }}</p>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <h3 class="text-2xl font-black text-indigo-600 tracking-tight">{{ number_format($latestScore, 2) }}/5</h3>
+                        <span class="px-2 py-0.5 rounded border border-indigo-100 bg-indigo-50 text-indigo-700 text-[8px] font-black uppercase tracking-wider">
+                            {{ __($maturityLabel) }}
+                        </span>
+                    </div>
                 </div>
-                <div class="w-9 h-9 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center border border-orange-100 group-hover:bg-orange-500 group-hover:text-white transition-all duration-300 shadow-sm">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-            </div>
-            <div class="flex items-center gap-1.5">
-                <span class="px-1.5 py-0.5 bg-rose-50 text-rose-600 rounded border border-rose-100 text-[8px] font-black uppercase tracking-widest">
-                    {{ $stats['critical'] ?? 0 }} {{ __('Critical') }}
-                </span>
-                <span class="px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded border border-orange-100 text-[8px] font-black uppercase tracking-widest">
-                    {{ ($stats['total_gaps'] ?? 0) - ($stats['critical'] ?? 0) }} {{ __('Warn') }}
-                </span>
-            </div>
-        </div>
-
-        {{-- Scoping / SoA --}}
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between">
-            <div class="flex justify-between items-start mb-2">
-                <div>
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Scope Scenarios') }}</p>
-                    <h3 class="text-2xl font-black text-blue-600 tracking-tight">{{ $stats['total_controls'] ?? 0 }}</h3>
-                </div>
-                <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
-                    <i class="fa-solid fa-expand"></i>
+                <div class="w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                    <i class="fa-solid fa-gauge-high"></i>
                 </div>
             </div>
             <div>
-                <div class="flex items-center justify-between text-[8px] font-black uppercase tracking-widest">
-                    <span class="text-slate-400">{{ __('Applicable / Excluded') }}</span>
-                    <span class="text-blue-600 font-bold">{{ $stats['total_controls'] ?? 0 }} A / {{ $stats['excluded'] ?? 0 }} E</span>
+                <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-indigo-500 rounded-full" style="width: {{ min(($latestScore / 5) * 100, 100) }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Card 3: Risk & Gap Analysis --}}
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between h-[116px]">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Risk & Gap Analysis') }}</p>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <h3 class="text-2xl font-black text-orange-500 tracking-tight">{{ $stats['total_gaps'] ?? 0 }} {{ __('Gaps') }}</h3>
+                        <span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase tracking-wider {{ $sessionRiskBadge }}">
+                            {{ __($sessionRiskPriority) }}
+                        </span>
+                    </div>
+                </div>
+                <div class="w-9 h-9 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center border border-rose-100 group-hover:bg-rose-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 text-[8px] font-black uppercase tracking-widest text-slate-450">
+                <span class="text-rose-500">{{ $stats['critical'] ?? 0 }} {{ __('Critical') }}</span>
+                <span>&bull;</span>
+                <span class="text-orange-500">{{ ($stats['total_gaps'] ?? 0) - ($stats['critical'] ?? 0) }} {{ __('Warn') }}</span>
+            </div>
+        </div>
+
+        {{-- Card 4: Control Implementation --}}
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between h-[116px]">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Control Implementation') }}</p>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <h3 class="text-xl font-black text-teal-600 tracking-tight whitespace-nowrap">
+                            {{ $latestSession ? ($stats['compliant'] ?? 0) : 0 }}/{{ $latestSession ? ($stats['total_controls'] ?? 0) : 0 }}
+                        </h3>
+                        <span class="px-2 py-0.5 rounded border border-teal-100 bg-teal-50 text-teal-700 text-[8px] font-black uppercase tracking-wider">
+                            {{ __('Implemented') }}
+                        </span>
+                    </div>
+                </div>
+                <div class="w-9 h-9 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center border border-teal-100 group-hover:bg-teal-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+            </div>
+            @php
+                $totalControls = $latestSession ? ($stats['total_controls'] ?? 0) : 0;
+                $compliantControls = $latestSession ? ($stats['compliant'] ?? 0) : 0;
+                $implementedPercent = $totalControls > 0 ? round(($compliantControls / $totalControls) * 100) : 0;
+            @endphp
+            <div>
+                <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-teal-500 rounded-full" style="width: {{ $implementedPercent }}%"></div>
                 </div>
             </div>
         </div>
     </div>
+
+
 
     {{-- AI Summary (full width) --}}
     <div class="bg-slate-900 rounded-2xl p-6 shadow-xl relative overflow-hidden">
@@ -169,7 +202,7 @@
         <div class="relative z-10">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 leading-none">
                 <h2 class="text-xs font-black text-white tracking-tight uppercase flex items-center gap-2">
-                    <i class="fa-solid fa-sparkles text-blue-400 text-xs"></i>{{ __('AI Executive Summary') }}</h2>
+                    <i class="fa-solid fa-sparkles text-blue-400 text-xs"></i>{{ __('AI Analysis') }}</h2>
                 @if($latestSession)
                 <div class="flex flex-wrap items-center gap-2">
                     <a href="{{ route('reports.export-pdf', $latestSession->id) }}" class="px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/40 text-rose-100 rounded-xl text-[8px] font-black uppercase tracking-widest border border-rose-500/30 transition-all flex items-center gap-1.5">
@@ -209,40 +242,54 @@
                                     $parsedSummary = \App\Services\Intelligence\AiSummaryService::parseSummary($latestSession->ai_summary);
                                 @endphp
                                 <div class="ai-prose space-y-4">
-                                    @if($parsedSummary && isset($parsedSummary['overall_assessment_conclusion']))
-                                        @if(!empty($parsedSummary['overall_assessment_conclusion']))
+                                    @if($parsedSummary && (isset($parsedSummary['overall_assessment_summary']) || isset($parsedSummary['overall_assessment_conclusion'])))
+                                        @php
+                                            $overallSummary = $parsedSummary['overall_assessment_summary'] ?? $parsedSummary['overall_assessment_conclusion'] ?? '';
+                                            $controlInsight = $parsedSummary['control_insight'] ?? $parsedSummary['overall_risk_areas'] ?? '';
+                                            $impactInterpretation = $parsedSummary['impact_interpretation'] ?? $parsedSummary['assessment_confidence'] ?? '';
+                                            $strategicRec = $parsedSummary['strategic_recommendation'] ?? $parsedSummary['executive_strategic_recommendations'] ?? [];
+                                            $actionPlan = $parsedSummary['action_plan'] ?? '';
+                                        @endphp
+
+                                        @if(!empty($overallSummary))
                                             <div class="summary-section">
-                                                <div class="summary-section-title"><i class="fa-solid fa-chart-line"></i> {{ __('Overall Assessment Conclusion') }}</div>
-                                                <div class="summary-section-body">{!! Str::markdown(e($parsedSummary['overall_assessment_conclusion'])) !!}</div>
+                                                <div class="summary-section-title"><i class="fa-solid fa-chart-line"></i> {{ __('Overall Assessment Summary') }}</div>
+                                                <div class="summary-section-body">{!! Str::markdown(e($overallSummary)) !!}</div>
                                             </div>
                                         @endif
                                         
-                                        @if(!empty($parsedSummary['overall_risk_areas']))
+                                        @if(!empty($controlInsight))
                                             <div class="summary-section">
-                                                <div class="summary-section-title"><i class="fa-solid fa-triangle-exclamation"></i> {{ __('Overall Risk Areas') }}</div>
-                                                <div class="summary-section-body">{!! Str::markdown(e($parsedSummary['overall_risk_areas'])) !!}</div>
+                                                <div class="summary-section-title"><i class="fa-solid fa-lightbulb"></i> {{ __('Control Insight') }}</div>
+                                                <div class="summary-section-body">{!! Str::markdown(e($controlInsight)) !!}</div>
                                             </div>
                                         @endif
 
-                                        @if(!empty($parsedSummary['executive_strategic_recommendations']))
+                                        @if(!empty($impactInterpretation))
+                                            <div class="summary-section">
+                                                <div class="summary-section-title"><i class="fa-solid fa-circle-nodes"></i> {{ __('Impact Interpretation') }}</div>
+                                                <div class="summary-section-body">{!! Str::markdown(e($impactInterpretation)) !!}</div>
+                                            </div>
+                                        @endif
+
+                                        @if(!empty($strategicRec))
                                             @php
-                                                $recs = $parsedSummary['executive_strategic_recommendations'];
-                                                if (is_string($recs)) $recs = [$recs];
+                                                if (is_string($strategicRec)) $strategicRec = [$strategicRec];
                                             @endphp
                                             <div class="summary-section">
-                                                <div class="summary-section-title"><i class="fa-solid fa-bullseye"></i> {{ __('Executive Strategic Recommendations') }}</div>
+                                                <div class="summary-section-title"><i class="fa-solid fa-bullseye"></i> {{ __('Strategic Recommendation') }}</div>
                                                 <ol class="summary-recs-list">
-                                                    @foreach($recs as $rec)
+                                                    @foreach($strategicRec as $rec)
                                                         <li>{!! Str::markdown(e($rec)) !!}</li>
                                                     @endforeach
                                                 </ol>
                                             </div>
                                         @endif
 
-                                        @if(!empty($parsedSummary['assessment_confidence']))
+                                        @if(!empty($actionPlan))
                                             <div class="summary-section">
-                                                <div class="summary-section-title"><i class="fa-solid fa-circle-check"></i> {{ __('Assessment Confidence') }}</div>
-                                                <div class="summary-section-body">{!! Str::markdown(e($parsedSummary['assessment_confidence'])) !!}</div>
+                                                <div class="summary-section-title"><i class="fa-solid fa-circle-check"></i> {{ __('Action Plan') }}</div>
+                                                <div class="summary-section-body">{!! Str::markdown(e($actionPlan)) !!}</div>
                                             </div>
                                         @endif
                                     @else
@@ -282,7 +329,41 @@
             <div class="mb-4">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
                     <i class="fa-solid fa-gauge-high text-indigo-600"></i>{{ __('Session Maturity Radar') }}</h3>
-                <p class="text-[9px] font-medium text-slate-400 mt-1 leading-snug">{{ __('Distribution of average maturity scores (0-5) across the 5 main pillars of ISO 27001:2022.') }}</p>
+                <p class="text-[9px] font-bold text-indigo-650 mt-1 leading-snug">
+                    @php
+                        $bestDomain = null;
+                        $bestScore = -1;
+                        $worstDomain = null;
+                        $worstScore = 999;
+                        
+                        if (isset($comparison['domains']) && count($comparison['domains']) > 0) {
+                            foreach ($comparison['domains'] as $dom) {
+                                if ($dom['latest'] > $bestScore) {
+                                    $bestScore = $dom['latest'];
+                                    $bestDomain = $dom['label'];
+                                }
+                                if ($dom['latest'] < $worstScore) {
+                                    $worstScore = $dom['latest'];
+                                    $worstDomain = $dom['label'];
+                                }
+                            }
+                        }
+                    @endphp
+                    @if($bestDomain && $bestScore > 0)
+                        @if($bestScore == $worstScore)
+                            {!! __('All ISO pillars have balanced maturity with an average score of <strong class="text-indigo-750">:score/5.0</strong>.', ['score' => number_format($bestScore, 1)]) !!}
+                        @else
+                            {!! __('The best performance is achieved in the <strong class="text-emerald-600">:best</strong> (:best_score/5) pillar, while the <strong class="text-rose-600">:worst</strong> (:worst_score/5) pillar is still the lowest and requires priority attention.', [
+                                'best' => __($bestDomain),
+                                'best_score' => number_format($bestScore, 1),
+                                'worst' => __($worstDomain),
+                                'worst_score' => number_format($worstScore, 1)
+                            ]) !!}
+                        @endif
+                    @else
+                        {{ __('Not enough assessment data to analyze maturity pillars.') }}
+                    @endif
+                </p>
             </div>
             <div class="h-64 w-full relative">
                 <canvas id="maturityChart"></canvas>
@@ -291,14 +372,69 @@
                 </div>
             </div>
         </div>
-        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300">
-            <div class="mb-4">
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                    <i class="fa-solid fa-shield-halved text-emerald-600"></i>{{ __('Compliance Breakdown') }}</h3>
-                <p class="text-[9px] font-medium text-slate-400 mt-1 leading-snug">{{ __('Comparison ratio of controls meeting the minimum standard (Level 4-5) versus those that do not.') }}</p>
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+            <div>
+                <div class="flex items-start justify-between gap-2 mb-1">
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-emerald-600"></i>{{ __('Compliance Breakdown') }}
+                    </h3>
+                    @if($latestSession)
+                    @php
+                        $cbScore  = $latestSession->compliance_score;
+                        $cbStatus = $latestSession->compliance_status;
+                        $cbBadge  = match(strtolower($cbStatus)) {
+                            'compliant'           => 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                            'partially compliant' => 'bg-amber-50 text-amber-700 border-amber-100',
+                            default               => 'bg-rose-50 text-rose-700 border-rose-100',
+                        };
+                    @endphp
+                    <div class="flex items-center gap-2 shrink-0">
+                        <span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase tracking-wider {{ $cbBadge }}">{{ $cbStatus }}</span>
+                    </div>
+                    @endif
+                </div>
+                @if($latestSession)
+                @php
+                    $cbDesc = match(strtolower($cbStatus)) {
+                        'compliant'           => __('Control implemented and meets requirements.'),
+                        'partially compliant' => __('Control partially implemented with gaps.'),
+                        default               => __('Control not implemented or below standard.'),
+                    };
+                    
+                    // Pre-calculate counts for raw legend rendering
+                    $csResults    = $latestSession->results->filter(fn($r) => is_array($r->standard?->questions) && count($r->standard->questions) > 0);
+                    $csApplicable = $csResults->where('is_applicable', true);
+                    $csScored     = $csApplicable->where('status', 'completed');
+
+                    $totalControls= $csResults->count();
+                    $cntCompliant = $csScored->where('maturity_rating', '>=', 4)->count();
+                    $cntPartial   = $csScored->whereBetween('maturity_rating', [2, 3])->count();
+                    $cntNonCompl  = $csScored->where('maturity_rating', '<=', 1)->count();
+                    $cntUnassessed= $csApplicable->where('status', '!=', 'completed')->count();
+                    $cntExcluded  = $csResults->where('is_applicable', false)->count();
+                @endphp
+                <p class="text-[9px] font-bold text-indigo-600 mt-1 leading-snug">
+                    @if($cbScore >= 80)
+                        {{ __('Based on the assessment, the organization\'s information security controls are well-established and mostly compliant.') }}
+                    @elseif($cbScore >= 40)
+                        {{ __('The organization\'s controls are developing well, but active efforts are still required to remediate identified gaps.') }}
+                    @else
+                        {{ __('Significant effort is still required to implement basic security controls and address critical gaps.') }}
+                    @endif
+                </p>
+                @else
+                <p class="text-[9px] font-medium text-slate-400 leading-snug">{{ __('Comparison ratio of controls meeting the minimum standard (Level 4-5) versus those that do not.') }}</p>
+                @endif
             </div>
-            <div class="h-64 w-full relative">
+
+            <div class="h-64 relative flex items-center justify-center mt-6">
                 <canvas id="complianceChart"></canvas>
+                @if($latestSession)
+                <div class="absolute flex flex-col items-center justify-center pointer-events-none">
+                    <span class="text-2xl font-black text-slate-800 leading-none">{{ $cbScore }}%</span>
+                    <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">{{ __('Score') }}</span>
+                </div>
+                @endif
                 <div data-chart-fallback class="hidden absolute inset-0 items-center justify-center text-center px-4">
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Chart unavailable') }}</p>
                 </div>
@@ -308,7 +444,69 @@
             <div class="mb-4">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
                     <i class="fa-solid fa-chart-column text-blue-600"></i>{{ __('Domain Progress Analysis') }}</h3>
-                <p class="text-[9px] font-medium text-slate-400 mt-1 leading-snug">{{ __('Performance comparison across domains between the current and previous audit cycles.') }}</p>
+                <p class="text-[9px] font-bold text-indigo-650 mt-1 leading-snug">
+                    @php
+                        $improvedDomains = [];
+                        $declinedDomains = [];
+                        $flatDomains = [];
+                        $hasPreviousSession = isset($comparison['previous_score']) && $comparison['previous_score'] > 0;
+                        
+                        if ($hasPreviousSession && isset($comparison['domains'])) {
+                            foreach ($comparison['domains'] as $dom) {
+                                $translatedLabel = __($dom['label']);
+                                if ($dom['delta'] > 0) {
+                                    $improvedDomains[] = $translatedLabel . ' (+' . number_format($dom['delta'], 1) . ')';
+                                } elseif ($dom['delta'] < 0) {
+                                    $declinedDomains[] = $translatedLabel . ' (' . number_format($dom['delta'], 1) . ')';
+                                } else {
+                                    $flatDomains[] = $translatedLabel;
+                                }
+                            }
+                        }
+                    @endphp
+                    @if($hasPreviousSession)
+                        @if(($comparison['delta'] ?? 0) > 0)
+                            {{ __('The assessment shows an overall score improvement of :delta compared to the previous cycle, led by progress in :improved.', [
+                                'delta' => number_format($comparison['delta'], 2),
+                                'improved' => implode(', ', $improvedDomains)
+                            ]) }}
+                        @elseif(($comparison['delta'] ?? 0) < 0)
+                            {{ __('The overall maturity score declined by :delta compared to the previous cycle, with decreased performance observed in :declined.', [
+                                'delta' => number_format(abs($comparison['delta']), 2),
+                                'declined' => implode(', ', $declinedDomains)
+                            ]) }}
+                        @else
+                            {{ __('The overall maturity remains stable at :score compared to the previous assessment cycle.', [
+                                'score' => number_format($comparison['latest_score'] ?? 0, 2)
+                            ]) }}
+                        @endif
+                    @else
+                        @php
+                            $bestDomain = null;
+                            $bestScore = -1;
+                            $worstDomain = null;
+                            $worstScore = 999;
+                            
+                            if (isset($comparison['domains']) && count($comparison['domains']) > 0) {
+                                foreach ($comparison['domains'] as $dom) {
+                                    if ($dom['latest'] > $bestScore) {
+                                        $bestScore = $dom['latest'];
+                                        $bestDomain = $dom['label'];
+                                    }
+                                    if ($dom['latest'] < $worstScore) {
+                                        $worstScore = $dom['latest'];
+                                        $worstDomain = $dom['label'];
+                                    }
+                                }
+                            }
+                        @endphp
+                        @if($bestDomain && $bestScore > 0)
+                            {{ __('Since this is the initial audit cycle, the current domain scores are compared against a baseline of 0.0 to establish a performance benchmark for future cycles.') }}
+                        @else
+                            {{ __('In this initial cycle, no controls have been scored yet. Please complete control assessments to view domain progress.') }}
+                        @endif
+                    @endif
+                </p>
             </div>
             <div class="h-64 w-full relative">
                 <canvas id="domainCompChart"></canvas>
@@ -421,7 +619,7 @@ const registerStrategicAnalytics = () => {
                         const html = statusData.data.summary_html || statusData.data.summary;
                         this.summaryHtml = `<div class='ai-prose space-y-2'>${html}</div>`;
                         this.isGenerating = false;
-                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: 'Intelligence Core Synchronized!', type: 'success' } }));
+                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Intelligence Core Synchronized!') }}', type: 'success' } }));
                     }
                 } catch (e) { console.error("Polling error:", e); }
                 if (attempts >= maxAttempts) {
@@ -438,7 +636,7 @@ const registerStrategicAnalytics = () => {
                             const html = finalData.data.summary_html || finalData.data.summary;
                             if (html) {
                                 this.summaryHtml = `<div class='ai-prose space-y-2'>${html}</div>`;
-                                window.dispatchEvent(new CustomEvent('notify', { detail: { message: 'Intelligence Core Synchronized!', type: 'success' } }));
+                                window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Intelligence Core Synchronized!') }}', type: 'success' } }));
                                 return;
                             }
                         }
@@ -448,7 +646,7 @@ const registerStrategicAnalytics = () => {
                     if (this.summaryHtml && this.summaryHtml.includes('fa-spinner')) {
                         this.summaryHtml = null;
                     }
-                    window.dispatchEvent(new CustomEvent('notify', { detail: { message: 'Synthesis timed out. Please try again.', type: 'error' } }));
+                    window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Synthesis timed out. Please try again.') }}', type: 'error' } }));
                 }
             }, 1500);
         },
@@ -611,7 +809,7 @@ window.updateMaturityChart = function() {
 window.initCharts = function() {
     if (document.documentElement.hasAttribute("data-turbo-preview")) return;
     if (!window.Chart) {
-        console.warn('Chart.js is not available; Strategic Analytics charts were not initialized.');
+        console.warn('Chart.js is not available; Assessment Result charts were not initialized.');
         window.showStrategicChartFallbacks();
         return;
     }
@@ -629,14 +827,14 @@ window.initCharts = function() {
 
     const complianceEl = document.getElementById('complianceChart');
     if (complianceEl) {
-        const compliance = @json($complianceBreakdownJson);
+        const compliance = @json($complianceBreakdown);
         window.chartInstances['complianceChart'] = new Chart(complianceEl.getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: ['{{ __('Compliant') }}', '{{ __('Partially Compliant') }}', '{{ __('Non-Compliant') }}', '{{ __('Unassessed') }}'],
+                labels: ['{{ __('Compliant') }}', '{{ __('Partially Compliant') }}', '{{ __('Non-Compliant') }}', '{{ __('Unassessed') }}', '{{ __('Not Applicable') }}'],
                 datasets: [{
-                    data: [compliance.compliant, compliance.partial, compliance.non_compliant, compliance.unassessed],
-                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#cbd5e1'],
+                    data: [compliance.compliant, compliance.partial, compliance.non_compliant, compliance.unassessed, compliance.excluded],
+                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#94a3b8', '#cbd5e1'],
                     borderColor: '#ffffff',
                     borderWidth: 3
                 }]
@@ -644,11 +842,28 @@ window.initCharts = function() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '64%',
+                cutout: '72%',
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                        labels: { font: { size: 10, weight: 'bold' }, usePointStyle: true, boxWidth: 8 }
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleFont: { size: 11, weight: 'bold' },
+                        bodyFont: { size: 10, weight: 'bold' },
+                        padding: 8,
+                        cornerRadius: 6,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const dataArr = context.chart.data.datasets[0].data;
+                                const total = dataArr.reduce((a, b) => a + b, 0);
+                                const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return ` ${label}: ${value} / ${total} (${pct}%)`;
+                            }
+                        }
                     }
                 }
             }

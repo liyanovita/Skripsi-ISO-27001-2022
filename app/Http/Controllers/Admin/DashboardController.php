@@ -6,10 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\AssessmentSession;
 use App\Models\AssessmentResult;
-use App\Models\CommunityTemplate;
+use App\Models\Organization;
 use App\Models\AuditTrail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -72,7 +73,7 @@ class DashboardController extends Controller
         ];
 
         // Organization sector distribution
-        $sectorDistribution = User::whereNotNull('business_sector')
+        $sectorDistribution = Organization::whereNotNull('business_sector')
             ->where('business_sector', '!=', '')
             ->select('business_sector', DB::raw('COUNT(*) as count'))
             ->groupBy('business_sector')
@@ -82,7 +83,7 @@ class DashboardController extends Controller
             ->toArray();
 
         // Organization scale distribution
-        $scaleDistribution = User::whereNotNull('organization_scale')
+        $scaleDistribution = Organization::whereNotNull('organization_scale')
             ->where('organization_scale', '!=', '')
             ->select('organization_scale', DB::raw('COUNT(*) as count'))
             ->groupBy('organization_scale')
@@ -90,12 +91,11 @@ class DashboardController extends Controller
             ->pluck('count', 'organization_scale')
             ->toArray();
 
-        // Community stats
-        $totalTemplates = CommunityTemplate::count();
-        $totalDownloads = CommunityTemplate::sum('downloads_count');
+
 
         // Knowledge Base stats
-        $totalArticles = \App\Models\KnowledgeBase::count();
+        $totalArticles       = \App\Models\KnowledgeBase::count();
+        $totalOrganizations  = Organization::count();
 
         // Pending CAPA tasks
         $pendingCapa = AssessmentResult::whereNotNull('treatment_due_date')
@@ -117,6 +117,17 @@ class DashboardController extends Controller
             })
             ->count();
 
+        // Overdue & Upcoming Audit Sessions
+        $overdueSessions = AssessmentSession::where('status', '!=', 'completed')
+            ->whereNotNull('deadline')
+            ->where('deadline', '<', now()->toDateString())
+            ->count();
+
+        $upcomingSessions = AssessmentSession::where('status', '!=', 'completed')
+            ->whereNotNull('deadline')
+            ->whereBetween('deadline', [now()->toDateString(), now()->addDays(7)->toDateString()])
+            ->count();
+
         return view('admin.dashboard', compact(
             'totalUsers',
             'activeSessions',
@@ -131,11 +142,13 @@ class DashboardController extends Controller
             'maturityDistribution',
             'sectorDistribution',
             'scaleDistribution',
-            'totalTemplates',
-            'totalDownloads',
+
             'totalArticles',
+            'totalOrganizations',
             'pendingCapa',
-            'overdueCapa'
+            'overdueCapa',
+            'overdueSessions',
+            'upcomingSessions'
         ));
     }
 }

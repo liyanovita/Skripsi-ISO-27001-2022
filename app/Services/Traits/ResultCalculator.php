@@ -97,7 +97,7 @@ trait ResultCalculator
     }
 
     /**
-     * Get critical findings (maturity_rating <= 1 or risk_level === 'Critical')
+     * Get critical findings (maturity_rating <= 1 or risk_level === 'High')
      *
      * @param Collection $results Collection of assessment results
      * @return Collection Critical findings
@@ -105,7 +105,7 @@ trait ResultCalculator
     protected function getCriticalFindings(Collection $results): Collection
     {
         return $this->filterAssessableResults($results)
-            ->filter(fn($r) => $r->is_applicable && $r->status === 'completed' && ($r->risk_level === 'Critical' || $r->maturity_rating <= 1))
+            ->filter(fn($r) => $r->is_applicable && $r->status === 'completed' && ($r->risk_level === 'High' || $r->maturity_rating <= 1))
             ->sortBy(fn($r) => $r->standard->code ?? '', SORT_NATURAL | SORT_FLAG_CASE);
     }
 

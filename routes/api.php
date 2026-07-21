@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthApiController;
 use App\Http\Controllers\Api\AssessmentSessionApiController;
 use App\Http\Controllers\Api\AssessmentResultApiController;
-use App\Http\Controllers\Api\CommunityTemplateApiController;
+
 use App\Http\Controllers\Api\IntelligenceApiController;
 use App\Http\Controllers\Api\ComplianceApiController;
 use App\Http\Controllers\Api\KnowledgeBaseApiController;
@@ -34,7 +34,6 @@ Route::get('quick-search', [\App\Http\Controllers\Api\QuickSearchController::cla
 // Authentication routes (public)
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthApiController::class, 'login']);
-    Route::post('register', [AuthApiController::class, 'register']);
     
     // Protected auth routes
     Route::middleware('auth:sanctum')->group(function () {
@@ -50,8 +49,6 @@ Route::prefix('webhook')->group(function () {
     Route::post('n8n/session-summary', [WebhookApiController::class, 'handleSessionSummary']);
     Route::post('n8n/ai-recommendation', [AssessmentResultApiController::class, 'receiveN8nWebhook']);
     Route::post('n8n/ai-summary', [IntelligenceApiController::class, 'receiveAiSummaryWebhook']);
-    Route::post('send-notification', [WebhookApiController::class, 'sendNotification']);
-    Route::get('reminders', [WebhookApiController::class, 'getReminders']);
 });
 
 // Protected API routes (require authentication)
@@ -89,16 +86,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::get('{id}/ai-status', [AssessmentResultApiController::class, 'checkAiStatus']);
     });
 
-    // Community Templates
-    Route::prefix('community/templates')->group(function () {
-        Route::get('/', [CommunityTemplateApiController::class, 'index']);
-        Route::post('/', [CommunityTemplateApiController::class, 'store']);
-        Route::get('{id}', [CommunityTemplateApiController::class, 'show']);
-        Route::post('{id}/use', [CommunityTemplateApiController::class, 'useTemplate']);
-        Route::post('{id}/clone', [CommunityTemplateApiController::class, 'clone']);
-        Route::post('{id}/upvote', [CommunityTemplateApiController::class, 'upvote']);
-        Route::post('{id}/rate', [CommunityTemplateApiController::class, 'rate']);
-    });
+
 
     // Intelligence & Analytics
     Route::prefix('intelligence')->group(function () {

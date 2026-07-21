@@ -17,8 +17,20 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use InvalidArgumentException;
 
-class KnowledgeBaseController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+
+class KnowledgeBaseController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('admin', only: [
+                'create', 'store', 'edit', 'update', 'destroy', 'importJson', 'exportJson', 'preview'
+            ]),
+        ];
+    }
+
     public function __construct(
         protected KnowledgeBaseService $knowledgeBaseService
     ) {}

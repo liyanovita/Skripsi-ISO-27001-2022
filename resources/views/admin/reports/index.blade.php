@@ -294,8 +294,8 @@
         });
 
         // 2. Sectors Chart Data
-        const sectorLabels = @js(collect($sectorPerformance)->map(fn($s) => $s['business_sector']));
-        const sectorData = @js(collect($sectorPerformance)->map(fn($s) => round($s['avg_score'], 2)));
+        const sectorLabels = @js(collect($sectorPerformance)->map(fn($s) => $s->business_sector));
+        const sectorData = @js(collect($sectorPerformance)->map(fn($s) => round($s->avg_score, 2)));
 
         window.mySectorsChart = new Chart(sectorsCtx, {
             type: 'bar',

@@ -67,18 +67,18 @@
 
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
         <div class="absolute top-20 left-20 w-64 h-64 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full opacity-20 blur-3xl floating"></div>
-        <div class="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full opacity-20 blur-3xl floating" style="animation-delay: -3s;"></div>
+        <div class="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-blue-400 to-teal-400 rounded-full opacity-20 blur-3xl floating" style="animation-delay: -3s;"></div>
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full opacity-10 blur-2xl floating" style="animation-delay: -1.5s;"></div>
     </div>
 
     <div class="w-full max-w-md relative z-10">
         <div class="glass-card rounded-2xl p-8 relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-full -mr-16 -mt-16 blur-xl"></div>
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-teal-500/10 rounded-full -mr-16 -mt-16 blur-xl"></div>
 
             {{-- Header --}}
             <div class="text-center mb-6 relative z-10">
                 <a href="{{ route('landing') }}" class="inline-block mb-4">
-                    <div class="w-16 h-16 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-emerald-600/30 hover:shadow-emerald-600/50 transition-all">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-teal-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 transition-all">
                         <i class="fa-solid fa-lock-open text-white text-2xl"></i>
                     </div>
                 </a>
@@ -154,8 +154,8 @@
                 <button type="submit"
                     :disabled="loading"
                     :class="loading ? 'opacity-75 cursor-not-allowed' : 'enhanced-button'"
-                    class="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-widest transition-all shadow-xl shadow-emerald-600/20 active:scale-[0.98] flex items-center justify-center gap-2 relative overflow-hidden group">
-                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                    class="w-full bg-gradient-to-r from-blue-600 via-teal-600 to-cyan-600 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-[0.98] flex items-center justify-center gap-2 relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-teal-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
                     <span x-show="!loading">
                         <i class="fa-solid fa-check"></i>
                         {{ __('Reset Password') }}
@@ -183,12 +183,12 @@
             <!-- Security Badge -->
             <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-center gap-4 text-xs text-gray-400">
                 <div class="flex items-center gap-1.5">
-                    <i class="fa-solid fa-shield-halved text-green-500"></i>
+                    <i class="fa-solid fa-shield-halved text-teal-500"></i>
                     <span>{{ __('Secure') }}</span>
                 </div>
                 <div class="w-1 h-1 bg-gray-300 rounded-full"></div>
                 <div class="flex items-center gap-1.5">
-                    <i class="fa-solid fa-lock text-green-500"></i>
+                    <i class="fa-solid fa-lock text-teal-500"></i>
                     <span>{{ __('Encrypted') }}</span>
                 </div>
             </div>

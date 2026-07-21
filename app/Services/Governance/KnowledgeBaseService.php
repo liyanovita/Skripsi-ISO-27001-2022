@@ -11,14 +11,12 @@ use InvalidArgumentException;
 
 class KnowledgeBaseService
 {
-    public const CATEGORIES = ['guides', 'templates', 'sop', 'evidence'];
     public const SORT_OPTIONS = ['latest', 'title', 'most_downloaded'];
     public const SOURCE_OPTIONS = ['all', 'official', 'custom'];
 
     public function getAll(array $filters = [], int $perPage = 12): array
     {
         $isUserAdmin = auth()->check() && auth()->user()->isAdmin();
-        $categories = self::CATEGORIES;
         
         $baseQuery = KnowledgeBase::query();
         if (!$isUserAdmin) {
@@ -27,17 +25,6 @@ class KnowledgeBaseService
                   ->orWhere('user_id', auth()->id());
             });
         }
-
-        $categoryTotals = (clone $baseQuery)
-            ->selectRaw('category, count(*) as aggregate')
-            ->whereIn('category', $categories)
-            ->groupBy('category')
-            ->pluck('aggregate', 'category');
-
-        $categoryCounts = collect($categories)
-            ->mapWithKeys(fn(string $category) => [
-                $category => (int) ($categoryTotals[$category] ?? 0),
-            ]);
 
         $totalCount = (clone $baseQuery)->count();
         $statistics     = [
@@ -48,13 +35,9 @@ class KnowledgeBaseService
 
         $query = (clone $baseQuery)->latest();
         $search = trim((string) ($filters['q'] ?? ''));
-        $selectedCategory = (string) ($filters['category'] ?? 'all');
         $selectedSort = (string) ($filters['sort'] ?? 'latest');
         $selectedSource = (string) ($filters['source'] ?? 'all');
-
-        if ($selectedCategory !== 'all' && ! in_array($selectedCategory, $categories, true)) {
-            $selectedCategory = 'all';
-        }
+        $selectedCategory = (string) ($filters['category'] ?? 'all');
 
         if (! in_array($selectedSort, self::SORT_OPTIONS, true)) {
             $selectedSort = 'latest';
@@ -64,14 +47,18 @@ class KnowledgeBaseService
             $selectedSource = 'all';
         }
 
-        if ($selectedCategory !== 'all') {
-            $query->where('category', $selectedCategory);
+        if (! in_array($selectedCategory, ['all', 'guides', 'templates', 'sop', 'evidence'], true)) {
+            $selectedCategory = 'all';
         }
 
         if ($selectedSource === 'official') {
             $query->where('is_system', true);
         } elseif ($selectedSource === 'custom') {
             $query->where('is_system', false);
+        }
+
+        if ($selectedCategory !== 'all') {
+            $query->where('category', $selectedCategory);
         }
 
         if ($search !== '') {
@@ -92,7 +79,15 @@ class KnowledgeBaseService
         $resources = $query->paginate($perPage)->withQueryString();
         $filteredCount = $resources->total();
 
-        return compact('resources', 'categoryCounts', 'totalCount', 'categories', 'statistics', 'filteredCount', 'search', 'selectedCategory', 'selectedSort', 'selectedSource');
+        $categories = ['guides', 'templates', 'sop', 'evidence'];
+        $categoryCounts = [
+            'guides' => (clone $baseQuery)->where('category', 'guides')->count(),
+            'templates' => (clone $baseQuery)->where('category', 'templates')->count(),
+            'sop' => (clone $baseQuery)->where('category', 'sop')->count(),
+            'evidence' => (clone $baseQuery)->where('category', 'evidence')->count(),
+        ];
+
+        return compact('resources', 'totalCount', 'statistics', 'filteredCount', 'search', 'selectedSort', 'selectedSource', 'categories', 'selectedCategory', 'categoryCounts');
     }
 
     public function create(array $data): KnowledgeBase
@@ -101,12 +96,8 @@ class KnowledgeBaseService
         unset($data['attachment']);
 
         // Validate required fields
-        if (empty($data['title']) || empty($data['category'])) {
-            throw new InvalidArgumentException('Title and category are required.');
-        }
-
-        if (! in_array($data['category'], self::CATEGORIES, true)) {
-            throw new InvalidArgumentException('Category must be one of: guides, templates, sop, evidence.');
+        if (empty($data['title'])) {
+            throw new InvalidArgumentException('Title is required.');
         }
 
         if (strlen($data['title']) < 5 || strlen($data['title']) > 255) {
@@ -123,12 +114,7 @@ class KnowledgeBaseService
             $data['format'] = 'PDF';
         }
         if (empty($data['icon'])) {
-            $data['icon'] = match ($data['category']) {
-                'guides' => 'fa-solid fa-route',
-                'templates' => 'fa-solid fa-file-lines',
-                'sop' => 'fa-solid fa-list-check',
-                default => 'fa-solid fa-file-shield',
-            };
+            $data['icon'] = 'fa-solid fa-file-shield';
         }
 
         if (!isset($data['user_id']) && auth()->check()) {
@@ -160,10 +146,6 @@ class KnowledgeBaseService
             }
         }
 
-        if (isset($data['category']) && ! in_array($data['category'], self::CATEGORIES, true)) {
-            throw new InvalidArgumentException('Category must be one of: guides, templates, sop, evidence.');
-        }
-
         if (array_key_exists('content', $data)) {
             $data['content'] = $data['content'] ?? '';
             if (strlen($data['content']) > 0 && strlen($data['content']) < 10) {
@@ -175,13 +157,8 @@ class KnowledgeBaseService
         if (empty($data['format'])) {
             $data['format'] = 'PDF';
         }
-        if (empty($data['icon']) && isset($data['category'])) {
-            $data['icon'] = match ($data['category']) {
-                'guides' => 'fa-solid fa-route',
-                'templates' => 'fa-solid fa-file-lines',
-                'sop' => 'fa-solid fa-list-check',
-                default => 'fa-solid fa-file-shield',
-            };
+        if (empty($data['icon'])) {
+            $data['icon'] = 'fa-solid fa-file-shield';
         }
 
         $auditKeys = array_unique(array_merge(array_keys($data), [
@@ -292,8 +269,8 @@ class KnowledgeBaseService
             'resources' => $query
                 ->orderBy('title')
                 ->get([
-                    'title',
                     'category',
+                    'title',
                     'description',
                     'content',
                     'format',
@@ -340,8 +317,8 @@ class KnowledgeBaseService
             }
 
             $data = [
+                'category' => $item['category'] ?? 'guides',
                 'title' => trim((string) ($item['title'] ?? '')),
-                'category' => (string) ($item['category'] ?? ''),
                 'description' => $item['description'] ?? null,
                 'content' => (string) ($item['content'] ?? ''),
                 'format' => $item['format'] ?? null,
@@ -351,7 +328,7 @@ class KnowledgeBaseService
                 'downloads_count' => 0,
             ];
 
-            if (KnowledgeBase::where('title', $data['title'])->where('category', $data['category'])->exists()) {
+            if (KnowledgeBase::where('title', $data['title'])->exists()) {
                 $skipped++;
                 continue;
             }

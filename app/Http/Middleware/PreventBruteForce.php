@@ -67,7 +67,7 @@ class PreventBruteForce
      */
     private function shouldCheck(Request $request): bool
     {
-        return $request->is('login', 'register', 'forgot-password', 'reset-password');
+        return $request->is('login', 'forgot-password', 'reset-password');
     }
 
     /**

@@ -109,8 +109,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  * @OA\Schema(
  *     schema="StrategicAnalytics",
  *     type="object",
- *     title="Strategic Analytics",
- *     description="High-level strategic analytics calculated from real assessment results",
+ *     title="Assessment Result",
+ *     description="High-level assessment results calculated from real assessment results",
  *     @OA\Property(
  *         property="sessions",
  *         type="array",
@@ -270,8 +270,8 @@ class IntelligenceApiController extends BaseApiController
      *     path="/api/intelligence/analytics/strategic",
      *     operationId="getStrategicAnalytics",
      *     tags={"Intelligence & Analytics"},
-     *     summary="Get strategic analytics",
-     *     description="Retrieve strategic analytics calculated from real assessment results, including active-control maturity trends, domain comparison, and compliance breakdown",
+     *     summary="Get assessment result",
+     *     description="Retrieve assessment result calculated from real assessment results, including active-control maturity trends, domain comparison, and compliance breakdown",
      *     security={{"sanctum": {}}},
      *     @OA\Parameter(
      *         name="session_id",
@@ -285,7 +285,7 @@ class IntelligenceApiController extends BaseApiController
      *         description="Successful operation",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Strategic analytics retrieved successfully"),
+     *             @OA\Property(property="message", type="string", example="Assessment result retrieved successfully"),
      *             @OA\Property(property="data", ref="#/components/schemas/StrategicAnalytics")
      *         )
      *     )
@@ -298,7 +298,7 @@ class IntelligenceApiController extends BaseApiController
             $request->get('session_id')
         );
 
-        return $this->successResponse($data, 'Strategic analytics retrieved successfully');
+        return $this->successResponse($data, 'Assessment result retrieved successfully');
     }
 
     /**

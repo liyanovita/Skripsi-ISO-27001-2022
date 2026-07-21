@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AssessmentSession;
 use App\Models\AssessmentResult;
 use App\Models\KnowledgeBase;
-use App\Models\CommunityTemplate;
+
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -69,19 +69,7 @@ class QuickSearchController extends Controller
                 ];
             });
 
-        // 4. Community Templates
-        CommunityTemplate::where('title', 'like', "%{$q}%")
-            ->orWhere('description', 'like', "%{$q}%")
-            ->limit(3)
-            ->get()
-            ->each(function ($t) use (&$results) {
-                $results[] = [
-                    'type'     => 'community',
-                    'title'    => $t->title,
-                    'subtitle' => 'by ' . ($t->author_name ?? 'Anonymous') . ' · ★ ' . number_format($t->avg_rating, 1),
-                    'url'      => route('community.show', $t->id),
-                ];
-            });
+
 
         return response()->json(['results' => array_slice($results, 0, 10)]);
     }

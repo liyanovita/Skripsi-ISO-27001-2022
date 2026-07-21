@@ -24,6 +24,7 @@ class CreateSessionRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255|min:3',
+            'organization_id' => 'nullable|exists:organizations,id',
         ];
     }
 

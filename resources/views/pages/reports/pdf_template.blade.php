@@ -2,37 +2,42 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>{{ __('ISO 27001:2022 Improvement Roadmap') }}</title>
+    <title>{{ __('ISO 27001:2022 Assessment Report') }}</title>
     <style>
-        body { font-family: 'Helvetica', sans-serif; color: #333; line-height: 1.6; }
-        .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #2563eb; padding-bottom: 20px; }
-        .header h1 { color: #1e293b; margin: 0; font-size: 24px; text-transform: uppercase; }
-        .header p { color: #64748b; margin: 5px 0; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        body { font-family: 'Helvetica', sans-serif; color: #1e293b; line-height: 1.5; font-size: 9px; margin: 0; padding: 0; }
+        .page { padding: 5px; }
+        .page-break { page-break-after: always; }
         
-        .section-title { font-size: 12px; font-weight: bold; text-transform: uppercase; color: #1e293b; border-left: 4px solid #2563eb; padding-left: 10px; margin: 30px 0 15px; letter-spacing: 1px; }
+        /* Typography */
+        h1, h2, h3 { color: #0B2545; margin: 0; }
         
-        .summary-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 25px; border-radius: 12px; margin-bottom: 30px; }
+        .section-title { font-size: 11px; font-weight: bold; text-transform: uppercase; color: #0B2545; border-bottom: 2px solid #008B9B; padding-bottom: 4px; margin: 25px 0 10px; letter-spacing: 0.5px; }
         
-        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-        th { background: #f1f5f9; color: #475569; font-size: 9px; text-transform: uppercase; text-align: left; padding: 12px; border-bottom: 1px solid #e2e8f0; letter-spacing: 0.5px; }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 10px; color: #334155; }
+        /* Boxes & Cards */
+        .summary-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .ai-card { border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px; overflow: hidden; page-break-inside: avoid; }
+        .ai-card-header { background: #0B2545; color: white; padding: 8px 12px; font-size: 9px; font-weight: bold; }
+        .ai-card-body { padding: 12px; background: #fff; }
         
-        .badge { padding: 3px 10px; border-radius: 6px; font-size: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th { background: #f1f5f9; color: #475569; font-size: 8px; text-transform: uppercase; font-weight: bold; padding: 8px; border: 1px solid #e2e8f0; text-align: left; }
+        td { padding: 8px; border: 1px solid #e2e8f0; font-size: 8.5px; color: #334155; vertical-align: top; }
+        
+        /* Badges */
+        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 7px; font-weight: bold; text-transform: uppercase; }
         .badge-danger { background: #fee2e2; color: #991b1b; }
         .badge-warning { background: #fef3c7; color: #92400e; }
         .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-info { background: #e0f2fe; color: #035388; }
+        .badge-slate { background: #f1f5f9; color: #475569; }
+
+        /* Footer */
+        .footer { position: fixed; bottom: -20px; left: 0; right: 0; text-align: center; font-size: 7.5px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 8px; }
         
-        .footer { position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 9px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 15px; }
-        
-        .ai-card { margin-bottom: 25px; page-break-inside: avoid; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
-        .ai-card-header { background: #0f172a; color: white; padding: 10px 20px; font-size: 10px; font-weight: bold; }
-        .ai-card-body { padding: 20px; }
-        
-        .cap-box { margin-top: 15px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 10px; color: #1e293b; }
-        .summary-box p, .ai-card-body p, .cap-box p { margin: 0 0 8px 0; }
-        .summary-box p:last-child, .ai-card-body p:last-child, .cap-box p:last-child { margin-bottom: 0; }
-        .summary-box ul, .ai-card-body ul, .cap-box ul { margin: 0 0 8px 0; padding-left: 20px; }
-        .summary-box li, .ai-card-body li, .cap-box li { margin-bottom: 4px; }
+        /* Colors */
+        .text-navy { color: #0B2545; }
+        .text-teal { color: #008B9B; }
     </style>
 </head>
 <body>
@@ -43,25 +48,27 @@
             $logoBase64 = 'data:image/jpeg;base64,' . base64_encode(file_get_contents($logoPath));
         }
     @endphp
-    <div style="margin-bottom: 25px; border-bottom: 2px solid #008B9B; padding-bottom: 12px;">
+
+    <!-- HEADER / COVER TOP -->
+    <div style="margin-bottom: 20px; border-bottom: 2px solid #008B9B; padding-bottom: 10px;">
         <table style="width: 100%; border: none; margin-bottom: 0;">
             <tr>
                 <td style="width: 50px; border: none; padding: 0; vertical-align: middle;">
                     @if($logoBase64)
-                        <img src="{{ $logoBase64 }}" style="height: 45px; width: 45px; border-radius: 8px;">
+                        <img src="{{ $logoBase64 }}" style="height: 40px; width: 40px; border-radius: 6px;">
                     @endif
                 </td>
                 <td style="border: none; padding: 0 0 0 10px; vertical-align: middle; text-align: left;">
-                    <div style="font-size: 20px; font-weight: bold; line-height: 1.1;">
+                    <div style="font-size: 18px; font-weight: bold; line-height: 1.1;">
                         <span style="color: #0B2545;">Audit</span><span style="color: #008B9B;">Guard</span>
                     </div>
-                    <div style="font-size: 7px; font-weight: 900; color: #64748b; letter-spacing: 2px; margin-top: 2px; text-transform: uppercase;">
+                    <div style="font-size: 6.5px; font-weight: 900; color: #64748b; letter-spacing: 2px; margin-top: 2px; text-transform: uppercase;">
                         ASSESS &bull; ANALYZE &bull; ASSURE
                     </div>
                 </td>
                 <td style="border: none; padding: 0; text-align: right; vertical-align: middle; color: #475569;">
-                    <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">{{ __('ISO 27001:2022 Improvement Roadmap') }}</div>
-                    <div style="font-size: 8px; margin-top: 3px; color: #64748b;">
+                    <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">{{ __('ISO 27001:2022 Assessment Report') }}</div>
+                    <div style="font-size: 7.5px; margin-top: 2px; color: #64748b;">
                         Session: {{ $session->name }}<br>
                         Generated: {{ $date }} &nbsp;|&nbsp; {{ auth()->user()->name }}
                     </div>
@@ -70,190 +77,303 @@
         </table>
     </div>
 
-    <div class="section-title">Executive Summary & AI Intelligence</div>
-    <div class="summary-box" style="border-left: 5px solid #2563eb;">
-        <div style="font-size: 18px; font-weight: bold; color: #1e293b; margin-bottom: 15px;">
-            Overall Maturity Score: {{ number_format($session->overall_maturity_score, 1) }} / 5.0
-        </div>
-        <div style="font-size: 11px; color: #334155; line-height: 1.8;">
-            @php
-                $parsedSummary = \App\Services\Intelligence\AiSummaryService::parseSummary($summary);
-            @endphp
-            @if($parsedSummary && isset($parsedSummary['overall_assessment_conclusion']))
-                @if(!empty($parsedSummary['overall_assessment_conclusion']))
-                    <div style="margin-bottom: 15px;">
-                        <div style="font-weight: bold; color: #2563eb; text-transform: uppercase; font-size: 10px; margin-bottom: 4px;">Overall Assessment Conclusion</div>
-                        <div style="color: #334155;">{{ $parsedSummary['overall_assessment_conclusion'] }}</div>
+    <!-- 1. EXECUTIVE SUMMARY -->
+    <div class="section-title">1. Executive Summary</div>
+    <div class="summary-box" style="border-left: 4px solid #0B2545;">
+        <table style="width: 100%; border: none; margin-bottom: 10px; background: transparent;">
+            <tr style="background: transparent;">
+                <td style="border: none; padding: 0 15px 0 0; width: 50%;">
+                    <div style="font-size: 10px; font-weight: bold; color: #0B2545; margin-bottom: 5px;">{{ __('Organization Information') }}</div>
+                    <div style="line-height: 1.6;">
+                        <strong>{{ __('Organization Name') }}:</strong> {{ $session->organization->name ?? '-' }}<br>
+                        <strong>{{ __('Sector') }}:</strong> {{ $session->organization->business_sector ?? '-' }}<br>
+                        <strong>{{ __('ISMS Scope') }}:</strong> {{ $session->organization->isms_scope ?? '-' }}
                     </div>
-                @endif
-                
-                @if(!empty($parsedSummary['overall_risk_areas']))
-                    <div style="margin-bottom: 15px;">
-                        <div style="font-weight: bold; color: #dc2626; text-transform: uppercase; font-size: 10px; margin-bottom: 4px;">Overall Risk Areas</div>
-                        <div style="color: #334155;">{{ $parsedSummary['overall_risk_areas'] }}</div>
+                </td>
+                <td style="border: none; padding: 0; width: 50%;">
+                    <div style="font-size: 10px; font-weight: bold; color: #0B2545; margin-bottom: 5px;">{{ __('Audit Information') }}</div>
+                    <div style="line-height: 1.6;">
+                        <strong>{{ __('Audit Session') }}:</strong> {{ $session->name }}<br>
+                        <strong>{{ __('Target Deadline') }}:</strong> {{ $session->deadline ? \Carbon\Carbon::parse($session->deadline)->format('d F Y') : '-' }}<br>
+                        <strong>{{ __('Assessor / Auditor') }}:</strong> {{ $session->user->name ?? '-' }}
                     </div>
-                @endif
+                </td>
+            </tr>
+        </table>
+        
+        @php
+            $parsedSummary = \App\Services\Intelligence\AiSummaryService::parseSummary($summary);
+            $overallSummary = $parsedSummary['overall_assessment_summary'] ?? $parsedSummary['overall_assessment_conclusion'] ?? '';
+            $controlInsight = $parsedSummary['control_insight'] ?? $parsedSummary['overall_risk_areas'] ?? '';
+            $impactInterpretation = $parsedSummary['impact_interpretation'] ?? $parsedSummary['assessment_confidence'] ?? '';
+            $strategicRec = $parsedSummary['strategic_recommendation'] ?? $parsedSummary['executive_strategic_recommendations'] ?? [];
+            $actionPlan = $parsedSummary['action_plan'] ?? '';
+        @endphp
 
-                @if(!empty($parsedSummary['executive_strategic_recommendations']))
-                    @php
-                        $recs = $parsedSummary['executive_strategic_recommendations'];
-                        if (is_string($recs)) $recs = [$recs];
-                    @endphp
-                    <div style="margin-bottom: 15px;">
-                        <div style="font-weight: bold; color: #b45309; text-transform: uppercase; font-size: 10px; margin-bottom: 4px;">Executive Strategic Recommendations</div>
-                        <ol style="margin: 0; padding-left: 20px; color: #334155;">
-                            @foreach($recs as $rec)
-                                <li style="margin-bottom: 4px;">{{ $rec }}</li>
-                            @endforeach
-                        </ol>
-                    </div>
-                @endif
-
-                @if(!empty($parsedSummary['assessment_confidence']))
-                    <div style="margin-bottom: 0;">
-                        <div style="font-weight: bold; color: #1e293b; text-transform: uppercase; font-size: 10px; margin-bottom: 4px;">Assessment Confidence</div>
-                        <div style="color: #334155;">{{ $parsedSummary['assessment_confidence'] }}</div>
-                    </div>
-                @endif
-            @else
-                {!! \Illuminate\Support\Str::markdown(e($summary)) !!}
-            @endif
+        <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e2e8f0; line-height: 1.6;">
+            <div style="font-weight: bold; color: #0B2545; text-transform: uppercase; font-size: 8.5px; margin-bottom: 4px;">{{ __('Overall Assessment Summary') }}</div>
+            <div style="color: #334155; font-size: 9px;">
+                {{ $overallSummary ?: (is_string($summary) ? $summary : __('No overall summary generated.')) }}
+            </div>
         </div>
     </div>
 
-    <div class="section-title">Priority Roadmap & Critical Gaps</div>
+    <!-- 2. COMPLIANCE & OVERALL MATURITY -->
+    <div class="section-title">2. Compliance & Overall Maturity</div>
+    <table style="width: 100%; border: none; margin-bottom: 20px; border-spacing: 8px; border-collapse: separate;">
+        <tr>
+            <td style="width: 25%; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px; text-align: center; vertical-align: middle;">
+                <div style="font-size: 7.5px; font-weight: bold; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Compliance Score</div>
+                <div style="font-size: 18px; font-weight: 900; color: #008B9B;">{{ $complianceScore }}%</div>
+            </td>
+            <td style="width: 25%; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px; text-align: center; vertical-align: middle;">
+                <div style="font-size: 7.5px; font-weight: bold; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Compliance Status</div>
+                @php
+                    $statusColor = match($complianceStatusText) {
+                        'Compliant' => '#059669',
+                        'Partially Compliant' => '#d97706',
+                        default => '#dc2626',
+                    };
+                @endphp
+                <div style="font-size: 11px; font-weight: bold; color: {{ $statusColor }};">{{ __($complianceStatusText) }}</div>
+            </td>
+            <td style="width: 25%; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px; text-align: center; vertical-align: middle;">
+                <div style="font-size: 7.5px; font-weight: bold; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Overall Maturity Score</div>
+                <div style="font-size: 18px; font-weight: 900; color: #0b2545;">{{ number_format($overallMaturity, 2) }} / 5.0</div>
+            </td>
+            <td style="width: 25%; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px; text-align: center; vertical-align: middle;">
+                <div style="font-size: 7.5px; font-weight: bold; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Maturity Level</div>
+                <div style="font-size: 10px; font-weight: bold; color: #475569;">{{ __($maturityLevelLabel) }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="page-break"></div>
+
+    <!-- 3. GAP ANALYSIS -->
+    <div class="section-title">3. Gap Analysis (Critical & Partially Compliant Controls)</div>
+    <p style="margin-top: 0; margin-bottom: 10px; color: #64748b; font-size: 8.5px;">
+        {{ __('The following table displays all applicable controls that did not reach the target compliance level (Maturity Level 4 - Managed).') }}
+    </p>
     <table>
         <thead>
             <tr>
-                <th style="width: 10%">{{ __('Priority') }}</th>
+                <th style="width: 8%">{{ __('No') }}</th>
                 <th style="width: 12%">{{ __('Code') }}</th>
-                <th style="width: 30%">{{ __('Control Name') }}</th>
-                <th style="width: 22%">{{ __('Status Compliance') }}</th>
-                <th style="width: 12%">{{ __('Risk') }}</th>
-                <th style="width: 14%">{{ __('Target') }}</th>
+                <th style="width: 42%">{{ __('Control Name') }}</th>
+                <th style="width: 13%">{{ __('Maturity') }}</th>
+                <th style="width: 10%">{{ __('Gap') }}</th>
+                <th style="width: 15%">{{ __('Compliance') }}</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($results as $index => $result)
-            @php
-                $targetDays = match(true) {
-                    $result->maturity_rating <= 1 => '30 Days',
-                    $result->maturity_rating == 2 => '60 Days',
-                    $result->maturity_rating == 3 => '90 Days',
-                    default => '180 Days',
-                };
-                $targetColor = match(true) {
-                    $result->maturity_rating <= 1 => '#991b1b',
-                    $result->maturity_rating == 2 => '#92400e',
-                    default => '#374151',
-                };
-            @endphp
+            @forelse($gapResults as $index => $result)
             <tr>
-                <td>
-                    <span class="badge {{ $result->maturity_rating <= 1 ? 'badge-danger' : 'badge-warning' }}">
-                        {{ $index + 1 }}
-                    </span>
-                </td>
-                <td style="font-weight: bold;">{{ $result->standard->code }}</td>
+                <td style="text-align: center;">{{ $index + 1 }}</td>
+                <td style="font-weight: bold; color: #0B2545;">{{ $result->standard->code }}</td>
                 <td>{{ $result->standard->title }}</td>
-                <td>
-                    <div style="margin-bottom: 3px; font-size: 9px; color: #64748b;">Maturity Level {{ $result->maturity_rating }}</div>
+                <td style="text-align: center; font-weight: bold;">{{ $result->maturity_rating }} / 5</td>
+                <td style="text-align: center; font-weight: bold; color: #dc2626;">{{ 5 - $result->maturity_rating }}</td>
+                <td style="text-align: center;">
                     <span class="badge {{ $result->maturity_rating >= 4 ? 'badge-success' : ($result->maturity_rating >= 2 ? 'badge-warning' : 'badge-danger') }}">
                         {{ $result->compliance_status }}
                     </span>
                 </td>
-                <td style="font-weight: bold; color: {{ $result->maturity_rating <= 1 ? '#991b1b' : '#92400e' }};">{{ $result->risk_level }}</td>
-                <td style="font-weight: bold; color: {{ $targetColor }};">{{ $targetDays }}</td>
             </tr>
-            @endforeach
+            @empty
+            <tr>
+                <td colspan="6" style="text-align: center; color: #94a3b8; font-style: italic; padding: 15px;">
+                    {{ __('No gaps found. All applicable controls are compliant!') }}
+                </td>
+            </tr>
+            @endforelse
         </tbody>
     </table>
 
-    <div class="section-title">AI Intelligence Analysis & Improvement Plans</div>
-    @if($results->count() > 0)
-        @foreach($results as $result)
-        <div class="ai-card">
-            <div class="ai-card-header">
-                {{ $result->standard->code }}: {{ $result->standard->title }}
-            </div>
-            <div class="ai-card-body">
-                <table style="margin-bottom: 0; border: none; width: 100%;">
-                    <tr>
-                        <td style="width: 50%; border: none; padding: 0 10px 0 0; vertical-align: top;">
-                            <div style="font-size: 8px; font-weight: bold; color: #2563eb; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">{{ __('Strategic Recommendation') }}</div>
-                            <div style="font-size: 10px; color: #334155; line-height: 1.5;">
-                                @if(!empty($result->ai_recommendation))
-                                    {!! \Illuminate\Support\Str::markdown(e($result->ai_recommendation)) !!}
-                                @else
-                                    <span style="color: #94a3b8; font-style: italic;">{{ __('AI recommendation not yet generated.') }}</span>
-                                @endif
-                            </div>
-                        </td>
-                        <td style="width: 50%; border: none; padding: 0 0 0 10px; vertical-align: top;">
-                            <div style="font-size: 8px; font-weight: bold; color: #dc2626; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">{{ __('AI Audit Insight (Gap)') }}</div>
-                            <div style="font-size: 10px; color: #334155; line-height: 1.5;">
-                                @php
-                                    $insight = is_array($result->control_insight) ? ($result->control_insight['gap'] ?? null) : $result->control_insight;
-                                    $insight = trim($insight ?? '');
-                                @endphp
-                                @if(!empty($insight))
-                                    {!! \Illuminate\Support\Str::markdown(e($insight)) !!}
-                                @else
-                                    <span style="color: #94a3b8; font-style: italic;">{{ __('AI insight not yet generated.') }}</span>
-                                @endif
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
-                    @if(!empty(trim($result->notes ?? '')))
-                    <div style="margin-bottom: 15px;">
-                        <div style="font-size: 8px; font-weight: bold; color: #b45309; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">{{ __('Audit Notes') }}</div>
-                        <div style="padding: 12px; background: #fffbeb; border-radius: 8px; border: 1px solid #fef3c7; font-size: 10px; color: #92400e; line-height: 1.5;">
-                            {!! nl2br(e($result->notes)) !!}
-                        </div>
-                    </div>
-                    @endif
+    <!-- 4. RISK PRIORITY -->
+    <div class="section-title">4. Risk Priority Mapping</div>
+    <p style="margin-top: 0; margin-bottom: 10px; color: #64748b; font-size: 8.5px;">
+        {{ __('This section ranks improvement activities by audit risk priority. Actions should target Critical and High priorities first.') }}
+    </p>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 15%">{{ __('Risk Priority') }}</th>
+                <th style="width: 15%">{{ __('Control Code') }}</th>
+                <th style="width: 45%">{{ __('Control Name') }}</th>
+                <th style="width: 10%">{{ __('Maturity') }}</th>
+                <th style="width: 15%">{{ __('Remediation Target') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php
+                $sortedByRisk = $gapResults->sortByDesc(function($r) {
+                    return match($r->risk_priority) {
+                        'Critical' => 4,
+                        'High' => 3,
+                        'Medium' => 2,
+                        default => 1
+                    };
+                });
+            @endphp
+            @forelse($sortedByRisk as $result)
+            <tr>
+                <td style="text-align: center;">
+                    <span class="badge
+                        {{ $result->risk_priority == 'Critical' ? 'badge-danger' : '' }}
+                        {{ $result->risk_priority == 'High' ? 'badge-warning' : '' }}
+                        {{ $result->risk_priority == 'Medium' ? 'badge-info' : '' }}
+                        {{ $result->risk_priority == 'Low' || !$result->risk_priority ? 'badge-success' : '' }}
+                    ">
+                        {{ $result->risk_priority ?: 'Low' }}
+                    </span>
+                </td>
+                <td style="font-weight: bold; color: #0b2545;">{{ $result->standard->code }}</td>
+                <td>{{ $result->standard->title }}</td>
+                <td style="text-align: center;">{{ $result->maturity_rating }} / 5</td>
+                <td style="font-weight: bold; color: {{ $result->maturity_rating <= 1 ? '#991b1b' : '#92400e' }}; text-align: center;">
+                    {{ $result->maturity_rating <= 1 ? '30 Days' : ($result->maturity_rating == 2 ? '60 Days' : '90 Days') }}
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="5" style="text-align: center; color: #94a3b8; font-style: italic; padding: 15px;">
+                    {{ __('No high-priority risk remediations pending.') }}
+                </td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
 
-                    <div style="margin-bottom: 15px;">
-                        <div style="font-size: 8px; font-weight: bold; color: #be123c; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">{{ __('Impact Interpretation') }}</div>
-                        <div style="padding: 15px; background: #fff1f2; border-radius: 8px; border: 1px solid #ffe4e6; font-size: 10px; color: #9f1239; line-height: 1.5;">
-                            @if(!empty($result->impact_interpretation))
-                                {!! \Illuminate\Support\Str::markdown(e($result->impact_interpretation)) !!}
-                            @else
-                                <span style="color: #94a3b8; font-style: italic;">{{ __('AI impact interpretation not yet generated.') }}</span>
-                            @endif
-                        </div>
-                    </div>
+    <div class="page-break"></div>
 
-                    <div style="font-size: 8px; font-weight: bold; color: #1e293b; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">{{ __('Corrective Action Plan (CAP)') }}</div>
-                    <div class="cap-box">
-                        @php
-                            $capText = '';
-                            if (is_array($result->corrective_action_plan)) {
-                                $capText = $result->corrective_action_plan['action'] ?? implode("\n", $result->corrective_action_plan);
-                            } else {
-                                $capText = $result->corrective_action_plan;
-                            }
-                            $capText = trim($capText);
-                        @endphp
-                        @if(!empty($capText))
-                            {!! \Illuminate\Support\Str::markdown(e($capText)) !!}
-                        @else
-                            <span style="color: #94a3b8; font-style: italic;">{{ __('AI corrective action plan not yet generated.') }}</span>
-                        @endif
-                    </div>
-                </div>
+    <!-- 5. AI ANALYSIS -->
+    <div class="section-title">5. Artificial Intelligence (AI) Audit Insights</div>
+    
+    @if(!empty($overallSummary))
+        <div class="ai-card" style="border-left: 4px solid #0B2545;">
+            <div class="ai-card-header" style="background: #0B2545;">A. OVERALL ASSESSMENT SUMMARY</div>
+            <div class="ai-card-body" style="font-size: 8.5px; color: #334155; line-height: 1.6;">
+                {{ $overallSummary }}
             </div>
-        </div>
-        @endforeach
-    @else
-        <div class="summary-box">
-            <p style="text-align: center; color: #94a3b8; font-size: 11px;">{{ __('No AI analysis has been generated for this session yet.') }}</p>
         </div>
     @endif
+
+    @if(!empty($controlInsight))
+        <div class="ai-card" style="border-left: 4px solid #dc2626;">
+            <div class="ai-card-header" style="background: #dc2626;">B. CONTROL INSIGHT & WEAKNESS AREAS</div>
+            <div class="ai-card-body" style="font-size: 8.5px; color: #334155; line-height: 1.6;">
+                {{ $controlInsight }}
+            </div>
+        </div>
+    @endif
+
+    @if(!empty($impactInterpretation))
+        <div class="ai-card" style="border-left: 4px solid #0284c7;">
+            <div class="ai-card-header" style="background: #0284c7;">C. IMPACT INTERPRETATION & RISK ASSESSMENT</div>
+            <div class="ai-card-body" style="font-size: 8.5px; color: #334155; line-height: 1.6;">
+                {{ $impactInterpretation }}
+            </div>
+        </div>
+    @endif
+
+    @if(!empty($strategicRec))
+        <div class="ai-card" style="border-left: 4px solid #d97706;">
+            <div class="ai-card-header" style="background: #d97706;">D. STRATEGIC RECOMMENDATIONS</div>
+            <div class="ai-card-body" style="font-size: 8.5px; color: #334155; line-height: 1.6;">
+                @if(is_array($strategicRec))
+                    <ol style="margin: 0; padding-left: 15px;">
+                        @foreach($strategicRec as $rec)
+                            <li style="margin-bottom: 4px;">{{ $rec }}</li>
+                        @endforeach
+                    </ol>
+                @else
+                    {{ $strategicRec }}
+                @endif
+            </div>
+        </div>
+    @endif
+
+    @if(!empty($actionPlan))
+        <div class="ai-card" style="border-left: 4px solid #059669;">
+            <div class="ai-card-header" style="background: #059669;">E. REMEDIATION ACTION PLAN</div>
+            <div class="ai-card-body" style="font-size: 8.5px; color: #334155; line-height: 1.6;">
+                {{ $actionPlan }}
+            </div>
+        </div>
+    @endif
+
+    <div class="page-break"></div>
+
+    <!-- 6. IMPROVEMENT TRACKING (CAPA) -->
+    <div class="section-title">6. Remediation & Improvement Tracking (CAPA)</div>
+    <p style="margin-top: 0; margin-bottom: 10px; color: #64748b; font-size: 8.5px;">
+        {{ __('The following roadmap logs real-time corrective actions, assignees, deadlines, and verified physical evidence of compliance improvements.') }}
+    </p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 10%">{{ __('Control') }}</th>
+                <th style="width: 25%">{{ __('Corrective Action Plan') }}</th>
+                <th style="width: 12%">{{ __('PIC') }}</th>
+                <th style="width: 13%">{{ __('Due Date') }}</th>
+                <th style="width: 15%">{{ __('Status & Progress') }}</th>
+                <th style="width: 25%">{{ __('Evidence After Improvement') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($trackingResults as $result)
+            @php
+                $plan = $result->corrective_action_plan ?: [];
+                $planActionText = is_array($plan) ? ($plan['action'] ?? '-') : ($plan ?: '-');
+                
+                $status = $result->treatment_status ?: 'open';
+                $progress = $result->treatment_progress ?? 0;
+            @endphp
+            <tr>
+                <td style="font-weight: bold; color: #0b2545;">{{ $result->standard->code }}</td>
+                <td style="font-size: 8px; line-height: 1.4;">{{ $planActionText }}</td>
+                <td style="font-weight: bold; color: #475569;">{{ $result->treatment_pic ?: '-' }}</td>
+                <td style="font-size: 8px; font-weight: bold; text-align: center;">
+                    @if($result->treatment_due_date)
+                        @if($result->treatment_due_date->isPast() && $status !== 'completed')
+                            <span style="color: #dc2626;">{{ $result->treatment_due_date->format('d M Y') }} (Overdue)</span>
+                        @else
+                            <span>{{ $result->treatment_due_date->format('d M Y') }}</span>
+                        @endif
+                    @else
+                        <span style="color: #94a3b8; font-style: italic;">Not Set</span>
+                    @endif
+                </td>
+                <td>
+                    <span class="badge
+                        {{ $status == 'completed' ? 'badge-success' : '' }}
+                        {{ $status == 'in_progress' ? 'badge-info' : '' }}
+                        {{ $status == 'open' ? 'badge-danger' : '' }}
+                    " style="margin-bottom: 4px;">
+                        {{ ucfirst($status) }}
+                    </span>
+                    <br>
+                    <span style="font-weight: bold; font-size: 8px; color: #475569;">Progress: {{ $progress }}%</span>
+                </td>
+                <td style="font-size: 8px; font-style: italic; color: #64748b; line-height: 1.4;">
+                    {{ $result->evidence_after_improvement ?: '-' }}
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="6" style="text-align: center; color: #94a3b8; font-style: italic; padding: 15px;">
+                    {{ __('No improvement activities currently logged.') }}
+                </td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    <!-- FOOTER -->
     <div class="footer">
-        AuditGuard &copy; {{ date('Y') }} | ISO 27001:2022 Improvement Roadmap
+        AuditGuard &copy; {{ date('Y') }} | ISO 27001:2022 Assessment Report
     </div>
 </body>
 </html>

@@ -14,16 +14,25 @@ class ResultService
 {
     public function getResultById(int $id): AssessmentResult
     {
-        return AssessmentResult::whereHas('session', function($q) {
-            $q->where('user_id', auth()->id());
-        })->findOrFail($id);
+        $user = auth()->user();
+        $query = AssessmentResult::query();
+        if (!$user || !$user->isAdmin()) {
+            $query->whereHas('session', function($q) {
+                $q->where('user_id', auth()->id())
+                  ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', auth()->id()));
+            });
+        }
+        return $query->findOrFail($id);
     }
 
     public function updateResult(int $id, array $data, ?UploadedFile $file = null): AssessmentResult    {
         $result = AssessmentResult::with('standard', 'session')->findOrFail($id);
 
-        // Verify ownership - ensure result belongs to authenticated user
-        if ($result->session->user_id !== auth()->id()) {
+        // Verify ownership — session owner OR invited user OR admin can update
+        $user = auth()->user();
+        $isAdmin = $user && $user->isAdmin();
+        $isInvited = $result->session->invitedUsers()->where('user_id', auth()->id())->exists();
+        if (!$isAdmin && $result->session->user_id !== auth()->id() && !$isInvited) {
             throw new \Exception('Unauthorized: You do not have permission to update this assessment result.');
         }
 
@@ -260,11 +269,8 @@ class ResultService
             }
         }
 
-        // 6. Evidence Validation — always maps to evidence_validation column
-        $evidenceValidation = $data['evidence_validation'] ?? $data['validation'] ?? $data['evidence_review'] ?? $data['evidence_summary'] ?? null;
-        if ($evidenceValidation !== null) {
-            $updateData['evidence_validation'] = $evidenceValidation;
-        }
+        // 6. Evidence Validation — always maps to evidence_validation column (Disabled as AI no longer handles this)
+        $updateData['evidence_validation'] = null;
 
         Log::info("n8n webhook — updateData to be saved", array_merge(
             ['result_id' => $resultId],
@@ -382,14 +388,12 @@ class ResultService
             $actionPlan = "1. Menyusun draf kebijakan dan SOP terkait {$result->standard->title}.\n2. Memperoleh persetujuan dari pimpinan organisasi.\n3. Melaksanakan pelatihan kesadaran untuk seluruh personel.";
             $impact = "Tanpa penerapan kontrol ini, organisasi berisiko mengalami inkonsistensi operasional dan potensi ketidakpatuhan terhadap persyaratan audit eksternal.";
             $priority = "Tinggi";
-            $validation = "Catatan bukti yang ada saat ini (" . ($result->notes ?: 'Tidak ada') . ") menunjukkan perlunya peningkatan formalitas dalam dokumentasi.";
             $insight = "Terdapat kesenjangan antara praktik aktual dan persyaratan dokumentasi formal ISO 27001.";
         } else {
             $recommendation = "Based on the maturity rating of {$result->maturity_rating} for control {$result->standard->code}, it is recommended to establish formal policy documentation covering standard operating procedures (SOPs). This policy should be regularly disseminated to all relevant staff.";
             $actionPlan = "1. Draft policies and SOPs related to {$result->standard->title}.\n2. Obtain approval from senior management.\n3. Conduct awareness training for all key personnel.";
             $impact = "Without implementing this control, the organization faces risks of operational inconsistency and potential non-compliance during external audits.";
             $priority = "High";
-            $validation = "The current evidence notes (" . ($result->notes ?: 'None') . ") indicate a need for increased formality in documentation.";
             $insight = "A gap exists between actual practices and the formal documentation requirements of ISO 27001.";
         }
 
@@ -398,7 +402,7 @@ class ResultService
             'corrective_action_plan' => ['action' => $actionPlan],
             'impact_interpretation' => $impact,
             'risk_priority' => $priority,
-            'evidence_validation' => $validation,
+            'evidence_validation' => null,
             'control_insight' => ['gap' => $insight]
         ]);
     }

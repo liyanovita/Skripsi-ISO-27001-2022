@@ -16,6 +16,7 @@
                 <p class="text-sm text-slate-500 font-medium mt-0.5">{{ __('Manage audit cycles for ISO 27001:2022 assessment.') }}</p>
             </div>
             
+            @if(auth()->user()->isAdmin())
             <div class="flex gap-2">
                 <button @click="showImportModal = true" 
                     class="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-xl text-xs font-bold shadow-sm hover:bg-slate-50 transition-all">
@@ -26,6 +27,7 @@
                     <i class="fa-solid fa-plus"></i> {{ __('New Session') }}
                 </button>
             </div>
+            @endif
         </div>
 
         {{-- Stats Grid --}}
@@ -82,7 +84,9 @@
                     <button @click="filterStatus = 'all'" :class="filterStatus === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'" class="flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all">{{ __('All') }}</button>
                     <button @click="filterStatus = 'in_progress'" :class="filterStatus === 'in_progress' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'" class="flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all">{{ __('Active') }}</button>
                     <button @click="filterStatus = 'completed'" :class="filterStatus === 'completed' ? 'bg-white text-green-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'" class="flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all">{{ __('Completed') }}</button>
+                    @if(auth()->user()->isAdmin())
                     <button @click="filterStatus = 'archived'" :class="filterStatus === 'archived' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'" class="flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all">{{ __('Archived') }}</button>
+                    @endif
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -98,26 +102,55 @@
                     </thead>
                     <tbody class="divide-y divide-slate-50">
                         @forelse($sessions as $index => $session)
-                        <tr x-data="{ name: '{{ addslashes(strtolower($session->name)) }}', status: '{{ $session->trashed() ? 'archived' : ($session->status == 'completed' ? 'completed' : 'in_progress') }}' }" 
-                            x-show="(filterStatus === 'all' || filterStatus === status) && (searchQuery === '' || name.includes(searchQuery.toLowerCase()))"
+                        <tr x-data="{ name: '{{ addslashes(strtolower($session->name)) }}', status: '{{ $session->trashed() ? 'archived' : $session->status }}' }" 
+                            x-show="(filterStatus === 'all' || filterStatus === status || (filterStatus === 'in_progress' && status === 'draft')) && (searchQuery === '' || name.includes(searchQuery.toLowerCase()))"
                             class="hover:bg-slate-50/50 transition-colors group">
                             <td class="px-6 py-5">
                                 @if($session->trashed())
                                   <div class="block opacity-70">
                                       <p class="text-sm font-bold text-slate-900 tracking-tight">{{ $session->name }}</p>
-                                      <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest flex items-center gap-2">
-                                          <i class="fa-solid fa-calendar text-[8px] opacity-40"></i> {{ $session->created_at->format('d M Y') }}
-                                      </p>
+                                      <div class="flex items-center gap-2 mt-1">
+                                          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                                              <i class="fa-solid fa-calendar text-[8px] opacity-40"></i> {{ $session->created_at->format('d M Y') }}
+                                          </p>
+                                          @if($session->organization)
+                                              <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
+                                                  <i class="fa-solid fa-building text-[8px]"></i> {{ $session->organization->name }}
+                                              </span>
+                                          @endif
+                                          @if($session->deadline)
+                                              <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider {{ $session->deadline->isPast() ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-amber-50 text-amber-600 border border-amber-200' }}">
+                                                  <i class="fa-solid fa-hourglass-half text-[8px]"></i> {{ __('Deadline') }}: {{ $session->deadline->format('d M Y') }}
+                                              </span>
+                                          @endif
+                                      </div>
                                   </div>
                                 @else
                                   <a href="{{ route('sessions.show', $session->id) }}" class="block" @if($index === 0) id="btn-start-eval-first" @endif>
                                     <p class="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors tracking-tight">{{ $session->name }}</p>
-                                    <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest flex items-center gap-2">
-                                        <i class="fa-solid fa-calendar text-[8px] opacity-40"></i> {{ $session->created_at->format('d M Y') }}
-                                    </p>
-                                </a>
-                                @endif
-                            </td>
+                                    <div class="flex items-center gap-2 mt-1 flex-wrap">
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                                            <i class="fa-solid fa-calendar text-[8px] opacity-40"></i> {{ $session->created_at->format('d M Y') }}
+                                        </p>
+                                        @if($session->organization)
+                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+                                                <i class="fa-solid fa-building text-[8px]"></i> {{ $session->organization->name }}
+                                            </span>
+                                        @endif
+                                        @if($session->deadline)
+                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider {{ $session->deadline->isPast() ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-amber-50 text-amber-600 border border-amber-200' }}">
+                                                <i class="fa-solid fa-hourglass-half text-[8px]"></i> {{ __('Deadline') }}: {{ $session->deadline->format('d M Y') }}
+                                            </span>
+                                        @endif
+                                        @if($session->user_id !== auth()->id())
+                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-600 border border-indigo-200">
+                                                <i class="fa-solid fa-user-plus text-[8px]"></i> {{ __('Invited') }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                  </a>
+                                  @endif
+                              </td>
                             <td class="px-6 py-5">
                                 @php
                                     $totalC = $session->results_count ?? 0;
@@ -145,51 +178,66 @@
                             </td>
                             <td class="px-6 py-5">
                                 @if($session->trashed())
-                                    <span class="px-2.5 py-1 bg-orange-50 text-orange-600 border-orange-100 text-[9px] font-bold rounded-lg uppercase tracking-widest border">{{ __('Archived') }}</span>
+                                    <span class="inline-flex items-center px-2.5 py-1 bg-orange-50 text-orange-600 border-orange-100 text-[9px] font-bold rounded-lg uppercase tracking-widest border">
+                                        <i class="fa-solid fa-box-archive mr-1 text-[8px]"></i>
+                                        {{ __('Archived') }}
+                                    </span>
                                 @else
-                                    <span class="px-2.5 py-1 {{ $session->status == 'completed' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-blue-50 text-blue-600 border-blue-100' }} text-[9px] font-bold rounded-lg uppercase tracking-widest border">
-                                        {{ $session->status == 'completed' ? __('Completed') : __('In Progress') }}
+                                    <span class="inline-flex items-center px-2.5 py-1 
+                                        {{ $session->status == 'completed' ? 'bg-green-50 text-green-600 border-green-100' : 
+                                           ($session->status == 'draft' ? 'bg-slate-50 text-slate-600 border-slate-200' : 'bg-blue-50 text-blue-600 border-blue-100') }} 
+                                        text-[9px] font-bold rounded-lg uppercase tracking-widest border">
+                                        @if($session->status === 'completed') <i class="fa-solid fa-circle-check mr-1 text-[8px]"></i>
+                                        @elseif($session->status === 'in_progress') <i class="fa-solid fa-circle-notch animate-spin mr-1 text-[8px]"></i>
+                                        @else <i class="fa-solid fa-pen-to-square mr-1 text-[8px]"></i>
+                                        @endif
+                                        {{ $session->status == 'completed' ? __('Completed') : ($session->status == 'draft' ? __('Draft') : __('Active')) }}
                                     </span>
                                 @endif
                             </td>
                             <td class="px-6 py-5 text-right">
                                 <div class="flex justify-end gap-2">
-                                    @if($session->trashed())
-                                        <button @click.prevent="restoreSessionId = '{{ $session->id }}'; showRestoreModal = true" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-green-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Restore Session') }}">
-                                            <i class="fa-solid fa-trash-can-arrow-up text-xs"></i>
-                                        </button>
-
-                                        <form method="POST" action="{{ route('sessions.force-delete', $session->id) }}"
-                                            x-data
-                                            @submit.prevent="
-                                                Swal.fire({
-                                                    title: '{{ addslashes(__('Delete Session Permanently?')) }}',
-                                                    text: '{{ addslashes(__('Are you sure you want to delete session ":name"? This action cannot be undone. All assessment data, scores, and results will be lost forever.', ['name' => $session->name])) }}',
-                                                    icon: 'warning',
-                                                    showCancelButton: true,
-                                                    confirmButtonColor: '#ef4444',
-                                                    cancelButtonColor: '#64748b',
-                                                    confirmButtonText: '{{ addslashes(__('Yes, Delete!')) }}',
-                                                    cancelButtonText: '{{ addslashes(__('Cancel')) }}',
-                                                    width: '22rem',
-                                                    customClass: {
-                                                        title: 'text-base font-bold text-slate-800',
-                                                        htmlContainer: 'text-xs text-slate-500',
-                                                        confirmButton: 'text-xs px-3 py-2 rounded-lg font-semibold',
-                                                        cancelButton: 'text-xs px-3 py-2 rounded-lg font-semibold'
-                                                    }
-                                                }).then((result) => {
-                                                    if (result.isConfirmed) {
-                                                        $el.submit();
-                                                    }
-                                                });
-                                            ">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-red-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Delete Permanently') }}">
-                                                <i class="fa-solid fa-trash text-xs"></i>
+                                     @if($session->trashed())
+                                        @if(auth()->user()->isAdmin())
+                                            <button @click.prevent="restoreSessionId = '{{ $session->id }}'; showRestoreModal = true" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-green-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Restore Session') }}">
+                                                <i class="fa-solid fa-trash-can-arrow-up text-xs"></i>
                                             </button>
-                                        </form>
+
+                                            <form method="POST" action="{{ route('sessions.force-delete', $session->id) }}"
+                                                x-data
+                                                @submit.prevent="
+                                                    Swal.fire({
+                                                        title: '{{ addslashes(__('Delete Session Permanently?')) }}',
+                                                        text: '{{ addslashes(__('Are you sure you want to delete session ":name"? This action cannot be undone. All assessment data, scores, and results will be lost forever.', ['name' => $session->name])) }}',
+                                                        icon: 'warning',
+                                                        showCancelButton: true,
+                                                        confirmButtonColor: '#ef4444',
+                                                        cancelButtonColor: '#64748b',
+                                                        confirmButtonText: '{{ addslashes(__('Yes, Delete!')) }}',
+                                                        cancelButtonText: '{{ addslashes(__('Cancel')) }}',
+                                                        width: '22rem',
+                                                        customClass: {
+                                                            title: 'text-base font-bold text-slate-800',
+                                                            htmlContainer: 'text-xs text-slate-500',
+                                                            confirmButton: 'text-xs px-3 py-2 rounded-lg font-semibold',
+                                                            cancelButton: 'text-xs px-3 py-2 rounded-lg font-semibold'
+                                                        }
+                                                    }).then((result) => {
+                                                        if (result.isConfirmed) {
+                                                            $el.submit();
+                                                        }
+                                                    });
+                                                ">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-red-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Delete Permanently') }}">
+                                                    <i class="fa-solid fa-trash text-xs"></i>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <span class="text-xs text-slate-400 font-medium italic pr-2">{{ __('No Actions') }}</span>
+                                        @endif
                                     @else
+                                        @if(auth()->user()->isAdmin())
                                         <button @click.prevent="editSessionId = '{{ $session->id }}'; editSessionName = '{{ addslashes($session->name) }}'; showEditModal = true" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-emerald-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Edit Session Name') }}">
                                             <i class="fa-solid fa-pen text-xs"></i>
                                         </button>
@@ -202,15 +250,18 @@
                                            class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-blue-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Export Template') }}">
                                             <i class="fa-solid fa-download text-xs"></i>
                                         </a>
+                                        @endif
                                         
                                         <a href="{{ route('sessions.show', $session->id) }}" 
                                            class="w-9 h-9 flex items-center justify-center bg-blue-600 text-white rounded-lg transition-all shadow-md shadow-blue-600/20" title="{{ __('Launch Assessment') }}">
                                             <i class="fa-solid fa-rocket text-xs"></i>
                                         </a>
                                         
+                                        @if(auth()->user()->isAdmin())
                                         <button @click.prevent="archiveSessionId = '{{ $session->id }}'; showArchiveModal = true" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-orange-500 border border-slate-200 rounded-lg transition-all" title="{{ __('Archive Cycle') }}">
                                             <i class="fa-solid fa-box-archive text-xs"></i>
                                         </button>
+                                        @endif
                                     @endif
                                 </div>
                             </td>
@@ -222,8 +273,16 @@
                                     <i class="fa-solid fa-inbox text-2xl"></i>
                                 </div>
                                 <h3 class="text-slate-900 font-bold text-base">{{ __('No Audit Cycles Yet') }}</h3>
-                                <p class="text-slate-400 text-sm font-medium mt-1">{{ __('Waiting for the first assessment launch.') }}</p>
+                                <p class="text-slate-400 text-sm font-medium mt-1">
+                                    @if(auth()->user()->isAdmin())
+                                        {{ __('Waiting for the first assessment launch.') }}
+                                    @else
+                                        {{ __('Waiting to be invited to an audit session by the administrator.') }}
+                                    @endif
+                                </p>
+                                @if(auth()->user()->isAdmin())
                                 <button @click="showSessionModal = true" class="mt-4 inline-flex items-center gap-1.5 text-blue-600 font-bold text-xs hover:underline group">{{ __('Start your first session') }}<i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform ml-1"></i></button>
+                                @endif
                             </td>
                         </tr>
                         @endforelse
@@ -255,6 +314,16 @@
                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">{{ __('Session Name') }}</label>
                     <input type="text" name="name" required placeholder="{{ __('e.g., Enterprise Audit Q1 2026') }}" 
                         class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all">
+                </div>
+                
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">{{ __('Select Organization') }}</label>
+                    <select name="organization_id" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all">
+                        <option value="">{{ __('None') }}</option>
+                        @foreach($organizations as $org)
+                            <option value="{{ $org->id }}">{{ $org->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 
                 <div class="flex gap-3 pt-1">

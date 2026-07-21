@@ -133,6 +133,7 @@
     @endif
 
     {{-- Registry Mode --}}
+
     <div class="flex gap-5">
         {{-- Sidebar Navigation --}}
         <aside class="w-64 shrink-0 hidden lg:block sticky top-8 h-[calc(100vh-100px)]">
@@ -355,14 +356,6 @@
                 <div class="flex items-center gap-2" x-show="activeAiDetails.priority">
                     <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">{{ __('Risk Tier:') }}</span>
                     <span class="px-2.5 py-1 bg-rose-50 text-rose-600 border border-rose-100 text-[8px] font-black rounded-lg uppercase tracking-wider leading-none" x-text="activeAiDetails.priority"></span>
-                </div>
-                
-                <div class="flex items-start gap-2 max-w-md bg-slate-50 border border-slate-200/50 p-2.5 rounded-xl flex-1 sm:justify-end sm:ml-auto" x-show="activeAiDetails.validation">
-                    <i class="fa-solid fa-circle-check text-indigo-500 text-xs mt-0.5"></i>
-                    <div class="text-left">
-                        <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">{{ __('Evidence Validation') }}</span>
-                        <p class="text-[10px] text-slate-600 font-medium mt-0.5 leading-relaxed" x-html="formatMarkdown(activeAiDetails.validation)"></p>
-                    </div>
                 </div>
             </div>
 

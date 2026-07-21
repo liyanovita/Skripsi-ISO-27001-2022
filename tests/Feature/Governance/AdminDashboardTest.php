@@ -4,7 +4,7 @@ namespace Tests\Feature\Governance;
 
 use App\Models\AssessmentResult;
 use App\Models\AssessmentSession;
-use App\Models\CommunityTemplate;
+
 use App\Models\IsoStandard;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -108,34 +108,18 @@ class AdminDashboardTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee('CAPA Tasks Require Immediate Attention')
+            ->assertSee('Improvement Tasks Require Immediate Attention')
             ->assertSee('overdue');
     }
 
     public function test_dashboard_shows_governance_indicators(): void
     {
         $admin = $this->adminUser();
-        $user  = $this->regularUser();
-
-        \App\Models\CommunityTemplate::create([
-            'user_id'         => $user->id,
-            'title'           => 'Sample Audit Template',
-            'description'     => 'A test template for ISO 27001 compliance.',
-            'author_name'     => $user->name,
-            'base_score'      => 3.5,
-            'downloads_count' => 5,
-            'upvotes'         => 2,
-            'rating_count'    => 1,
-            'avg_rating'      => 4.0,
-            'tags'            => ['security', 'iso27001'],
-            'content_data'    => ['session' => [], 'results' => []],
-        ]);
 
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
             ->assertOk()
             ->assertSee('Governance Indicators')
-            ->assertSee('Community Templates')
             ->assertSee('Knowledge Base Articles');
     }
 

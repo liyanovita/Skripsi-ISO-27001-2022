@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('knowledge_bases', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->string('category'); // guides, templates, sop, evidence
             $table->string('title');
             $table->text('description')->nullable();

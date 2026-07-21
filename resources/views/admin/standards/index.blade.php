@@ -1,13 +1,13 @@
 @extends('layouts.admin')
 
 @section('title', 'ISO Standards Management')
-@section('header_title', 'ISO 27001 Standards')
+@section('header_title', 'ISO 27001:2022 Standards')
 
 @section('content')
 <div x-data="{ showImport: false }">
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h2 class="text-xl font-black text-slate-800">ISO 27001 Standards</h2>
+            <h2 class="text-xl font-black text-slate-800">ISO 27001:2022 Standards</h2>
             <p class="text-sm text-slate-500">Manage clauses, controls, and assessment questions.</p>
         </div>
         <div class="flex items-center gap-3 flex-wrap">

@@ -20,7 +20,17 @@ class AdminReportTest extends TestCase
 
     protected function regularUser(): User
     {
-        return User::factory()->create(['role' => 'user', 'status' => 'active', 'business_sector' => 'Technology']);
+        $org = \App\Models\Organization::create([
+            'name' => 'Tech Corp',
+            'business_sector' => 'Technology',
+            'organization_scale' => 'Medium',
+        ]);
+
+        return User::factory()->create([
+            'role' => 'user',
+            'status' => 'active',
+            'organization_id' => $org->id,
+        ]);
     }
 
     protected function setupReportData(User $user): AssessmentSession

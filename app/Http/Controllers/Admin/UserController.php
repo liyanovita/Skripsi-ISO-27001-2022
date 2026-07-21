@@ -22,12 +22,15 @@ class UserController extends Controller
         $adminCount  = User::where('role', 'admin')->count();
 
         $users = User::query()
+            ->with(['organization'])
             ->withCount('assessmentSessions')
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                       ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhere('organization_name', 'like', "%{$search}%");
+                      ->orWhereHas('organization', function ($oq) use ($search) {
+                          $oq->where('name', 'like', "%{$search}%");
+                      });
                 });
             })
             ->when($roleFilter, fn($q) => $q->where('role', $roleFilter))
@@ -44,7 +47,8 @@ class UserController extends Controller
 
     public function create()
     {
-        return view('admin.users.create');
+        $organizations = \App\Models\Organization::orderBy('name')->get();
+        return view('admin.users.create', compact('organizations'));
     }
 
     public function store(Request $request)
@@ -55,9 +59,7 @@ class UserController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:user,admin',
             'status' => 'required|in:active,suspended',
-            'organization_name' => 'nullable|string|max:255',
-            'business_sector' => 'nullable|string|max:255',
-            'organization_scale' => 'nullable|string|max:255',
+            'organization_id' => 'nullable|exists:organizations,id',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
@@ -71,18 +73,24 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        $user->loadCount(['assessmentSessions', 'communityTemplates', 'auditTrails']);
+        $user->load(['organization'])->loadCount(['assessmentSessions', 'auditTrails']);
         $sessions = $user->assessmentSessions()
             ->withCount('results')
             ->orderBy('updated_at', 'desc')
             ->get();
 
-        return view('admin.users.show', compact('user', 'sessions'));
+        $recentLogs = $user->auditTrails()
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        return view('admin.users.show', compact('user', 'sessions', 'recentLogs'));
     }
 
     public function edit(User $user)
     {
-        return view('admin.users.edit', compact('user'));
+        $organizations = \App\Models\Organization::orderBy('name')->get();
+        return view('admin.users.edit', compact('user', 'organizations'));
     }
 
     public function update(Request $request, User $user)
@@ -92,14 +100,12 @@ class UserController extends Controller
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'role' => 'required|in:user,admin',
             'status' => 'required|in:active,suspended',
-            'organization_name' => 'nullable|string|max:255',
-            'business_sector' => 'nullable|string|max:255',
-            'organization_scale' => 'nullable|string|max:255',
+            'organization_id' => 'nullable|exists:organizations,id',
         ]);
 
-        // Prevent demoting yourself
-        if ($user->id === auth()->id() && $validated['role'] !== 'admin') {
-            return back()->with('error', 'You cannot demote yourself from admin.');
+        // Prevent changing your own role
+        if ($user->id === auth()->id() && $validated['role'] !== $user->role) {
+            return back()->with('error', 'You cannot change your own role.');
         }
 
         $user->update($validated);

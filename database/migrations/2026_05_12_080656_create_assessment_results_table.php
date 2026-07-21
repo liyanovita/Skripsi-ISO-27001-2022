@@ -17,15 +17,17 @@ return new class extends Migration
         $table->foreignId('iso_standard_id')->constrained('iso_standards');
 
         $table->json('answers')->nullable();
-        $table->integer('maturity_rating')->default(0);
+        $table->integer('maturity_rating')->nullable();
         $table->string('status')->default('not_started'); // not_started, completed
         $table->text('notes')->nullable();
-        $table->string('evidence_file')->nullable();
+        $table->text('evidence_file')->nullable();
         $table->text('ai_recommendation')->nullable();
         $table->text('corrective_action_plan')->nullable();
         $table->string('risk_priority')->nullable();
         $table->text('control_insight')->nullable();
         $table->text('evidence_validation')->nullable();
+        $table->text('impact_interpretation')->nullable();
+        $table->string('ai_data_hash', 64)->nullable()->comment('SHA-256 hash of assessment data (maturity_rating|is_applicable|notes|answers) at the time of last AI generation');
 
         // Statement of Applicability (SoA)
         $table->boolean('is_applicable')->default(true);
@@ -36,6 +38,8 @@ return new class extends Migration
         // Risk Treatment Plan
         $table->date('treatment_due_date')->nullable();
         $table->string('treatment_pic')->nullable();
+        $table->integer('treatment_progress')->default(0);
+        $table->text('evidence_after_improvement')->nullable();
         $table->string('treatment_status')->default('open'); // open, in_progress, closed
 
         $table->timestamps();

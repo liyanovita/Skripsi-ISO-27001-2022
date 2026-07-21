@@ -71,7 +71,7 @@
                 <select name="role" onchange="this.form.requestSubmit()"
                     class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white font-semibold text-slate-700">
                     <option value="">All Roles</option>
-                    <option value="admin" {{ $roleFilter === 'admin' ? 'selected' : '' }}>Admin</option>
+                    <option value="admin" {{ $roleFilter === 'admin' ? 'selected' : '' }}>Admin (Auditor)</option>
                     <option value="user"  {{ $roleFilter === 'user'  ? 'selected' : '' }}>User</option>
                 </select>
                 <select name="status" onchange="this.form.requestSubmit()"
@@ -119,16 +119,16 @@
                         </a>
                     </td>
                     <td class="px-5 py-4">
-                        @if($user->organization_name)
-                        <div class="font-semibold text-slate-800 text-xs">{{ $user->organization_name }}</div>
-                        <div class="text-[10px] text-slate-400">{{ $user->business_sector ?? '—' }}</div>
+                        @if($user->organization)
+                        <div class="font-semibold text-slate-800 text-xs">{{ $user->organization->name }}</div>
+                        <div class="text-[10px] text-slate-400">{{ $user->organization->business_sector ?? '—' }}</div>
                         @else
                         <span class="text-slate-300 italic text-xs">Not specified</span>
                         @endif
                     </td>
                     <td class="px-5 py-4">
                         @if($user->isAdmin())
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-bold uppercase tracking-widest">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold uppercase tracking-widest">
                             <i class="fa-solid fa-shield-halved text-[9px]"></i> Admin
                         </span>
                         @else

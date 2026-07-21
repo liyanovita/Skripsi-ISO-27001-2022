@@ -1,22 +1,22 @@
 @extends('layouts.admin')
 
-@section('title', 'Manage CAPA Plan')
-@section('header_title', 'Manage CAPA Plan')
+@section('title', 'Manage Improvement Tracking')
+@section('header_title', 'Manage Improvement Tracking')
 
 @section('content')
 <div class="mb-6">
     <a href="{{ route('admin.capa.index') }}" class="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors">
-        <i class="fa-solid fa-arrow-left"></i> Back to CAPA Plan
+        <i class="fa-solid fa-arrow-left"></i> Back to Improvement Tracking
     </a>
 </div>
 
 <div class="space-y-6 max-w-4xl">
-    {{-- Main CAPA Form --}}
+    {{-- Main Improvement Form --}}
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="p-6 border-b border-slate-200 bg-slate-50">
             <div class="flex items-center justify-between flex-wrap gap-2">
                 <div>
-                    <h2 class="text-xl font-black text-slate-800">Manage Corrective Action</h2>
+                    <h2 class="text-xl font-black text-slate-800">Manage Improvement Action</h2>
                     <p class="text-sm text-slate-500">For {{ $capa->standard->code }} - {{ $capa->standard->title }} (User: {{ $capa->session->user->name }})</p>
                 </div>
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">
@@ -54,27 +54,38 @@
 
                 <hr class="md:col-span-2 border-slate-200">
 
-                {{-- CAPA Status --}}
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1">CAPA Status <span class="text-red-500">*</span></label>
-                    <select name="treatment_status" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required>
-                        <option value="open" {{ old('treatment_status', $capa->treatment_status ?: 'open') == 'open' ? 'selected' : '' }}>Open (Belum Ditindaklanjuti)</option>
-                        <option value="in_progress" {{ old('treatment_status', $capa->treatment_status) == 'in_progress' ? 'selected' : '' }}>In Progress (Sedang Dikerjakan)</option>
-                        <option value="completed" {{ old('treatment_status', $capa->treatment_status) == 'completed' ? 'selected' : '' }}>Completed / Resolved (Selesai/Lunas)</option>
-                    </select>
-                    @error('treatment_status') <p class="text-xs text-red-500 mt-1 font-bold">{{ $message }}</p> @enderror
+                {{-- Recommendation --}}
+                @if($capa->ai_recommendation)
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Recommendation</label>
+                    <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 leading-relaxed flex gap-3">
+                        <div class="text-emerald-500 mt-0.5 shrink-0">
+                            <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">Generated Recommendation:</div>
+                            <div class="prose prose-sm max-w-none text-emerald-950 font-medium whitespace-pre-wrap">{{ $capa->ai_recommendation }}</div>
+                        </div>
+                    </div>
                 </div>
+                @else
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Recommendation</label>
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 italic">
+                        No recommendation generated.
+                    </div>
+                </div>
+                @endif
 
-                {{-- Risk Priority --}}
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Risk Priority <span class="text-red-500">*</span></label>
-                    <select name="risk_priority" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required>
-                        <option value="Low" {{ old('risk_priority', $capa->risk_priority ?: 'Low') == 'Low' ? 'selected' : '' }}>Low Risk</option>
-                        <option value="Medium" {{ old('risk_priority', $capa->risk_priority) == 'Medium' ? 'selected' : '' }}>Medium Risk</option>
-                        <option value="High" {{ old('risk_priority', $capa->risk_priority) == 'High' ? 'selected' : '' }}>High Risk</option>
-                        <option value="Critical" {{ old('risk_priority', $capa->risk_priority) == 'Critical' ? 'selected' : '' }}>Critical Risk</option>
-                    </select>
-                    @error('risk_priority') <p class="text-xs text-red-500 mt-1 font-bold">{{ $message }}</p> @enderror
+                {{-- Action Plan Text --}}
+                @php
+                    $planData = $capa->corrective_action_plan ?: [];
+                    $actionText = is_array($planData) ? ($planData['action'] ?? '') : '';
+                @endphp
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Action Plan <span class="text-red-500">*</span></label>
+                    <textarea name="corrective_action_plan_text" rows="4" placeholder="Describe the remediation steps, policies to implement, or technical actions needed..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required>{{ old('corrective_action_plan_text', $actionText) }}</textarea>
+                    @error('corrective_action_plan_text') <p class="text-xs text-red-500 mt-1 font-bold">{{ $message }}</p> @enderror
                 </div>
 
                 {{-- PIC --}}
@@ -91,15 +102,47 @@
                     @error('treatment_due_date') <p class="text-xs text-red-500 mt-1 font-bold">{{ $message }}</p> @enderror
                 </div>
 
-                {{-- Action Plan Text --}}
-                @php
-                    $planData = $capa->corrective_action_plan ?: [];
-                    $actionText = is_array($planData) ? ($planData['action'] ?? '') : '';
-                @endphp
+                {{-- Improvement Status --}}
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Status <span class="text-red-500">*</span></label>
+                    <select name="treatment_status" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required>
+                        <option value="open" {{ old('treatment_status', $capa->treatment_status ?: 'open') == 'open' ? 'selected' : '' }}>Open (Belum Ditindaklanjuti)</option>
+                        <option value="in_progress" {{ old('treatment_status', $capa->treatment_status) == 'in_progress' ? 'selected' : '' }}>In Progress (Sedang Dikerjakan)</option>
+                        <option value="completed" {{ old('treatment_status', $capa->treatment_status) == 'completed' ? 'selected' : '' }}>Completed / Resolved (Selesai/Lunas)</option>
+                    </select>
+                    @error('treatment_status') <p class="text-xs text-red-500 mt-1 font-bold">{{ $message }}</p> @enderror
+                </div>
+
+                {{-- Progress --}}
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Progress (%) <span class="text-red-500">*</span></label>
+                    <select name="treatment_progress" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required>
+                        @for ($i = 0; $i <= 100; $i += 10)
+                            <option value="{{ $i }}" {{ old('treatment_progress', $capa->treatment_progress ?? 0) == $i ? 'selected' : '' }}>{{ $i }}%</option>
+                        @endfor
+                    </select>
+                    @error('treatment_progress') <p class="text-xs text-red-500 mt-1 font-bold">{{ $message }}</p> @enderror
+                </div>
+
+                {{-- Risk Priority --}}
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Risk Priority <span class="text-red-500">*</span></label>
+                    <select name="risk_priority" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required>
+                        <option value="Low" {{ old('risk_priority', $capa->risk_priority ?: 'Low') == 'Low' ? 'selected' : '' }}>Low Risk</option>
+                        <option value="Medium" {{ old('risk_priority', $capa->risk_priority) == 'Medium' ? 'selected' : '' }}>Medium Risk</option>
+                        <option value="High" {{ old('risk_priority', $capa->risk_priority) == 'High' ? 'selected' : '' }}>High Risk</option>
+                    </select>
+                    @error('risk_priority') <p class="text-xs text-red-500 mt-1 font-bold">{{ $message }}</p> @enderror
+                </div>
+
+                {{-- Empty placeholder column for grid alignment --}}
+                <div></div>
+
+                {{-- Evidence After Improvement --}}
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Corrective & Preventive Action Plan <span class="text-red-500">*</span></label>
-                    <textarea name="corrective_action_plan_text" rows="4" placeholder="Describe the remediation steps, policies to implement, or technical actions needed..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required>{{ old('corrective_action_plan_text', $actionText) }}</textarea>
-                    @error('corrective_action_plan_text') <p class="text-xs text-red-500 mt-1 font-bold">{{ $message }}</p> @enderror
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Evidence After Improvement</label>
+                    <textarea name="evidence_after_improvement" rows="3" placeholder="Describe or link physical/logical evidence of improvement (e.g., policy document uploaded, firewall rules verified, screenshot link, etc.)..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">{{ old('evidence_after_improvement', $capa->evidence_after_improvement) }}</textarea>
+                    @error('evidence_after_improvement') <p class="text-xs text-red-500 mt-1 font-bold">{{ $message }}</p> @enderror
                 </div>
             </div>
 
@@ -116,7 +159,7 @@
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="p-4 border-b border-slate-200 bg-slate-50 flex items-center gap-2">
             <i class="fa-solid fa-clock-rotate-left text-slate-500"></i>
-            <h3 class="font-bold text-slate-800 text-sm">CAPA Modification Timeline</h3>
+            <h3 class="font-bold text-slate-800 text-sm">Improvement Modification Timeline</h3>
         </div>
         <div class="p-6">
             @forelse($history as $log)
@@ -145,7 +188,7 @@
             @empty
                 <div class="text-center py-6 text-slate-500 text-xs">
                     <i class="fa-solid fa-history text-2xl mb-2 text-slate-300 block"></i>
-                    <p>No modifications tracked yet for this CAPA Plan.</p>
+                    <p>No modifications tracked yet for this Improvement Plan.</p>
                 </div>
             @endforelse
         </div>

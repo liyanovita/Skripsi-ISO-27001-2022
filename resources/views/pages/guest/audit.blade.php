@@ -126,8 +126,8 @@
                     </div>
                 </div>
                 
-                <a href="{{ route('register') }}" class="px-5 py-2 bg-blue-600 text-white rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2">
-                    <i class="fa-solid fa-cloud-arrow-up text-xs"></i>{{ __('Save to Account') }}<span x-show="Object.keys(answers).length > 0" 
+                <a href="{{ route('login') }}" class="px-5 py-2 bg-blue-600 text-white rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up text-xs"></i>{{ __('Login to Save') }}<span x-show="Object.keys(answers).length > 0" 
                           class="bg-white/20 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full"
                           x-text="Object.keys(answers).length"></span>
                 </a>
@@ -163,7 +163,7 @@
                     <i class="fa-solid fa-file-pdf text-lg"></i>
                     <span class="text-[8px] font-bold uppercase tracking-widest">{{ __('Export') }}</span>
                 </button>
-                <button @click="window.location.href = '{{ route('register') }}'" class="flex flex-col items-center gap-1 py-2 text-blue-600 hover:text-blue-700 transition-colors">
+                <button @click="window.location.href = '{{ route('login') }}'" class="flex flex-col items-center gap-1 py-2 text-blue-600 hover:text-blue-700 transition-colors">
                     <i class="fa-solid fa-save text-lg"></i>
                     <span class="text-[8px] font-bold uppercase tracking-widest">{{ __('Save') }}</span>
                 </button>

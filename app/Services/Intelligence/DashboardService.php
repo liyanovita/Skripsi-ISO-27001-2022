@@ -50,15 +50,14 @@ class DashboardService
         // 3. Calculate Global Stats
         $stats = $this->calculateResultStats($results);
         
-        $completedResults = $results->where('status', 'completed');
-        $averageMaturity = $completedResults->count() > 0 ? $completedResults->avg('maturity_rating') : 0;
+        $averageMaturity = $allSessions->count() > 0 ? $allSessions->avg('overall_maturity_score') : 0;
         
         $complianceScore = $this->calculateCompliancePercentage($averageMaturity);
         $statusKematangan = match (true) {
             $averageMaturity >= 4.5 => 'Optimized (Level 5)',
             $averageMaturity >= 3.5 => 'Managed (Level 4)',
             $averageMaturity >= 2.5 => 'Defined (Level 3)',
-            $averageMaturity >= 1.5 => 'Repeatable (Level 2)',
+            $averageMaturity >= 1.5 => 'Limited/Repeatable (Level 2)',
             $averageMaturity >= 0.5 => 'Initial (Level 1)',
             default                 => 'Non-existent (Level 0)',
         };
@@ -224,15 +223,37 @@ class DashboardService
         ->take(4)
         ->get();
 
-        // 12. Community Spotlight (Top 3 Templates)
-        $topTemplates = \App\Models\CommunityTemplate::popular()->take(3)->get();
-
         // 13. Assessor Badge
         $assessorBadge = match(true) {
             $completedCycles >= 3 => ['title' => 'Expert Assessor', 'icon' => 'fa-medal', 'color' => 'text-amber-500 bg-amber-50 border-amber-200'],
             $completedCycles >= 1 => ['title' => 'ISO Practitioner', 'icon' => 'fa-shield-halved', 'color' => 'text-blue-600 bg-blue-50 border-blue-200'],
             default => ['title' => 'Novice Assessor', 'icon' => 'fa-seedling', 'color' => 'text-emerald-600 bg-emerald-50 border-emerald-200']
         };
+
+        // Risk Priority calculation
+        $riskPriority = 'Low';
+        $riskBadge = 'bg-emerald-50 text-emerald-600 border-emerald-100 group-hover:bg-emerald-600 group-hover:text-white';
+        if ($criticalGapCount > 0) {
+            $riskPriority = 'High';
+            $riskBadge = 'bg-rose-50 text-rose-600 border-rose-100 group-hover:bg-rose-500 group-hover:text-white';
+        } elseif ($totalGaps > 0) {
+            $riskPriority = 'Medium';
+            $riskBadge = 'bg-amber-50 text-amber-600 border-amber-100 group-hover:bg-amber-500 group-hover:text-white';
+        }
+
+        // AI Recommendation Status calculation
+        $aiRecStatus = 'Pending';
+        $aiRecBadge = 'bg-slate-50 text-slate-600 border-slate-100 group-hover:bg-slate-600 group-hover:text-white';
+        if ($latestSession) {
+            $cacheStatus = \Illuminate\Support\Facades\Cache::get("session_{$latestSession->id}_summary_status");
+            if ($cacheStatus === 'generating' || $cacheStatus === 'processing') {
+                $aiRecStatus = 'Generating';
+                $aiRecBadge = 'bg-amber-50 text-amber-600 border-amber-100 group-hover:bg-amber-600 group-hover:text-white animate-pulse';
+            } elseif ($latestSession->ai_summary) {
+                $aiRecStatus = 'Completed';
+                $aiRecBadge = 'bg-emerald-50 text-emerald-600 border-emerald-100 group-hover:bg-emerald-600 group-hover:text-white';
+            }
+        }
 
         $hasData = true;
 
@@ -243,7 +264,8 @@ class DashboardService
             'totalCount', 'answeredCount', 'assessmentProgress', 'criticalGapCount', 'highGapCount', 'distTotal',
             'totalIsoControls', 'activeSessionAnswered', 'activeSessionProgress',
             'historicalCoveredCount', 'historicalCoveragePercent', 'trendData', 'executiveSummary',
-            'radarData', 'recentAuditTrails', 'topTemplates', 'assessorBadge'
+            'radarData', 'recentAuditTrails', 'assessorBadge',
+            'riskPriority', 'riskBadge', 'aiRecStatus', 'aiRecBadge'
         );
     }
 

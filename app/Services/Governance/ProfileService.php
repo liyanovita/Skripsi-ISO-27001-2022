@@ -5,7 +5,7 @@ namespace App\Services\Governance;
 use App\Models\User;
 use App\Models\AssessmentSession;
 use App\Models\AssessmentResult;
-use App\Models\CommunityTemplate;
+
 use App\Services\Traits\MaturityHelper;
 use App\Services\Traits\SessionLoader;
 use Illuminate\Support\Facades\Hash;
@@ -41,9 +41,6 @@ class ProfileService
             ->where('status', 'completed')
             ->count();
 
-        // Count community templates using database query
-        $communityShared = CommunityTemplate::where('user_id', $userId)->count();
-
         // Calculate compliance score using trait method
         $complianceScore = $totalSessions > 0
             ? $this->calculateCompliancePercentage($avgMaturity)
@@ -53,7 +50,6 @@ class ProfileService
             'total_sessions' => $totalSessions,
             'avg_maturity' => $avgMaturity,
             'total_controls' => $totalControls,
-            'community_shared' => $communityShared,
             'compliance_score' => $complianceScore,
         ];
 
@@ -79,26 +75,66 @@ class ProfileService
             throw new \Exception('Unauthorized: You can only update your own profile.');
         }
 
-        // Validate data
-        $allowedFields = [
-            'name', 'email',
-            'organization_name', 'organization_scale',
-            'business_sector', 'isms_scope',
-            'it_governance_structure', 'organization_description',
+        // 1. Separate user fields and organization fields
+        $userFields = ['name', 'email'];
+        $userData = array_intersect_key($data, array_flip($userFields));
+
+        if (array_key_exists('email', $userData) && $userData['email'] !== $user->email) {
+            $userData['email_verified_at'] = null;
+        }
+
+        // Update user name/email if any
+        if (!empty($userData)) {
+            $user->update($userData);
+        }
+
+        // 2. Extract organization fields
+        $orgFieldsMap = [
+            'organization_name' => 'name',
+            'organization_scale' => 'organization_scale',
+            'business_sector' => 'business_sector',
+            'isms_scope' => 'isms_scope',
+            'it_governance_structure' => 'it_governance_structure',
+            'organization_description' => 'description',
         ];
-        $updateData = array_intersect_key($data, array_flip($allowedFields));
 
-        if (empty($updateData)) {
-            throw new \Exception('No valid fields to update.');
+        $orgData = [];
+        foreach ($orgFieldsMap as $inputKey => $dbKey) {
+            if (array_key_exists($inputKey, $data)) {
+                $orgData[$dbKey] = $data[$inputKey];
+            }
         }
 
-        if (array_key_exists('email', $updateData) && $updateData['email'] !== $user->email) {
-            $updateData['email_verified_at'] = null;
+        // Only process organization update if there's any organization data passed
+        if (!empty($orgData)) {
+            if ($user->organization_id && $user->organization) {
+                // Update existing organization
+                $user->organization->update($orgData);
+            } else {
+                // Create a new organization
+                $orgName = $orgData['name'] ?? ($user->name . ' Organization');
+                $orgData['name'] = $orgName;
+                
+                // Generate clean unique code
+                $baseCode = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $orgName), 0, 5));
+                if (empty($baseCode)) {
+                    $baseCode = 'ORG';
+                }
+                
+                $code = $baseCode;
+                $counter = 1;
+                while (\App\Models\Organization::where('code', $code)->exists()) {
+                    $code = $baseCode . $counter;
+                    $counter++;
+                }
+                $orgData['code'] = $code;
+
+                $organization = \App\Models\Organization::create($orgData);
+                $user->update(['organization_id' => $organization->id]);
+            }
         }
 
-        $user->update($updateData);
-
-        return $user;
+        return $user->fresh();
     }
 
     /**

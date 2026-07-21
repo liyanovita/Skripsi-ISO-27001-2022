@@ -130,7 +130,7 @@ class AdminKnowledgeBaseTest extends TestCase
 
     public function test_admin_can_create_knowledge_base_article(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $admin = $this->adminUser();
 
         $this->actingAs($admin)
@@ -151,7 +151,7 @@ class AdminKnowledgeBaseTest extends TestCase
 
     public function test_admin_can_create_knowledge_base_with_attachment(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $admin = $this->adminUser();
 
         $file = UploadedFile::fake()->create('policy.pdf', 512, 'application/pdf');
@@ -169,7 +169,7 @@ class AdminKnowledgeBaseTest extends TestCase
         $kb = KnowledgeBase::where('title', 'Policy Document')->firstOrFail();
         $this->assertNotNull($kb->attachment_path);
         $this->assertEquals('policy.pdf', $kb->attachment_name);
-        Storage::disk('public')->assertExists($kb->attachment_path);
+        Storage::disk('local')->assertExists($kb->attachment_path);
     }
 
     // ─── Edit / Update ────────────────────────────────────────────────────────
@@ -210,7 +210,7 @@ class AdminKnowledgeBaseTest extends TestCase
 
     public function test_admin_can_replace_attachment_on_update(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $admin = $this->adminUser();
 
         $oldFile = UploadedFile::fake()->create('old.pdf', 100, 'application/pdf');
@@ -221,7 +221,7 @@ class AdminKnowledgeBaseTest extends TestCase
             'size'            => '0.1 MB',
         ]);
 
-        Storage::disk('public')->put('knowledge-base/old.pdf', 'old content');
+        Storage::disk('local')->put('knowledge-base/old.pdf', 'old content');
 
         $newFile = UploadedFile::fake()->create('new.pdf', 200, 'application/pdf');
 
@@ -235,7 +235,7 @@ class AdminKnowledgeBaseTest extends TestCase
             ])
             ->assertRedirect(route('admin.knowledge.index'));
 
-        Storage::disk('public')->assertMissing('knowledge-base/old.pdf');
+        Storage::disk('local')->assertMissing('knowledge-base/old.pdf');
         $kb->refresh();
         $this->assertEquals('new.pdf', $kb->attachment_name);
     }
@@ -244,7 +244,7 @@ class AdminKnowledgeBaseTest extends TestCase
 
     public function test_admin_can_delete_knowledge_base_article(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $admin = $this->adminUser();
         $kb    = $this->createKb();
 
@@ -258,10 +258,10 @@ class AdminKnowledgeBaseTest extends TestCase
 
     public function test_admin_delete_removes_attachment_file(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $admin = $this->adminUser();
 
-        Storage::disk('public')->put('knowledge-base/file.pdf', 'content');
+        Storage::disk('local')->put('knowledge-base/file.pdf', 'content');
         $kb = $this->createKb([
             'attachment_path' => 'knowledge-base/file.pdf',
             'attachment_name' => 'file.pdf',
@@ -270,7 +270,7 @@ class AdminKnowledgeBaseTest extends TestCase
         $this->actingAs($admin)
             ->delete(route('admin.knowledge.destroy', $kb));
 
-        Storage::disk('public')->assertMissing('knowledge-base/file.pdf');
+        Storage::disk('local')->assertMissing('knowledge-base/file.pdf');
     }
 
     public function test_admin_cannot_access_or_modify_custom_user_documents(): void

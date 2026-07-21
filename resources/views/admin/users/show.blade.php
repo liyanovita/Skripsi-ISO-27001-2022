@@ -43,15 +43,15 @@
             <div class="space-y-3 text-sm">
                 <div class="flex items-center justify-between py-2 border-b border-slate-100">
                     <span class="text-slate-500">Organization</span>
-                    <span class="font-bold text-slate-800">{{ $user->organization_name ?? '—' }}</span>
+                    <span class="font-bold text-slate-800">{{ $user->organization?->name ?? '—' }}</span>
                 </div>
                 <div class="flex items-center justify-between py-2 border-b border-slate-100">
                     <span class="text-slate-500">Sector</span>
-                    <span class="font-bold text-slate-800">{{ $user->business_sector ?? '—' }}</span>
+                    <span class="font-bold text-slate-800">{{ $user->organization?->business_sector ?? '—' }}</span>
                 </div>
                 <div class="flex items-center justify-between py-2 border-b border-slate-100">
                     <span class="text-slate-500">Scale</span>
-                    <span class="font-bold text-slate-800">{{ $user->organization_scale ?? '—' }}</span>
+                    <span class="font-bold text-slate-800">{{ $user->organization?->organization_scale ?? '—' }}</span>
                 </div>
                 <div class="flex items-center justify-between py-2 border-b border-slate-100">
                     <span class="text-slate-500">Joined</span>
@@ -102,14 +102,10 @@
             <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
                 <i class="fa-solid fa-chart-simple text-blue-500"></i> Activity Stats
             </h3>
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-2 gap-3">
                 <div class="text-center p-3 bg-blue-50 rounded-lg">
                     <div class="text-2xl font-black text-blue-600">{{ $user->assessment_sessions_count }}</div>
                     <div class="text-[10px] font-bold text-blue-500 uppercase tracking-widest mt-1">Sessions</div>
-                </div>
-                <div class="text-center p-3 bg-purple-50 rounded-lg">
-                    <div class="text-2xl font-black text-purple-600">{{ $user->community_templates_count }}</div>
-                    <div class="text-[10px] font-bold text-purple-500 uppercase tracking-widest mt-1">Templates</div>
                 </div>
                 <div class="text-center p-3 bg-slate-50 rounded-lg">
                     <div class="text-2xl font-black text-slate-600">{{ $user->audit_trails_count }}</div>
@@ -158,6 +154,38 @@
                 <div class="p-12 text-center text-slate-500">
                     <i class="fa-solid fa-clipboard text-3xl mb-3 text-slate-300"></i>
                     <p class="text-sm">This user has not created any audit sessions yet.</p>
+                </div>
+                @endforelse
+            </div>
+        </div>
+
+        {{-- Activity Logs --}}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mt-6">
+            <div class="p-5 border-b border-slate-100 bg-slate-50/50">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2 text-sm">
+                    <i class="fa-solid fa-clock-rotate-left text-blue-500"></i> Recent Activity Logs (5 Last Actions)
+                </h3>
+            </div>
+            <div class="divide-y divide-slate-100">
+                @forelse($recentLogs as $log)
+                <div class="p-4 hover:bg-slate-50 transition-colors text-xs">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-bold text-slate-700">{{ $log->action }}</span>
+                        <span class="text-slate-400 text-[10px]">{{ $log->created_at->diffForHumans() }}</span>
+                    </div>
+                    @if($log->field_changed)
+                    <div class="text-slate-500 mt-1 leading-relaxed">
+                        Changed <code class="bg-slate-100 px-1 py-0.5 rounded font-mono text-[10px] text-slate-600">{{ $log->field_changed }}</code> 
+                        @if($log->old_value !== null || $log->new_value !== null)
+                        from <span class="line-through text-red-500">{{ Str::limit($log->old_value, 50) }}</span> to <span class="font-bold text-emerald-600">{{ Str::limit($log->new_value, 50) }}</span>
+                        @endif
+                    </div>
+                    @endif
+                </div>
+                @empty
+                <div class="p-8 text-center text-slate-400 text-xs py-12 flex flex-col items-center justify-center">
+                    <i class="fa-solid fa-clock-rotate-left text-2xl mb-2 text-slate-200"></i>
+                    <p class="font-semibold uppercase tracking-wider text-[10px]">No activity logs recorded yet.</p>
                 </div>
                 @endforelse
             </div>

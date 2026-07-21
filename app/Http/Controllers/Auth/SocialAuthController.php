@@ -46,8 +46,8 @@ class SocialAuthController extends Controller
                     ->withErrors(['email' => 'Akun Anda telah ditangguhkan. Hubungi administrator untuk informasi lebih lanjut.']);
             }
 
-            // Admin langsung ke admin panel, user biasa ke dashboard
-            $destination = $user->role === 'admin'
+            // Admin/Superadmin langsung ke admin panel, user biasa ke dashboard
+            $destination = $user->hasAdminAccess()
                 ? route('admin.dashboard')
                 : route('dashboard');
 
@@ -93,16 +93,8 @@ class SocialAuthController extends Controller
             return $existingUser;
         }
 
-        // Create new user
-        return User::create([
-            'name' => $socialUser->getName() ?? $socialUser->getNickname() ?? 'User',
-            'email' => $socialUser->getEmail(),
-            'provider' => $provider,
-            'provider_id' => $socialUser->getId(),
-            'avatar' => $socialUser->getAvatar(),
-            'password' => Hash::make(Str::random(24)), // Random password for OAuth users
-            'email_verified_at' => now(), // OAuth emails are pre-verified
-        ]);
+        // Registration is disabled for internal portal
+        throw new Exception(__('Your email has not been registered in the system. Please contact the administrator.'));
     }
 
     /**

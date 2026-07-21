@@ -74,48 +74,4 @@ class WebhookController extends Controller
             throw ApiException::internalError($e->getMessage());
         }
     }
-
-    /**
-     * Get reminders for CAPA tasks
-     */
-    public function getReminders(Request $request): JsonResponse
-    {
-        try {
-            $tasks = $this->capaReminderService->dueTasks((int) $request->query('days', 3));
-
-            return ApiResponse::success([
-                'total' => $tasks->count(),
-                'tasks' => $tasks,
-            ], 'Reminders retrieved successfully');
-        } catch (\Exception $e) {
-            throw ApiException::internalError($e->getMessage());
-        }
-    }
-
-    /**
-     * Send notification via NotificationService
-     */
-    public function sendNotification(SendNotificationRequest $request): JsonResponse
-    {
-        try {
-            $results = $this->notificationService->send(
-                $request->channels,
-                $request->template,
-                $request->data
-            );
-
-            $hasSuccess = collect($results)->contains('success', true);
-            $hasFailed = collect($results)->contains('success', false);
-
-            $message = $hasSuccess
-                ? ($hasFailed ? 'Partially sent' : 'Sent successfully to all channels')
-                : 'Failed to send to all channels';
-
-            return ApiResponse::success([
-                'results' => $results,
-            ], $message, $hasSuccess ? 200 : 500);
-        } catch (\Exception $e) {
-            throw ApiException::internalError($e->getMessage());
-        }
-    }
 }

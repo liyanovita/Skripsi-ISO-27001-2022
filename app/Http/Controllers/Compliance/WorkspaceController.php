@@ -33,12 +33,27 @@ class WorkspaceController extends Controller
         // Resolve the canonical selectedId from workspace (already resolved to first session if null)
         $resolvedId = $workspaceData['selectedSession']?->id ?? $sessionId;
 
+        $users = \App\Models\User::orderBy('name')->get(['id', 'name', 'email']);
+
+        $selectedSession = $workspaceData['selectedSession'];
+        $isSessionLead = false;
+        if ($selectedSession) {
+            $isSessionLead = auth()->user()->isAdmin() || 
+                ($selectedSession->user_id === auth()->id()) || 
+                $selectedSession->invitedUsers()
+                    ->where('assessment_session_users.user_id', auth()->id())
+                    ->where('assessment_session_users.role', 'lead')
+                    ->exists();
+        }
+
         return view('pages.workspace.index', array_merge($workspaceData, [
             'comparison'    => $tacticalData['comparison'],
             'findings'      => $tacticalData['findings'],
             'tacticalStats' => $tacticalData['stats'],
             'activeTab'     => $activeTab,
             'selectedId'    => $resolvedId,
+            'users'         => $users,
+            'isSessionLead' => $isSessionLead,
         ]));
     }
 
@@ -63,6 +78,10 @@ class WorkspaceController extends Controller
     {
         $session = $this->workspaceService->getSoaData($sessionId, auth()->id());
 
+        if ($session->status !== 'completed') {
+            return redirect()->back()->with('error', __('This report can only be downloaded after the assessment session status is marked as completed.'));
+        }
+
         return \Maatwebsite\Excel\Facades\Excel::download(
             new \App\Exports\SoaExport($sessionId),
             $this->exportFilename($session->name, 'xlsx')
@@ -72,6 +91,10 @@ class WorkspaceController extends Controller
     public function exportSoaPdf($sessionId)
     {
         $session = $this->workspaceService->getSoaData($sessionId, auth()->id());
+
+        if ($session->status !== 'completed') {
+            return redirect()->back()->with('error', __('This report can only be downloaded after the assessment session status is marked as completed.'));
+        }
 
         $orderKey = fn($result) => sprintf(
             '%s|%s',

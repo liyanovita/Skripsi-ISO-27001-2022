@@ -31,7 +31,7 @@ class ReportController extends Controller
 
     public function exportCsv()
     {
-        $results = AssessmentResult::with(['session.user', 'standard'])
+        $results = AssessmentResult::with(['session.user.organization', 'standard'])
             ->orderBy('session_id')
             ->get();
 
@@ -47,8 +47,8 @@ class ReportController extends Controller
                 $row->session->name,
                 $row->session->user->name,
                 $row->session->user->email,
-                $row->session->user->business_sector ?: 'N/A',
-                $row->session->user->organization_scale ?: 'N/A',
+                $row->session->user->organization?->business_sector ?: 'N/A',
+                $row->session->user->organization?->organization_scale ?: 'N/A',
                 $row->standard->code,
                 $row->standard->title,
                 $row->standard->type,
@@ -76,11 +76,13 @@ class ReportController extends Controller
             ->avg('overall_maturity_score') ?? 0;
 
         // 2. Average Maturity Score by Business Sector
-        $sectorPerformance = User::whereNotNull('business_sector')
-            ->where('business_sector', '!=', '')
+        $sectorPerformance = DB::table('organizations')
+            ->join('users', 'organizations.id', '=', 'users.organization_id')
             ->join('assessment_sessions', 'users.id', '=', 'assessment_sessions.user_id')
-            ->select('users.business_sector', DB::raw('AVG(assessment_sessions.overall_maturity_score) as avg_score'), DB::raw('COUNT(assessment_sessions.id) as sessions_count'))
-            ->groupBy('users.business_sector')
+            ->whereNotNull('organizations.business_sector')
+            ->where('organizations.business_sector', '!=', '')
+            ->select('organizations.business_sector', DB::raw('AVG(assessment_sessions.overall_maturity_score) as avg_score'), DB::raw('COUNT(assessment_sessions.id) as sessions_count'))
+            ->groupBy('organizations.business_sector')
             ->orderByDesc('avg_score')
             ->get();
 
