@@ -1,199 +1,261 @@
 @extends('layouts.admin')
 
-@section('title', __('Edit Knowledge Base Item'))
-@section('header_title', __('Edit Knowledge Base Item'))
+@php
+    $knowledgeBase = $knowledgeBase ?? $knowledge;
+@endphp
+
+@section('title', 'Edit Knowledge Base Document')
+@section('header_title', 'Edit Knowledge Base Document')
 
 @push('styles')
 <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 <style>
-    #quill-editor {
-        min-height: 380px;
-        font-size: 14px;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        color: #334155;
-        background: #fff;
-    }
+    .form-input { transition: border-color 0.15s, box-shadow 0.15s; }
+    .form-input:focus { box-shadow: 0 0 0 3px rgba(99,102,241,0.12); border-color: #818cf8; outline: none; background: #fff; }
+    .section-card { background: #fff; border-radius: 1.25rem; border: 1px solid #f1f5f9; box-shadow: 0 1px 4px 0 rgba(30,58,138,0.04); }
     .ql-toolbar.ql-snow {
-        border-radius: 0.75rem 0.75rem 0 0;
-        border-color: #e2e8f0;
         background: #f8fafc;
-        padding: 10px 8px;
+        border-color: #e2e8f0;
+        border-radius: 0.75rem 0.75rem 0 0;
+        padding: 8px 10px;
     }
     .ql-container.ql-snow {
-        border-radius: 0 0 0.75rem 0.75rem;
         border-color: #e2e8f0;
-        background: #fff;
+        border-radius: 0 0 0.75rem 0.75rem;
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
-    .ql-toolbar.ql-snow .ql-formats { margin-right: 10px; }
+    .ql-editor { min-height: 380px; font-size: 14px; color: #334155; padding: 16px; }
     .ql-editor.ql-blank::before { color: #94a3b8; font-style: italic; }
 </style>
 @endpush
 
 @section('content')
-<div class="mb-6">
-    <a href="{{ route('admin.knowledge.index') }}" class="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors">
-        <i class="fa-solid fa-arrow-left"></i> {{ __('Back to Knowledge Base') }}
-    </a>
-</div>
+<div class="max-w-4xl">
 
-<div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden max-w-5xl" x-data="{ categoryVal: @js(old('category', $knowledge->category)) }">
-    <div class="p-6 border-b border-slate-200 bg-slate-50">
-        <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">{{ __('Edit Document or Article') }}</h2>
-        <p class="text-xs text-slate-500 mt-1 uppercase tracking-widest font-bold">{{ __('Knowledge Base Administration') }}</p>
+    {{-- Back Link --}}
+    <a href="{{ route('admin.knowledge.index') }}"
+        class="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-indigo-600 transition-colors mb-5 font-medium group">
+        <i class="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> Back to Knowledge Base
+    </a>
+
+    {{-- Page Title --}}
+    <div class="flex items-center justify-between gap-4 mb-6">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20">
+                <i class="fa-solid fa-pen"></i>
+            </div>
+            <div>
+                <h2 class="text-lg font-black text-slate-800">Edit Document or Article</h2>
+                <p class="text-xs text-slate-400 font-medium">Update details for <strong class="text-slate-600">{{ $knowledgeBase->title }}</strong> using Word-like editor.</p>
+            </div>
+        </div>
+        <span class="inline-flex items-center px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
+            {{ $knowledgeBase->category === 'sop' ? 'SOP' : ucfirst($knowledgeBase->category) }}
+        </span>
     </div>
 
-    <form id="kb-form" method="POST" action="{{ route('admin.knowledge.update', $knowledge) }}" enctype="multipart/form-data" class="p-6 space-y-6">
+    <form id="kb-form" method="POST" action="{{ route('admin.knowledge.update', $knowledgeBase) }}" enctype="multipart/form-data" class="space-y-5" x-data="{ categoryVal: @js(old('category', $knowledgeBase->category)) }">
         @csrf
         @method('PUT')
 
-        {{-- Title & Category --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-1">
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Title') }} <span class="text-red-500">*</span></label>
-                <input type="text" name="title" value="{{ old('title', $knowledge->title) }}"
-                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:bg-white outline-none focus:ring-4 focus:ring-slate-800/5 focus:border-slate-400 transition-all shadow-sm" required>
-                @error('title') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-            </div>
-            <div class="space-y-1">
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Category') }} <span class="text-red-500">*</span></label>
-                <select name="category" required x-model="categoryVal"
-                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:bg-white outline-none focus:ring-4 focus:ring-slate-800/5 focus:border-slate-400 transition-all shadow-sm cursor-pointer"
-                    :class="categoryVal === '' ? 'text-slate-400' : 'text-slate-700'">
-                    <option value="" disabled hidden>-- {{ __('Select Category') }} --</option>
-                    <option value="guides">{{ __('Implementation Guides') }}</option>
-                    <option value="templates">{{ __('Policy Templates') }}</option>
-                    <option value="sop">{{ __('Standard Operating Procedures') }}</option>
-                    <option value="evidence">{{ __('Evidence Examples') }}</option>
-                </select>
-                @error('category') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-            </div>
-        </div>
+        {{-- Basic Information --}}
+        <div class="section-card p-6 space-y-5">
+            <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <i class="fa-solid fa-file-signature text-indigo-500"></i> Document Metadata
+            </h3>
 
-        {{-- Description --}}
-        <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Short Description') }} <span class="text-red-500">*</span></label>
-            <textarea name="description" rows="2"
-                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 focus:bg-white outline-none focus:ring-4 focus:ring-slate-800/5 focus:border-slate-400 transition-all shadow-sm resize-y" required>{{ old('description', $knowledge->description) }}</textarea>
-            @error('description') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-        </div>
-
-        {{-- File Attachment --}}
-        <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 space-y-3">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {{-- Title --}}
                 <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('File Attachment') }}</label>
-                    <p class="text-xs text-slate-500 font-medium mt-1">{{ __('Optional. Upload to replace existing file.') }}</p>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Document Title <span class="text-red-400">*</span></label>
+                    <input type="text" name="title" value="{{ old('title', $knowledgeBase->title) }}" required
+                        placeholder="e.g. ISO 27001:2022 Access Control Policy Template"
+                        class="form-input w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                    @error('title') <p class="text-xs text-red-500 mt-1.5 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation text-[10px]"></i> {{ $message }}</p> @enderror
                 </div>
-                @if($knowledge->attachment_path)
-                <span class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600">
-                    <i class="fa-solid fa-paperclip text-indigo-500"></i>
-                    {{ $knowledge->attachment_name }} ({{ $knowledge->size }})
-                </span>
-                @endif
+
+                {{-- Category --}}
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Category <span class="text-red-400">*</span></label>
+                    <select name="category" required x-model="categoryVal"
+                        class="form-input w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm cursor-pointer">
+                        <option value="guides">Implementation Guides</option>
+                        <option value="templates">Policy Templates</option>
+                        <option value="sop">Standard Operating Procedures (SOP)</option>
+                        <option value="evidence">Evidence Examples</option>
+                    </select>
+                    @error('category') <p class="text-xs text-red-500 mt-1.5 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation text-[10px]"></i> {{ $message }}</p> @enderror
+                </div>
             </div>
-            <label for="file-upload" class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-200 border-dashed rounded-2xl bg-white group hover:border-blue-400 transition-colors cursor-pointer">
-                <div class="space-y-1 text-center">
-                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 group-hover:text-blue-500 transition-colors"></i>
-                    <div class="flex text-sm text-slate-600 justify-center">
-                        <span class="font-bold text-blue-600 group-hover:text-blue-500">{{ __('Upload a new file to replace') }}</span>
-                        <input id="file-upload" name="attachment" type="file" class="sr-only" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png,.csv,.txt,.md">
-                        <p class="pl-1">{{ __('or drag and drop') }}</p>
+
+            {{-- Short Description --}}
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">Short Summary / Description <span class="text-red-400">*</span></label>
+                <textarea name="description" rows="2" required
+                    placeholder="Brief overview of what this document or policy covers…"
+                    class="form-input w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm resize-none">{{ old('description', $knowledgeBase->description) }}</textarea>
+                @error('description') <p class="text-xs text-red-500 mt-1.5 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation text-[10px]"></i> {{ $message }}</p> @enderror
+            </div>
+        </div>
+
+        {{-- File Attachment Card --}}
+        <div class="section-card p-6 space-y-4">
+            <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <i class="fa-solid fa-paperclip text-indigo-500"></i> File Attachment
+            </h3>
+
+            @if($knowledgeBase->attachment_path)
+                <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </span>
+                        <div>
+                            <span class="text-xs font-bold text-slate-800 block">{{ $knowledgeBase->attachment_name ?? basename($knowledgeBase->attachment_path) }}</span>
+                            <span class="text-[10px] text-emerald-700 font-bold uppercase">{{ $knowledgeBase->format }} • {{ $knowledgeBase->size }}</span>
+                        </div>
                     </div>
-                    <p class="text-xs text-slate-500 font-medium">PDF, DOCX, XLSX, JPG, CSV up to 10MB</p>
+                    <a href="{{ route('knowledge-base.attachment', $knowledgeBase) }}" class="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors" target="_blank">
+                        <i class="fa-solid fa-download text-[10px]"></i> Download
+                    </a>
                 </div>
-            </label>
-            <div id="file-name-display" class="text-xs font-bold text-emerald-600 hidden"></div>
-            @if($knowledge->attachment_path)
-            <p class="text-[10px] text-slate-400 font-medium"><i class="fa-solid fa-info-circle"></i> {{ __('If you upload a new file, the old file will be automatically deleted from the server.') }}</p>
             @endif
-            @error('attachment') <p class="text-xs text-red-500 mt-1 font-bold">{{ $message }}</p> @enderror
-        </div>
 
-        {{-- Content — Quill Editor --}}
-        <div class="space-y-2">
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between">
-                <span>{{ __('Knowledge Base Content') }}</span>
-                <span class="text-indigo-500 font-bold">{{ __('Word-like editor (will be exported to PDF)') }}</span>
+            <label for="file-upload" class="flex justify-center px-6 pt-5 pb-6 border-2 border-slate-200 border-dashed rounded-2xl bg-slate-50/60 hover:bg-indigo-50/30 hover:border-indigo-300 transition-all cursor-pointer group">
+                <div class="space-y-2 text-center">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+                    </div>
+                    <div class="text-xs text-slate-600">
+                        <span class="font-bold text-indigo-600">{{ $knowledgeBase->attachment_path ? 'Replace existing file' : 'Click to upload a file' }}</span> or drag and drop
+                        <input id="file-upload" name="attachment" type="file" class="sr-only" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png,.csv,.txt,.md">
+                    </div>
+                    <p class="text-[10px] text-slate-400 font-medium">Supports PDF, DOCX, XLSX, JPG, PNG, CSV, MD up to 10MB</p>
+                </div>
             </label>
-
-            <div class="p-3 bg-amber-50/70 border border-amber-200 rounded-xl flex items-start gap-2.5">
-                <div class="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-                    <i class="fa-solid fa-circle-exclamation text-xs"></i>
-                </div>
-                <div class="text-[11px] leading-normal font-medium text-amber-900">
-                    <span class="font-bold">{{ __('PDF Export Notice:') }}</span> {{ __('The content written in this editor will be compiled directly into the official PDF download. Please ensure alignment, lists, and tables are structured neatly for a professional printout.') }}
-                </div>
+            <div id="file-name-display" class="text-xs font-bold text-emerald-600 hidden flex items-center gap-1.5 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-100">
+                <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                <span id="file-name-text"></span>
             </div>
-
-            {{-- Quill Editor Container --}}
-            <div class="rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div id="quill-editor">{!! old('content', $knowledge->content) !!}</div>
-            </div>
-
-            {{-- Hidden input yang akan diisi oleh Quill sebelum submit --}}
-            <input type="hidden" name="content" id="content-input" value="{{ old('content', $knowledge->content) }}">
-            @error('content') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+            @error('attachment') <p class="text-xs text-red-500 mt-1 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation text-[10px]"></i> {{ $message }}</p> @enderror
         </div>
 
-        {{-- Preview --}}
-        <div class="space-y-2">
+        {{-- Content — Quill Editor Card --}}
+        <div class="section-card p-6 space-y-4">
             <div class="flex items-center justify-between">
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Content Preview') }}</label>
-                <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">{{ __('Live preview') }}</span>
+                <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fa-solid fa-pen-nib text-indigo-500"></i> Article Content & Policy Text
+                </h3>
+                <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">Rich Text & PDF Compiled</span>
             </div>
-            <div id="content-preview" class="prose prose-sm prose-slate max-w-none min-h-32 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700">
-                {!! old('content', $knowledge->content) ?: '<p class="text-slate-400 italic">' . __('Start typing to preview this resource...') . '</p>' !!}
+
+            <textarea name="content" id="content-input" class="hidden">{!! old('content', $knowledgeBase->content) !!}</textarea>
+
+            <div class="rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                <div id="quill-editor"></div>
+            </div>
+            @error('content') <p class="text-xs text-red-500 mt-1 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation text-[10px]"></i> {{ $message }}</p> @enderror
+        </div>
+
+        {{-- Live Content Preview Card --}}
+        <div class="section-card p-6 space-y-3">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fa-solid fa-eye text-indigo-500"></i> Live Content Preview
+                </h3>
+                <span class="text-[10px] font-bold text-slate-400">Real-time Rendering</span>
+            </div>
+            <div id="content-preview" class="prose prose-slate max-w-none min-h-32 bg-slate-50/80 border border-slate-200/80 rounded-xl p-4 text-sm text-slate-700">
+                {!! old('content', $knowledgeBase->content) ?: '<p class="text-slate-400 italic">Start typing in the editor above to preview this resource content live…</p>' !!}
             </div>
         </div>
 
-        {{-- Submit buttons --}}
-        <div class="flex justify-end gap-3 pt-6 border-t border-slate-200">
-            <a href="{{ route('admin.knowledge.index') }}" class="px-6 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors text-xs uppercase tracking-wider">{{ __('Cancel') }}</a>
-            <button type="submit" id="submit-btn" class="px-6 py-2.5 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] text-xs uppercase tracking-wider flex items-center gap-2">
-                <i class="fa-solid fa-save"></i> {{ __('Update Item') }}
+        {{-- Actions --}}
+        <div class="flex justify-between items-center pt-2">
+            <a href="{{ route('admin.knowledge.show', $knowledgeBase) }}"
+                class="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+                Cancel
+            </a>
+            <button type="submit" id="submit-btn"
+                class="px-6 py-2.5 rounded-xl bg-amber-600 text-white text-sm font-bold hover:bg-amber-700 active:scale-95 transition-all shadow-md shadow-amber-600/20 flex items-center gap-2">
+                <i class="fa-solid fa-floppy-disk text-xs"></i> Save Changes
             </button>
         </div>
+
     </form>
 </div>
 
-<script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
 <script>
-document.getElementById('file-upload').addEventListener('change', function() {
-    const display = document.getElementById('file-name-display');
-    display.textContent = this.files[0] ? '{{ __("Selected replacement file:") }} ' + this.files[0].name : '';
-    display.classList.toggle('hidden', !this.files[0]);
-});
+function initQuillEditor() {
+    var editorEl = document.getElementById('quill-editor');
+    if (!editorEl || editorEl._quillInstance) return;
 
-const quill = new Quill('#quill-editor', {
-    theme: 'snow',
-    placeholder: '{{ __("Enter the full policy text, SOP steps, or guide content here...") }}',
-    modules: {
-        toolbar: [
-            [{ 'font': [] }, { 'size': ['small', false, 'large', 'huge'] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ 'color': [] }, { 'background': [] }],
-            [{ 'script': 'sub' }, { 'script': 'super' }],
-            ['blockquote', 'code-block'],
-            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-            [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-            [{ 'direction': 'rtl' }, { 'align': [] }],
-            ['link', 'image'],
-            ['clean']
-        ]
+    if (typeof Quill === 'undefined') {
+        var s = document.createElement('script');
+        s.src = 'https://cdn.quilljs.com/1.3.7/quill.min.js';
+        s.onload = function() { initQuillEditor(); };
+        document.head.appendChild(s);
+        return;
     }
-});
 
-const preview = document.getElementById('content-preview');
-quill.on('text-change', function() {
-    const html = quill.root.innerHTML;
-    document.getElementById('content-input').value = html;
-    preview.innerHTML = quill.getText().trim()
-        ? html
-        : '<p class="text-slate-400 italic">{{ __("Start typing to preview this resource...") }}</p>';
-});
+    var quill = new Quill('#quill-editor', {
+        theme: 'snow',
+        placeholder: 'Enter full document text, SOP instructions, or policy content here...',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, 4, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                ['blockquote', 'code-block'],
+                ['link'],
+                ['clean']
+            ]
+        }
+    });
 
-document.getElementById('kb-form').addEventListener('submit', function() {
-    document.getElementById('content-input').value = quill.root.innerHTML;
-});
+    var existingContent = document.getElementById('content-input').value;
+    if (existingContent && existingContent.trim()) {
+        quill.root.innerHTML = existingContent;
+    }
+
+    // Live preview sync
+    var preview = document.getElementById('content-preview');
+    quill.on('text-change', function() {
+        var html = quill.root.innerHTML;
+        var text = quill.getText().trim();
+        document.getElementById('content-input').value = html;
+        if (preview) {
+            preview.innerHTML = text
+                ? html
+                : '<p class="text-slate-400 italic">Start typing in the editor above to preview this resource content live…</p>';
+        }
+    });
+
+    document.getElementById('kb-form').addEventListener('submit', function() {
+        document.getElementById('content-input').value = quill.root.innerHTML;
+    });
+
+    var fileUpload = document.getElementById('file-upload');
+    if (fileUpload) {
+        fileUpload.addEventListener('change', function() {
+            var display = document.getElementById('file-name-display');
+            var text = document.getElementById('file-name-text');
+            if (display && text) {
+                if (this.files[0]) {
+                    text.textContent = 'Selected replacement: ' + this.files[0].name;
+                    display.classList.remove('hidden');
+                } else {
+                    display.classList.add('hidden');
+                }
+            }
+        });
+    }
+
+    editorEl._quillInstance = quill;
+}
+
+document.addEventListener('turbo:load', initQuillEditor);
+if (document.readyState !== 'loading') { initQuillEditor(); }
 </script>
 @endsection

@@ -52,17 +52,35 @@ class AuditTrailController extends Controller
         return view('admin.logs.index', compact('logs', 'users', 'totalLogs', 'logsToday', 'activeUsers'));
     }
 
-    public function exportCsv()
+    public function exportCsv(Request $request)
     {
-        $headers = [
-            'Content-type'        => 'text/csv',
-            'Content-Disposition' => 'attachment; filename=audit_trail_' . date('Y-m-d') . '.csv',
-            'Pragma'              => 'no-cache',
-            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires'             => '0',
-        ];
+        $query = AuditTrail::with('user');
 
-        $logs = AuditTrail::with('user')->orderByDesc('created_at')->get();
+        if ($request->filled('user_id')) {
+            $query->forUser($request->user_id);
+        }
+
+        if ($request->filled('action')) {
+            $query->where('action', $request->action);
+        }
+
+        if ($request->filled('date')) {
+            $query->whereDate('created_at', $request->date);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('field_changed', 'like', "%{$search}%")
+                  ->orWhere('old_value', 'like', "%{$search}%")
+                  ->orWhere('new_value', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($u) use ($search) {
+                      $u->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $logs = $query->orderByDesc('created_at')->get();
 
         $booleanFields = ['is_applicable'];
         $rows = [];
@@ -87,6 +105,6 @@ class AuditTrailController extends Controller
         }
 
         $filename = 'audit_trail_' . date('Y-m-d') . '.xlsx';
-        return ExcelExportService::download($filename, ['Timestamp', 'User', 'Action', 'Model', 'Model ID', 'Field Changed', 'Old Value', 'New Value'], $rows, 'System Logs');
+        return ExcelExportService::download($filename, ['Timestamp', 'User / Actor', 'Action', 'Target Model', 'Record ID', 'Field Changed', 'Old Value', 'New Value'], $rows, 'Audit Trail Logs');
     }
 }

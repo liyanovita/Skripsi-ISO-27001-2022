@@ -81,9 +81,7 @@
         <div class="hidden lg:block">
             <div class="mb-6">
                 <a href="{{ route('landing') }}" class="flex items-center gap-3 mb-6 group">
-                    <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/30 group-hover:shadow-blue-600/50 transition-all">
-                        <i class="fa-solid fa-shield-halved text-white text-2xl"></i>
-                    </div>
+                    <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-12 h-12 rounded-xl object-contain bg-white p-0.5 shadow-md shadow-blue-600/20 group-hover:scale-105 transition-all">
                     <div>
                         <h1 class="text-xl font-bold text-gray-900 leading-none">{{ __('ISO 27001:2022') }}</h1>
                         <p class="text-[10px] text-gray-600 uppercase tracking-widest mt-0.5 font-bold">{{ __('Self-Assessment Tool') }}</p>
@@ -114,9 +112,7 @@
             <!-- Mobile Branding -->
             <div class="lg:hidden mb-4 text-center">
                 <a href="{{ route('landing') }}" class="inline-block">
-                    <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-blue-600/30">
-                        <i class="fa-solid fa-shield-halved text-white text-2xl"></i>
-                    </div>
+                    <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-12 h-12 rounded-xl object-contain bg-white p-0.5 shadow-md mx-auto mb-3">
                 </a>
                 <h1 class="text-xl font-bold text-gray-900">{{ __('Welcome Back') }}</h1>
                 <p class="text-sm text-gray-600">{{ __('Login to your account') }}</p>

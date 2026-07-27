@@ -103,7 +103,7 @@
                                         @endif
                                     </td>
                                     <td>{{ $result->soa_justification ?: '-' }}</td>
-                                    <td>{{ $result->maturity_rating }}</td>
+                                    <td>{{ is_null($result->maturity_rating) ? 0 : $result->maturity_rating }}</td>
                                     @php $statusText = $result->is_applicable ? 'Implemented' : 'Excluded'; @endphp
                                     <td class="status">{{ __($statusText) }}</td>
                                 </tr>
@@ -146,7 +146,7 @@
                                         @endif
                                     </td>
                                     <td>{{ $result->soa_justification ?: '-' }}</td>
-                                    <td>{{ $result->maturity_rating }}</td>
+                                    <td>{{ is_null($result->maturity_rating) ? 0 : $result->maturity_rating }}</td>
                                     @php $statusText = $result->is_applicable ? 'Implemented' : 'Excluded'; @endphp
                                     <td class="status">{{ __($statusText) }}</td>
                                 </tr>

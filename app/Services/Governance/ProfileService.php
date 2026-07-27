@@ -76,7 +76,7 @@ class ProfileService
         }
 
         // 1. Separate user fields and organization fields
-        $userFields = ['name', 'email'];
+        $userFields = ['name', 'email', 'job_title', 'role_description'];
         $userData = array_intersect_key($data, array_flip($userFields));
 
         if (array_key_exists('email', $userData) && $userData['email'] !== $user->email) {

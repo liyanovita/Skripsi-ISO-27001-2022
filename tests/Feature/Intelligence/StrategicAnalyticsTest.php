@@ -40,12 +40,12 @@ class StrategicAnalyticsTest extends TestCase
         $breakdown = $response->viewData('complianceBreakdown');
         $distribution = $response->viewData('maturityDistribution');
 
-        $this->assertSame(1, $stats['total_gaps']);
-        $this->assertSame(0, $stats['critical']);
+        $this->assertSame(2, $stats['total_gaps']);
+        $this->assertSame(1, $stats['critical']);
         $this->assertSame(1, $stats['compliant']);
         $this->assertSame(1, $stats['partial']);
         $this->assertSame(0, $stats['non_compliant']);
-        $this->assertSame(1, $stats['needs_improvement']);
+        $this->assertSame(2, $stats['needs_improvement']);
         $this->assertSame(0, $stats['unassessed']);
         $this->assertSame(1, $stats['excluded']);
         $this->assertSame(2, $stats['total_controls']);
@@ -169,9 +169,9 @@ class StrategicAnalyticsTest extends TestCase
             ->assertOk()
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.selectedId', $session->id)
-            ->assertJsonPath('data.stats.total_gaps', 1)
+            ->assertJsonPath('data.stats.total_gaps', 2)
             ->assertJsonPath('data.stats.non_compliant', 0)
-            ->assertJsonPath('data.stats.needs_improvement', 1)
+            ->assertJsonPath('data.stats.needs_improvement', 2)
             ->assertJsonPath('data.stats.excluded', 1)
             ->assertJsonPath('data.complianceBreakdown.excluded', 1);
     }

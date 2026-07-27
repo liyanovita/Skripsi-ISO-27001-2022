@@ -84,7 +84,7 @@ class AdminReportTest extends TestCase
             ->assertSee('Compliance Reports')
             ->assertSee('Technology') // Sector performance
             ->assertSee('Understanding the organization') // Failing controls
-            ->assertSee('clausesChart') // Chart canvas element
+            ->assertSee('domainsChart') // Chart canvas element
             ->assertSee('sectorsChart'); // Chart canvas element
     }
 

@@ -88,6 +88,27 @@ class KnowledgeBase extends Model
     }
 
     /**
+     * Mutator for content to automatically sanitize it using HTMLPurifier.
+     */
+    public function setContentAttribute($value)
+    {
+        if (empty($value)) {
+            $this->attributes['content'] = '';
+            return;
+        }
+
+        $config = \HTMLPurifier_Config::createDefault();
+        $config->set('Cache.DefinitionImpl', null); // Disable cache to prevent permission issues
+        $config->set('CSS.AllowedProperties', 'text-align,color,background-color,font-size,font-family,font-weight,font-style,text-decoration,margin,padding,border,width,height');
+        $config->set('HTML.AllowedElements', 'p,b,i,u,s,em,strong,a,ul,ol,li,br,h1,h2,h3,h4,h5,h6,blockquote,table,thead,tbody,tr,th,td,span,div,img,hr');
+        $config->set('HTML.AllowedAttributes', 'a.href,a.target,span.style,div.style,p.style,img.src,img.alt,img.width,img.height,table.border,td.colspan,td.rowspan,th.colspan,th.rowspan,span.class,div.class,p.class');
+        $config->set('HTML.TargetBlank', true);
+
+        $purifier = new \HTMLPurifier($config);
+        $this->attributes['content'] = $purifier->purify($value);
+    }
+
+    /**
      * Check if the content is written in HTML format.
      */
     public function isHtml(): bool

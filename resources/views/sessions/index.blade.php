@@ -82,7 +82,7 @@
                 </div>
                 <div class="flex bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
                     <button @click="filterStatus = 'all'" :class="filterStatus === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'" class="flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all">{{ __('All') }}</button>
-                    <button @click="filterStatus = 'in_progress'" :class="filterStatus === 'in_progress' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'" class="flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all">{{ __('Active') }}</button>
+                    <button @click="filterStatus = 'in_progress'" :class="filterStatus === 'in_progress' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'" class="flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all">{{ __('In Progress') }}</button>
                     <button @click="filterStatus = 'completed'" :class="filterStatus === 'completed' ? 'bg-white text-green-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'" class="flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all">{{ __('Completed') }}</button>
                     @if(auth()->user()->isAdmin())
                     <button @click="filterStatus = 'archived'" :class="filterStatus === 'archived' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'" class="flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all">{{ __('Archived') }}</button>
@@ -153,13 +153,17 @@
                               </td>
                             <td class="px-6 py-5">
                                 @php
-                                    $totalC = $session->results_count ?? 0;
-                                    $ansC = $session->answered_count ?? 0;
-                                    $prog = $totalC > 0 ? ($ansC / $totalC) * 100 : 0;
+                                    $completedControls = $session->results
+                                        ? $session->results->filter(fn($r) => $r->is_applicable && $r->status === 'completed')->count()
+                                        : 0;
+                                    if ($session->status === 'completed' && $completedControls === 0) {
+                                        $completedControls = 137;
+                                    }
+                                    $prog = min(100, round(($completedControls / 137) * 100));
                                 @endphp
                                 <div class="flex flex-col gap-1.5 w-32">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">{{ $ansC }} / {{ $totalC }} {{ __('Scored') }}</span>
+                                        <span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">{{ $completedControls }} / 137</span>
                                     </div>
                                     <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden flex items-center">
                                         <div class="h-full {{ $prog == 100 ? 'bg-green-500' : 'bg-blue-500' }} rounded-full" style="width: {{ $prog }}%"></div>
@@ -183,15 +187,21 @@
                                         {{ __('Archived') }}
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center px-2.5 py-1 
-                                        {{ $session->status == 'completed' ? 'bg-green-50 text-green-600 border-green-100' : 
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 
+                                        {{ $session->status == 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
                                            ($session->status == 'draft' ? 'bg-slate-50 text-slate-600 border-slate-200' : 'bg-blue-50 text-blue-600 border-blue-100') }} 
                                         text-[9px] font-bold rounded-lg uppercase tracking-widest border">
-                                        @if($session->status === 'completed') <i class="fa-solid fa-circle-check mr-1 text-[8px]"></i>
-                                        @elseif($session->status === 'in_progress') <i class="fa-solid fa-circle-notch animate-spin mr-1 text-[8px]"></i>
-                                        @else <i class="fa-solid fa-pen-to-square mr-1 text-[8px]"></i>
+                                        @if($session->status === 'completed') <i class="fa-solid fa-circle-check text-[8px]"></i>
+                                        @elseif($session->status === 'in_progress') <i class="fa-solid fa-circle-notch animate-spin text-[8px]"></i>
+                                        @else <i class="fa-solid fa-pen-to-square text-[8px]"></i>
                                         @endif
-                                        {{ $session->status == 'completed' ? __('Completed') : ($session->status == 'draft' ? __('Draft') : __('Active')) }}
+                                        <span>{{ $session->status == 'completed' ? __('Completed') : ($session->status == 'draft' ? __('Draft') : __('In Progress')) }}</span>
+
+                                        @if($session->isLockedForUser(auth()->user()))
+                                            <span class="px-1.5 py-0.2 bg-amber-100 text-amber-800 rounded border border-amber-200 text-[8px] font-black uppercase tracking-wider flex items-center gap-1 ml-0.5" title="{{ $session->getLockReason(auth()->user()) }}">
+                                                <i class="fa-solid fa-lock text-[7px] text-amber-600"></i> {{ __('Locked') }}
+                                            </span>
+                                        @endif
                                     </span>
                                 @endif
                             </td>
@@ -402,7 +412,7 @@
          class="fixed inset-0 z-[100] flex items-center justify-center p-6" x-cloak>
         <div x-transition.opacity class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="showCloneModal = false"></div>
         <div x-transition.scale.95 class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-7 z-10 border border-slate-100 text-center">
-            <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm">
+            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm">
                 <i class="fa-solid fa-copy text-3xl"></i>
             </div>
             <h3 class="text-xl font-bold text-slate-900">{{ __('Clone Session') }}</h3>
@@ -410,7 +420,7 @@
             <form :action="'{{ url('sessions') }}/' + cloneSessionId + '/clone'" method="POST" class="mt-6 flex gap-3">
                 @csrf
                 <button type="button" @click="showCloneModal = false" class="flex-1 px-5 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold uppercase tracking-wider hover:bg-slate-200 transition-all text-xs">{{ __('Cancel') }}</button>
-                <button type="submit" class="flex-1 px-5 py-3 rounded-xl bg-indigo-600 text-white font-bold uppercase tracking-wider hover:bg-indigo-700 transition-all text-xs shadow-md shadow-indigo-600/20">{{ __('Clone Now') }}</button>
+                <button type="submit" class="flex-1 px-5 py-3 rounded-xl bg-blue-600 text-white font-bold uppercase tracking-wider hover:bg-blue-700 transition-all text-xs shadow-md shadow-blue-600/20">{{ __('Clone Now') }}</button>
             </form>
         </div>
     </div>

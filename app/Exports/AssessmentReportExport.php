@@ -39,7 +39,7 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
             ->where('is_applicable', true)
             ->where('status', 'completed')
             ->where('maturity_rating', '>=', 0)
-            ->where('maturity_rating', '<', 4)
+            ->where('maturity_rating', '<', 5)
             ->whereHas('standard', fn($q) => $q->whereNotNull('questions'))
             ->get()
             ->filter(fn($r) => is_array($r->standard?->questions) && count($r->standard->questions) > 0);
@@ -48,7 +48,7 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
     }
 
     /**
-     * Header kolom IDENTIK dengan tabel Priority Roadmap di PDF ditambah data AI:
+     * Header kolom lengkap untuk pelaporan evaluasi & improvement tracking Excel:
      */
     public function headings(): array
     {
@@ -60,8 +60,11 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
             'Gap (T-C)',
             'Status Compliance',
             'Risk',
+            'Treatment Status',
+            'PIC Assigned',
+            'Target Due Date',
             'Target Days',
-            'Audit Notes',
+            'Audit Notes & Findings',
             'AI Strategic Recommendation',
             'AI Audit Insight (Gap)',
             'Corrective Action Plan (CAP)',
@@ -70,7 +73,7 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
     }
 
     /**
-     * Mapping data IDENTIK dengan kolom yang ditampilkan di PDF
+     * Mapping data lengkap termasuk bidang pelacakan perbaikan
      */
     public function map($result): array
     {
@@ -85,6 +88,15 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
             default                       => '180 Days',
         };
 
+        $treatmentStatus = match($result->treatment_status ?? 'open') {
+            'closed'      => 'Closed / Solved',
+            'in_progress' => 'In Progress',
+            default       => 'Open',
+        };
+
+        $picAssigned = $result->treatment_pic ?: 'Unassigned';
+        $dueDate = $result->treatment_due_date ? $result->treatment_due_date->format('Y-m-d') : '-';
+
         $insight = is_array($result->control_insight) ? ($result->control_insight['gap'] ?? '') : ($result->control_insight ?? '');
         $insight = trim($insight);
         if (empty($insight)) {
@@ -97,7 +109,7 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
             $cap = 'AI corrective action plan not yet generated.';
         }
         
-        $notes = trim($result->notes ?? '');
+        $notes = trim($result->notes ?? $result->evidence ?? '');
 
         $recommendation = trim($result->ai_recommendation ?? '');
         if (empty($recommendation)) {
@@ -117,6 +129,9 @@ class AssessmentReportExport extends DefaultValueBinder implements FromCollectio
             5 - $result->maturity_rating,
             $result->compliance_status,
             $result->risk_level,
+            $treatmentStatus,
+            $picAssigned,
+            $dueDate,
             $targetDays,
             $notes,
             $recommendation,

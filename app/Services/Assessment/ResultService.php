@@ -36,6 +36,11 @@ class ResultService
             throw new \Exception('Unauthorized: You do not have permission to update this assessment result.');
         }
 
+        // Lockout Guard: block updates for non-admins if session is past deadline or closed/completed
+        if ($result->session->isLockedForUser($user)) {
+            throw new \Exception(__('This audit session is closed/locked (past deadline or completed). Only administrators can reopen or extend it.'));
+        }
+
         $isClause = in_array($result->standard->type ?? '', ['clause', 'clausa']);
 
         // Determine applicability
@@ -410,28 +415,9 @@ class ResultService
     protected function updateSessionScore(int $sessionId): void
     {
         $session = AssessmentSession::findOrFail($sessionId);
-        
-        $avg = AssessmentResult::where('session_id', $sessionId)
-            ->where('status', 'completed')
-            ->where('is_applicable', true)
-            ->whereHas('standard', function ($query) {
-                $query->whereNotNull('questions');
-            })
-            ->avg('maturity_rating');
-
-        $hasCompletedControls = AssessmentResult::where('session_id', $sessionId)
-            ->where('status', 'completed')
-            ->where('is_applicable', true)
-            ->whereHas('standard', function ($query) {
-                $query->whereNotNull('questions');
-            })
-            ->exists();
-        
-        $session->update([
-            'overall_maturity_score' => round($avg ?? 0, 2),
-            'status' => $session->status === 'completed'
-                ? 'completed'
-                : 'in_progress'
-        ]);
+        $session->calculateMaturityScore();
+        if ($session->status !== 'completed') {
+            $session->update(['status' => 'in_progress']);
+        }
     }
 }

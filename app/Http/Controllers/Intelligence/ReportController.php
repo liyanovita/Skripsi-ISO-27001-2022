@@ -66,7 +66,7 @@ class ReportController extends Controller
                 $r->is_applicable &&
                 $r->status === 'completed' &&
                 $r->maturity_rating >= 0 &&
-                $r->maturity_rating < 4 &&
+                $r->maturity_rating < 5 &&
                 $r->standard
             )
             ->sortBy('maturity_rating')
@@ -78,7 +78,7 @@ class ReportController extends Controller
                 $r->is_applicable &&
                 $r->status === 'completed' &&
                 $r->standard &&
-                ($r->maturity_rating < 4 || $r->treatment_pic || $r->treatment_status !== 'open' || $r->treatment_progress > 0)
+                ($r->maturity_rating < 5 || $r->treatment_pic || $r->treatment_status !== 'open' || $r->treatment_progress > 0)
             )
             ->sortBy('standard.code')
             ->values();

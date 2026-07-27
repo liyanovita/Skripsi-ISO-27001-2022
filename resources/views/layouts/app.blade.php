@@ -25,7 +25,7 @@
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         };
     </script>
-    {{-- Chart.js hanya di-load jika halaman membutuhkannya --}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     @stack('head_scripts')
     @stack('styles')
     
@@ -275,14 +275,15 @@
                 @if(auth()->user()->isAdmin())
                 <div class="px-2 mb-6" x-show="sidebarOpen">
                     <a href="{{ route('sessions.index', ['create' => 'true']) }}" 
-                       class="flex items-center justify-center gap-2 w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-blue-100 font-black text-[11px] uppercase tracking-wider rounded-xl transition-all hover:-translate-y-0.5 backdrop-blur-sm">
-                        <i class="fa-solid fa-plus"></i>
-                        <span>{{ __('New Assessment') }}</span>
+                       class="flex items-center justify-center gap-2 w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-blue-100 font-bold text-xs uppercase tracking-wider rounded-xl transition-all hover:-translate-y-0.5 backdrop-blur-sm">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>{{ __('New Audit Session') }}</span>
                     </a>
                 </div>
                 <div class="px-2 mb-6 flex justify-center" x-show="!sidebarOpen">
                     <a href="{{ route('sessions.index', ['create' => 'true']) }}" 
-                       class="flex items-center justify-center w-10 h-10 bg-white/5 hover:bg-white/10 border border-white/10 text-blue-100 rounded-xl transition-all hover:-translate-y-0.5 backdrop-blur-sm">
+                       title="{{ __('New Audit Session') }}"
+                       class="flex items-center justify-center w-9 h-9 bg-white/5 hover:bg-white/10 border border-white/10 text-blue-100 rounded-xl transition-all hover:-translate-y-0.5 backdrop-blur-sm">
                         <i class="fa-solid fa-plus text-sm"></i>
                     </a>
                 </div>
@@ -334,7 +335,7 @@
                     <div class="w-6 flex justify-center shrink-0 relative">
                         <i class="fa-solid fa-diagram-project text-base"></i>
                         @if($sidebarOpenGaps > 0)
-                        <span class="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-rose-500 rounded-full flex items-center justify-center text-[7px] font-black text-white leading-none">{{ min($sidebarOpenGaps, 9) }}{{ $sidebarOpenGaps > 9 ? '+' : '' }}</span>
+                        <span class="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 bg-rose-500 rounded-full flex items-center justify-center text-[7px] font-black text-white leading-none shadow-sm">{{ min($sidebarOpenGaps, 99) }}{{ $sidebarOpenGaps > 99 ? '+' : '' }}</span>
                         @endif
                     </div>
                     <span x-show="sidebarOpen" class="text-sm font-bold tracking-tight sidebar-text flex-1">{{ __('Improvement Tracking') }}</span>

@@ -3,13 +3,13 @@
 @section('view_name', 'Knowledge Base')
 
 @section('content')
-<div class="w-full space-y-4 pb-8" x-data="{ 
+<div class="w-full space-y-5 pb-8" x-data="{ 
     resources: @js($resources->getCollection()->map(fn($r) => [
         'id' => $r->id,
         'title' => $r->title,
         'category' => $r->category,
         'category_label' => $r->category === 'sop' ? 'SOP' : __(ucfirst($r->category)),
-        'category_class' => $r->category === 'guides' ? 'bg-indigo-50/80 text-indigo-700 border-indigo-100' : ($r->category === 'templates' ? 'bg-emerald-50/80 text-emerald-700 border-emerald-100' : ($r->category === 'sop' ? 'bg-amber-50/80 text-amber-700 border-amber-100' : 'bg-rose-50/80 text-rose-700 border-rose-100')),
+        'category_class' => $r->category === 'guides' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : ($r->category === 'templates' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : ($r->category === 'sop' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-blue-50 text-blue-700 border-blue-100')),
         'type' => $r->format ? strtoupper($r->format) : 'PDF',
         'desc' => collect(preg_split('/(?<=[.?!])\s+(?=[A-Za-z])/', $r->description ?? ''))->take(1)->implode(' '),
         'content' => $r->content,
@@ -28,230 +28,150 @@
     ]))
 }">
 
-    {{-- Header --}}
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
+    {{-- Page Header --}}
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+        <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
                 <i class="fa-solid fa-book-open text-lg"></i>
             </div>
-            <div class="leading-none">
-                <h1 class="text-xl font-black text-slate-900 tracking-tighter uppercase">{{ __('Knowledge Base') }}</h1>
-                <p class="text-slate-400 font-bold uppercase tracking-widest text-[8px] mt-0.5">{{ __('Internal Documentation & Resources') }}</p>
+            <div>
+                <h1 class="text-xl font-black text-slate-800 tracking-tight">{{ __('Knowledge Base') }}</h1>
+                <p class="text-slate-400 font-semibold text-xs mt-0.5">{{ __('ISO 27001:2022 Implementation Guides, Policy Templates & SOPs') }}</p>
             </div>
         </div>
         @if(auth()->user()->isAdmin())
-        <div class="flex flex-col sm:flex-row gap-2">
-            <a href="{{ route('knowledge-base.export-json') }}" data-turbo="false" class="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2">
-                <i class="fa-solid fa-file-export"></i> {{ __('Export') }}
+        <div class="flex items-center gap-2 flex-wrap">
+            <a href="{{ route('knowledge-base.export-json') }}" data-turbo="false"
+                class="px-3.5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-1.5">
+                <i class="fa-solid fa-file-export text-slate-400"></i> {{ __('Export JSON') }}
             </a>
-            <form action="{{ route('knowledge-base.import-json') }}" method="POST" enctype="multipart/form-data" class="flex">
+            <form action="{{ route('knowledge-base.import-json') }}" method="POST" enctype="multipart/form-data" class="inline">
                 @csrf
-                <label class="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-file-import"></i> {{ __('Import') }}
+                <label class="px-3.5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-file-import text-blue-500"></i> {{ __('Import') }}
                     <input type="file" name="json_file" accept="application/json,.json" class="hidden" onchange="this.form.submit()">
                 </label>
             </form>
-            <a href="{{ route('knowledge-base.create') }}" id="btn-create-article" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-md active:scale-95 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-plus"></i> {{ __('Add Resource') }}
+            <a href="{{ route('knowledge-base.create') }}" id="btn-create-article"
+                class="px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-600/20 active:scale-95 flex items-center gap-1.5">
+                <i class="fa-solid fa-plus text-[10px]"></i> {{ __('Add Resource') }}
             </a>
         </div>
         @endif
     </div>
 
-
-
-    {{-- ===== KNOWLEDGE BASE CONTENT ===== --}}
-    <div class="space-y-4">
-        {{-- Search and Filter --}}
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-            <form action="{{ route('knowledge-base.index') }}" method="GET" class="space-y-4" x-data x-on:change="$el.requestSubmit()">
-                <div class="flex flex-col lg:flex-row gap-3">
-                    <div class="flex-1 relative group">
-                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors text-sm">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </div>
-                        <input 
-                            type="text" 
-                            name="q"
-                            id="kb-search-bar"
-                            value="{{ $search ?? '' }}"
-                            x-on:input.debounce.500ms="$el.closest('form').requestSubmit()"
-                            placeholder="{{ __('Search knowledge assets, templates, or compliance guides...') }}"
-                            class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-12 {{ !empty($search) ? 'pr-10' : 'pr-4' }} py-3 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all"
-                        >
-                        @if(!empty($search))
-                            <a href="{{ route('knowledge-base.index', array_merge(request()->except(['q', 'page']))) }}" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
-                                <i class="fa-solid fa-circle-xmark text-sm"></i>
-                            </a>
-                        @endif
-                    </div>
-
-                    <div class="relative min-w-48">
-                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                            <i class="fa-solid fa-tag"></i>
-                        </div>
-                        <select name="category" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-12 pr-9 py-3 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all cursor-pointer">
-                            <option value="all" {{ ($selectedCategory ?? 'all') === 'all' ? 'selected' : '' }}>{{ __('All Categories') }}</option>
-                            @foreach($categoryCounts as $category => $count)
-                                <option value="{{ $category }}" {{ ($selectedCategory ?? 'all') === $category ? 'selected' : '' }}>{{ $category === 'sop' ? 'SOP' : __(ucfirst($category)) }} ({{ $count }})</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="relative min-w-48">
-                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                            <i class="fa-solid fa-arrow-down-wide-short"></i>
-                        </div>
-                        <select name="sort" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-12 pr-9 py-3 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all cursor-pointer">
-                            <option value="latest" {{ ($selectedSort ?? 'latest') === 'latest' ? 'selected' : '' }}>{{ __('Latest Updated') }}</option>
-                            <option value="title" {{ ($selectedSort ?? 'latest') === 'title' ? 'selected' : '' }}>{{ __('Title A-Z') }}</option>
-                            <option value="most_downloaded" {{ ($selectedSort ?? 'latest') === 'most_downloaded' ? 'selected' : '' }}>{{ __('Most Downloaded') }}</option>
-                        </select>
-                    </div>
-
+    {{-- Search and Filter Bar --}}
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 space-y-4">
+        <form action="{{ route('knowledge-base.index') }}" method="GET" class="space-y-4" x-data x-on:change="$el.requestSubmit()">
+            <div class="flex flex-col lg:flex-row gap-3">
+                <div class="flex-1 relative group">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors text-sm"></i>
+                    <input 
+                        type="text" 
+                        name="q"
+                        id="kb-search-bar"
+                        value="{{ $search ?? '' }}"
+                        x-on:input.debounce.500ms="$el.closest('form').requestSubmit()"
+                        placeholder="{{ __('Search knowledge assets, templates, or compliance guides...') }}"
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 {{ !empty($search) ? 'pr-10' : 'pr-4' }} py-2.5 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all"
+                    >
+                    @if(!empty($search))
+                        <a href="{{ route('knowledge-base.index', array_merge(request()->except(['q', 'page']))) }}" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                            <i class="fa-solid fa-circle-xmark text-sm"></i>
+                        </a>
+                    @endif
                 </div>
 
-                @if(($search ?? '') !== '' || ($selectedCategory ?? 'all') !== 'all' || ($selectedSort ?? 'latest') !== 'latest' || ($selectedSource ?? 'all') !== 'all')
-                    <div class="flex items-center justify-between gap-3 rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-indigo-700">
-                        <span>{{ __('Showing') }} {{ $filteredCount }} {{ __('of') }} {{ $totalCount }} {{ __('resources') }}</span>
-                        @if(($search ?? '') !== '')
-                            <span>{{ __('Search') }}: "{{ $search }}"</span>
-                        @endif
-                        @if(($selectedSort ?? 'latest') !== 'latest')
-                            <span>{{ __('Sort') }}: {{ __(str_replace('_', ' ', ucfirst($selectedSort))) }}</span>
-                        @endif
-                        @if(($selectedCategory ?? 'all') !== 'all')
-                            <span>{{ __('Category') }}: {{ $selectedCategory === 'sop' ? 'SOP' : __(ucfirst($selectedCategory)) }}</span>
-                        @endif
+                <div class="relative min-w-48">
+                    <select name="category" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-indigo-600 transition-all cursor-pointer">
+                        <option value="all" {{ ($selectedCategory ?? 'all') === 'all' ? 'selected' : '' }}>{{ __('All Categories') }}</option>
+                        @foreach($categoryCounts as $category => $count)
+                            <option value="{{ $category }}" {{ ($selectedCategory ?? 'all') === $category ? 'selected' : '' }}>{{ $category === 'sop' ? 'SOP' : __(ucfirst($category)) }} ({{ $count }})</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="relative min-w-48">
+                    <select name="sort" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-indigo-600 transition-all cursor-pointer">
+                        <option value="latest" {{ ($selectedSort ?? 'latest') === 'latest' ? 'selected' : '' }}>{{ __('Latest Updated') }}</option>
+                        <option value="title" {{ ($selectedSort ?? 'latest') === 'title' ? 'selected' : '' }}>{{ __('Title A-Z') }}</option>
+                        <option value="most_downloaded" {{ ($selectedSort ?? 'latest') === 'most_downloaded' ? 'selected' : '' }}>{{ __('Most Downloaded') }}</option>
+                    </select>
+                </div>
+            </div>
+
+            @if(($search ?? '') !== '' || ($selectedCategory ?? 'all') !== 'all' || ($selectedSort ?? 'latest') !== 'latest')
+                <div class="flex items-center justify-between gap-3 rounded-xl border border-indigo-100 bg-indigo-50/60 px-4 py-2 text-[11px] font-bold text-indigo-700">
+                    <span>{{ __('Showing') }} {{ $filteredCount }} {{ __('of') }} {{ $totalCount }} {{ __('resources') }}</span>
+                    @if(($search ?? '') !== '')
+                        <span>{{ __('Search') }}: "{{ $search }}"</span>
+                    @endif
+                    <a href="{{ route('knowledge-base.index') }}" class="text-indigo-600 underline hover:text-indigo-800 font-bold">Clear Filters</a>
+                </div>
+            @endif
+        </form>
+    </div>
+
+    {{-- Resources Grid --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <template x-for="res in resources" :key="res.id">
+            <div @click="typeof Turbo !== 'undefined' ? Turbo.visit(res.show_url) : window.location.href = res.show_url"
+                 class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition-all group flex flex-col justify-between cursor-pointer">
+                <div>
+                    <div class="flex items-start justify-between gap-2 mb-2.5">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border" :class="res.category_class" x-text="res.category_label"></span>
+                        <span class="px-2 py-0.5 bg-slate-900 text-white rounded text-[10px] font-mono font-bold uppercase shrink-0" x-text="res.type"></span>
                     </div>
-                @endif
 
-            </form>
-        </div>
+                    <h3 class="text-sm font-black text-slate-800 tracking-tight group-hover:text-indigo-600 transition-colors leading-snug mb-1.5" x-text="res.title"></h3>
+                    <p class="text-xs text-slate-500 font-medium leading-relaxed line-clamp-2" x-text="res.desc"></p>
 
-        {{-- Resources Grid --}}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <template x-for="res in resources" :key="res.id">
-                <div @click="typeof Turbo !== 'undefined' ? Turbo.visit(res.show_url) : window.location.href = res.show_url"
-                     class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-lg hover:scale-[1.01] transition-all group flex flex-col justify-between cursor-pointer">
-                    <div>
-                        <div class="flex items-start justify-between mb-3">
-                            <div class="flex-1">
-                                <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
-                                    <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border" :class="res.category_class" x-text="res.category_label"></span>
-                                </div>
-                                <h3 class="text-base font-bold text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors leading-snug mb-1" x-text="res.title"></h3>
-                                <p class="text-xs text-slate-500 font-medium leading-snug" x-text="res.desc"></p>
-                            </div>
-                            <div class="ml-3 px-2 py-1 bg-slate-50 text-slate-400 rounded-lg text-[8px] font-black uppercase tracking-widest border border-slate-100 shrink-0" x-text="res.type"></div>
+                    <template x-if="res.has_attachment">
+                        <div class="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">
+                            <i class="fa-solid fa-paperclip"></i>
+                            <span>{{ __('File Attached') }}</span>
                         </div>
-                        <template x-if="res.has_attachment">
-                            <div class="mb-3 inline-flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-emerald-700">
-                                <i class="fa-solid fa-paperclip"></i>
-                                <span>{{ __('Original file attached') }}</span>
-                            </div>
+                    </template>
+                </div>
+
+                <div class="pt-3 border-t border-slate-50 mt-4 flex items-center justify-between gap-2 text-[10px] font-bold text-slate-400">
+                    <div class="flex items-center gap-3">
+                        <span class="flex items-center gap-1"><i class="fa-solid fa-download text-slate-300"></i> <span x-text="res.downloads"></span></span>
+                        <template x-if="res.size">
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-database text-slate-300"></i> <span x-text="res.size"></span></span>
                         </template>
                     </div>
-                    <div class="pt-3 border-t border-slate-100 mt-3 space-y-2">
-                        {{-- Metadata Row --}}
-                        <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-slate-400 text-[8px] font-bold uppercase tracking-widest">
-                            <div class="flex items-center gap-1">
-                                <i class="fa-regular fa-file-lines"></i>
-                                <span x-text="res.downloads"></span> {{ __('Downloads') }}
-                            </div>
-                            <template x-if="res.size">
-                                <div class="flex items-center gap-1">
-                                    <span class="text-slate-200">•</span>
-                                    <i class="fa-solid fa-database"></i>
-                                    <span x-text="res.size"></span>
-                                </div>
-                            </template>
-                            <template x-if="res.updated_at">
-                                <div class="flex items-center gap-1">
-                                    <span class="text-slate-200">•</span>
-                                    <i class="fa-regular fa-calendar"></i>
-                                    <span x-text="res.updated_at"></span>
-                                </div>
-                            </template>
-                        </div>
 
-                        {{-- Action Buttons Row --}}
-                        <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
-                            <div></div>
-                            <div class="flex flex-wrap items-center gap-1.5">
-                                {{-- Delete Form (hidden, triggered by button) --}}
-                                <template x-if="!res.is_system">
-                                    <form :id="'delete-form-' + res.id" :action="res.delete_url" method="POST" class="hidden">
-                                        @csrf
-                                        @method('DELETE')
-                                    </form>
-                                </template>
+                    <div class="flex items-center gap-1">
+                        <template x-if="res.is_system">
+                            <a :href="res.download_url" data-turbo="false" @click.stop class="w-7 h-7 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-colors" title="{{ __('Download PDF') }}">
+                                <i class="fa-solid fa-download text-xs"></i>
+                            </a>
+                        </template>
 
-                                <template x-if="res.is_system">
-                                    <a :href="res.download_url" data-turbo="false" @click.stop class="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center hover:bg-indigo-600 transition-all shadow-md" title="{{ __('Download PDF') }}">
-                                        <i class="fa-solid fa-download text-xs"></i>
-                                    </a>
-                                </template>
-
-                                <template x-if="res.has_attachment">
-                                    <a :href="res.attachment_url" data-turbo="false" @click.stop class="w-8 h-8 bg-emerald-50 text-emerald-700 rounded-lg flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm" title="{{ __('Download Attachment') }}">
-                                        <i class="fa-solid fa-paperclip text-xs"></i>
-                                    </a>
-                                </template>
-
-                                @if(auth()->user()->isAdmin())
-                                <template x-if="!res.is_system">
-                                    <div class="flex items-center gap-1.5">
-                                        <a :href="res.edit_url" @click.stop class="w-8 h-8 bg-slate-100 text-slate-400 rounded-lg flex items-center justify-center hover:bg-emerald-50 hover:text-emerald-600 transition-all shadow-sm" title="{{ __('Edit') }}">
-                                            <i class="fa-solid fa-pen text-xs"></i>
-                                        </a>
-                                        <button @click.stop="
-                                            Swal.fire({
-                                                title: '{{ addslashes(__('Delete Document?')) }}',
-                                                text: '{{ addslashes(__('Are you sure you want to delete document "')) }}' + res.title + '{{ addslashes(__('"? This action cannot be undone.')) }}',
-                                                icon: 'warning',
-                                                showCancelButton: true,
-                                                confirmButtonColor: '#ef4444',
-                                                cancelButtonColor: '#64748b',
-                                                confirmButtonText: '{{ addslashes(__('Yes, Delete!')) }}',
-                                                cancelButtonText: '{{ addslashes(__('Cancel')) }}',
-                                                width: '22rem',
-                                                customClass: {
-                                                    title: 'text-base font-bold text-slate-800',
-                                                    htmlContainer: 'text-xs text-slate-500',
-                                                    confirmButton: 'text-xs px-3 py-2 rounded-lg font-semibold',
-                                                    cancelButton: 'text-xs px-3 py-2 rounded-lg font-semibold'
-                                                }
-                                            }).then((result) => {
-                                                if (result.isConfirmed) {
-                                                    document.getElementById('delete-form-' + res.id).submit();
-                                                }
-                                            });
-                                        " class="w-8 h-8 bg-slate-100 text-slate-400 rounded-lg flex items-center justify-center hover:bg-rose-50 hover:text-rose-600 transition-all shadow-sm" title="{{ __('Delete') }}">
-                                            <i class="fa-solid fa-trash text-xs"></i>
-                                        </button>
-                                    </div>
-                                </template>
-                                @endif
-                            </div>
-                        </div>
+                        <template x-if="res.has_attachment">
+                            <a :href="res.attachment_url" data-turbo="false" @click.stop class="w-7 h-7 bg-emerald-50 text-emerald-700 rounded-lg flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors" title="{{ __('Download Attachment') }}">
+                                <i class="fa-solid fa-paperclip text-xs"></i>
+                            </a>
+                        </template>
                     </div>
                 </div>
-            </template>
-        </div>
-
-        {{-- Empty State --}}
-        <div x-show="resources.length === 0" x-transition class="py-16 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-            <i class="fa-solid fa-magnifying-glass text-3xl text-slate-200 mb-3 block"></i>
-            <h3 class="text-slate-900 font-bold text-sm tracking-tight">{{ __('No Assets Found') }}</h3>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{{ __('Adjust your search or filter parameters') }}</p>
-        </div>
-
-        @if($resources->hasPages())
-            <div class="pt-2">
-                {{ $resources->links() }}
             </div>
-        @endif
+        </template>
     </div>
-</div> <!-- Close x-data container -->
+
+    {{-- Empty State --}}
+    <div x-show="resources.length === 0" x-transition class="py-16 text-center bg-white rounded-2xl border border-slate-100">
+        <i class="fa-solid fa-folder-open text-4xl text-slate-200 mb-3 block"></i>
+        <h3 class="text-slate-800 font-bold text-sm">{{ __('No Resources Found') }}</h3>
+        <p class="text-xs text-slate-400 mt-1">{{ __('Try adjusting your search query or category filters.') }}</p>
+    </div>
+
+    @if($resources->hasPages())
+        <div class="pt-2">
+            {{ $resources->links() }}
+        </div>
+    @endif
+
+</div>
 @endsection

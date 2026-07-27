@@ -65,12 +65,23 @@ class WorkspaceController extends Controller
             $request->validated()
         );
 
+        $evidenceFiles = is_array($result->evidence_file) ? $result->evidence_file : (empty($result->evidence_file) ? [] : [$result->evidence_file]);
+        $mappedFiles = [];
+        foreach ($evidenceFiles as $file) {
+            $mappedFiles[] = [
+                'name' => basename($file),
+                'url'  => route('results.evidence', [$result->id, 'file' => $file])
+            ];
+        }
+
         return ApiResponse::success([
             'is_applicable'      => $result->is_applicable,
             'soa_justification'  => $result->soa_justification,
             'treatment_due_date' => optional($result->treatment_due_date)->toDateString(),
             'treatment_pic'      => $result->treatment_pic,
             'treatment_status'   => $result->treatment_status,
+            'notes'              => $result->notes,
+            'evidence_files'     => $mappedFiles,
         ], 'Record updated successfully.');
     }
 

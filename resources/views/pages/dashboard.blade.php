@@ -147,19 +147,13 @@
                     <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
             </div>
-            <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+            <div class="pt-1 border-t border-slate-100">
                 <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-widest text-slate-450">
-                    <span class="text-rose-500">{{ $criticalGapCount }} {{ __('Critical') }}</span>
+                    <span class="text-rose-500">{{ $highRiskGapsCount }} {{ __('High') }}</span>
                     <span>&bull;</span>
-                    <span class="text-orange-500">{{ $highGapCount }} {{ __('High') }}</span>
-                </div>
-                <div class="flex items-center gap-1">
-                    <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">
-                        {{ __('AI Rec Status') }}:
-                    </span>
-                    <span class="inline-flex px-1.5 py-0.5 rounded border text-[7px] font-black uppercase tracking-wider {{ $aiRecBadge }}">
-                        {{ __($aiRecStatus) }}
-                    </span>
+                    <span class="text-amber-500">{{ $mediumRiskGapsCount }} {{ __('Medium') }}</span>
+                    <span>&bull;</span>
+                    <span class="text-emerald-500">{{ $lowRiskGapsCount }} {{ __('Low') }}</span>
                 </div>
             </div>
         </div>
@@ -212,37 +206,45 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            @foreach($allSessions->take(3) as $session)
-            <a href="{{ route('sessions.show', $session->id) }}" class="block p-4 bg-slate-50 border border-slate-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all group">
-                <div class="flex items-start justify-between mb-2">
-                    <h4 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors">{{ $session->name }}</h4>
-                    @php
-                        $statusLabel = match($session->status) {
-                            'completed'   => __('Completed'),
-                            'in_progress' => __('Active'),
-                            default       => __('Active'),
-                        };
-                        $statusColor = match($session->status) {
-                            'completed' => 'bg-emerald-100 text-emerald-700',
-                            default     => 'bg-blue-100 text-blue-700',
-                        };
-                    @endphp
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest {{ $statusColor }}">
+            @foreach($allSessions->take(6) as $session)
+            @php
+                $score = $session->overall_maturity_score > 0 ? (float)$session->overall_maturity_score : ((float)$session->calculateMaturityScore() ?: 0.0);
+                $pct = round(($score / 5) * 100);
+                $badgeClass = match(true) {
+                    $score >= 4.0 => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                    $score >= 2.0 => 'bg-amber-50 text-amber-700 border-amber-200',
+                    default       => 'bg-rose-50 text-rose-700 border-rose-200',
+                };
+                $statusLabel = match($session->status) {
+                    'completed'   => __('Completed'),
+                    'in_progress' => __('In Progress'),
+                    default       => __('In Progress'),
+                };
+                $statusColor = match($session->status) {
+                    'completed' => 'bg-emerald-100 text-emerald-700',
+                    default     => 'bg-blue-100 text-blue-700',
+                };
+            @endphp
+            <a href="{{ route('sessions.show', $session->id) }}" class="block p-4 bg-slate-50 border border-slate-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all group relative">
+                <div class="flex items-start justify-between gap-3 mb-2">
+                    <h4 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors leading-snug flex-1">{{ $session->name }}</h4>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest shrink-0 {{ $statusColor }}">
                         {{ $statusLabel }}
                     </span>
                 </div>
-                <div class="flex items-center justify-between mt-4">
-                    @if($session->status === 'completed')
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-xs font-black text-slate-800">{{ number_format(($session->overall_maturity_score / 5) * 100) }}%</span>
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Score') }}</span>
-                        </div>
-                    @else
-                        <div class="flex-1 mr-3 bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                            <div class="bg-blue-400 h-full rounded-full w-1/2"></div>
-                        </div>
-                    @endif
-                    <span class="text-[9px] font-bold text-slate-400"><i class="fa-regular fa-clock mr-1"></i>{{ $session->updated_at->diffForHumans() }}</span>
+
+                {{-- Compact Inline Maturity Badge --}}
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-black border shadow-2xs {{ $badgeClass }}">
+                        <i class="fa-solid fa-chart-line text-[9px]"></i>
+                        <span>Score: {{ number_format($score, 2) }}/5.0</span>
+                        <span class="opacity-75 font-bold">({{ $pct }}%)</span>
+                    </span>
+                </div>
+
+                <div class="flex items-center justify-between mt-3 text-[9px] font-bold text-slate-400">
+                    <span><i class="fa-regular fa-clock mr-1"></i>{{ $session->updated_at->diffForHumans() }}</span>
+                    <span class="text-blue-600 group-hover:translate-x-0.5 transition-transform flex items-center gap-1 font-extrabold">{{ __('Open Session') }} <i class="fa-solid fa-chevron-right text-[8px]"></i></span>
                 </div>
             </a>
             @endforeach
@@ -330,7 +332,7 @@
                         </div>
                         <div class="min-w-0 flex-1">
                             <p class="text-[10px] font-bold text-slate-900 truncate">{{ $trail->model?->standard?->code ?? 'N/A' }} <span class="text-slate-400 font-medium ml-1">{{ __('updated') }}</span></p>
-                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">{{ str_replace('_', ' ', Str::title($trail->field_changed)) }}</p>
+                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">{{ friendly_field_label($trail->field_changed) }}</p>
                             <p class="text-[10px] text-slate-500 mt-1 truncate flex items-center gap-1.5">
                                 <span class="line-through text-rose-400">{{ $trail->old_value }}</span> 
                                 <i class="fa-solid fa-arrow-right text-[8px] text-slate-300"></i> 
@@ -645,9 +647,17 @@ window.initDashboardCharts = function() {
     }); // end waitForChartJs
 };
 
-document.addEventListener('DOMContentLoaded', window.initDashboardCharts);
-document.addEventListener('turbo:load', window.initDashboardCharts);
-document.addEventListener('turbo:render', window.initDashboardCharts);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { setTimeout(window.initDashboardCharts, 50); });
+} else {
+    setTimeout(window.initDashboardCharts, 50);
+}
+document.addEventListener('turbo:load', function() { setTimeout(window.initDashboardCharts, 50); });
+document.addEventListener('turbo:render', function() { setTimeout(window.initDashboardCharts, 50); });
+window.addEventListener('resize', function() {
+    clearTimeout(window._dashChartResizeTimer);
+    window._dashChartResizeTimer = setTimeout(window.initDashboardCharts, 250);
+});
 </script>
 @endpush
 @endif

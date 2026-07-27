@@ -21,6 +21,8 @@ return new class extends Migration
             $table->enum('role', ['user', 'admin'])->default('user');
             $table->enum('status', ['active', 'suspended'])->default('active');
             $table->foreignId('organization_id')->nullable()->constrained('organizations')->onDelete('set null');
+            $table->string('job_title')->nullable()->comment('Organizational position / job title e.g. CISO, IT Auditor');
+            $table->text('role_description')->nullable()->comment('Description of user responsibilities within the organization');
             
             $table->index(['provider', 'provider_id']);
             

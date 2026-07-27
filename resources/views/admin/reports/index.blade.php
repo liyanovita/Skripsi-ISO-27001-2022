@@ -26,7 +26,6 @@
         .page-break {
             page-break-before: always;
         }
-        /* Ensure charts print properly and do not break pages */
         .print-chart-box {
             break-inside: avoid;
             page-break-inside: avoid;
@@ -39,298 +38,450 @@
 {{-- Chart.js CDN --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
-    <div>
-        <h2 class="text-xl font-black text-slate-800">Compliance Reports & Aggregate Analytics</h2>
-        <p class="text-sm text-slate-500">View maturity statistics, sector comparisons, and export audit results.</p>
-    </div>
-    <div class="flex items-center gap-3 flex-wrap">
-        <a href="{{ route('admin.reports.export_pdf') }}" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
-            <i class="fa-solid fa-file-pdf"></i> Download PDF Report
-        </a>
-        <a href="{{ route('admin.reports.export_csv') }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
-            <i class="fa-solid fa-file-excel"></i> Export Raw Data (Excel)
-        </a>
-    </div>
-</div>
+<div class="space-y-6 pb-12">
 
-{{-- Header shown only when printing --}}
-<div class="hidden print-only mb-8 border-b-2 border-slate-800 pb-4">
-    <div class="text-center">
-        <h1 class="text-2xl font-black text-slate-900 uppercase">ISO 27001 Compliance Audit Report</h1>
-        <p class="text-sm text-slate-500 mt-1">Generated on {{ date('d F Y H:i') }} | Global System Aggregates</p>
-    </div>
-</div>
-
-<div class="print-container">
-    {{-- Summary Cards --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-            <div class="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-xl shrink-0">
-                <i class="fa-solid fa-clipboard-list"></i>
+    {{-- Page Header & Actions Bar --}}
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
+        <div>
+            <div class="flex items-center gap-2.5">
+                <span class="px-3 py-1 bg-blue-50 text-blue-700 font-black text-xs rounded-lg border border-blue-100 uppercase tracking-wider">
+                    ISO 27001:2022 Reports
+                </span>
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight">{{ __('Compliance Reports & Visual Analytics') }}</h1>
             </div>
-            <div>
-                <span class="block text-xs font-bold uppercase tracking-wider text-slate-400">Total Audit Sessions</span>
-                <span class="block text-2xl font-black text-slate-800 mt-0.5">{{ $totalSessions }}</span>
-            </div>
+            <p class="text-xs text-slate-500 font-medium mt-1">{{ __('Executive visual charts, compliance status, risk distribution, clause compliance levels, and summary insights') }}</p>
         </div>
 
-        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-            <div class="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center text-green-600 text-xl shrink-0">
-                <i class="fa-solid fa-circle-check"></i>
-            </div>
-            <div>
-                <span class="block text-xs font-bold uppercase tracking-wider text-slate-400">Completed Sessions</span>
-                <span class="block text-2xl font-black text-slate-800 mt-0.5">{{ $completedSessions }}</span>
-            </div>
-        </div>
+        <div class="flex items-center gap-3 flex-wrap">
+            <a href="{{ route('admin.reports.export_pdf') }}" 
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md shadow-rose-600/20 transition-all hover:scale-[1.02] active:scale-95 shrink-0">
+                <i class="fa-solid fa-file-pdf text-xs"></i> {{ __('PDF Report') }}
+            </a>
 
-        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-            <div class="w-12 h-12 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 text-xl shrink-0">
-                <i class="fa-solid fa-chart-line"></i>
-            </div>
-            <div>
-                <span class="block text-xs font-bold uppercase tracking-wider text-slate-400">Average Maturity Score</span>
-                <span class="block text-2xl font-black text-slate-800 mt-0.5">{{ number_format($averageScore, 2) }} <span class="text-xs text-slate-400 font-normal">/ 5.00</span></span>
-            </div>
+            <a href="{{ route('admin.reports.export_csv') }}" 
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition-all hover:scale-[1.02] active:scale-95 shrink-0">
+                <i class="fa-solid fa-file-excel text-xs"></i> {{ __('Export Excel') }}
+            </a>
         </div>
     </div>
 
-    {{-- Interactive Charts Panel --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm print-chart-box">
-            <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-chart-bar text-blue-600 no-print"></i> ISO Clauses Compliance Levels
-            </h3>
-            <div class="h-64 relative">
-                <canvas id="clausesChart"></canvas>
-            </div>
-        </div>
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm print-chart-box">
-            <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-industry text-indigo-600 no-print"></i> Sector Performance Comparison
-            </h3>
-            <div class="h-64 relative">
-                <canvas id="sectorsChart"></canvas>
-            </div>
-        </div>
+    {{-- Print Only Header --}}
+    <div class="hidden print-only mb-8 border-b-2 border-slate-800 pb-4 text-center">
+        <h1 class="text-2xl font-black text-slate-900 uppercase">ISO 27001:2022 Compliance Audit Report</h1>
+        <p class="text-sm text-slate-500 mt-1">Generated on {{ date('d F Y H:i') }} | Executive Analytics</p>
     </div>
 
-    {{-- Main Statistics Grid --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        {{-- Section: Sector Performance --}}
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-            <div class="p-5 border-b border-slate-200 bg-slate-50">
-                <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-industry text-blue-600"></i> Performance by Business Sector
-                </h3>
+    <div class="print-container space-y-6">
+
+        {{-- Executive Audit Summary & Key Insights Banner --}}
+        <div class="p-6 bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 border border-blue-100 rounded-3xl shadow-xs space-y-4">
+            <div class="flex items-center justify-between border-b border-blue-100 pb-3 flex-wrap gap-2">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-sm font-bold shadow-sm">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-black text-slate-900 uppercase tracking-wide">{{ __('Executive Audit Summary & Key Insights') }}</h2>
+                        <p class="text-xs text-slate-500 font-medium">{{ __('Concise summary of overall ISO 27001:2022 compliance rating, gap distribution, and weakest control areas') }}</p>
+                    </div>
+                </div>
+
+                @if($selectedSession)
+                <span class="px-3 py-1 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 shadow-xs">
+                    <i class="fa-solid fa-user-tie text-blue-600 mr-1"></i> {{ $selectedSession->name }} ({{ $selectedSession->user->name }})
+                </span>
+                @endif
             </div>
-            <div class="p-5 flex-1">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-600">
-                        <thead class="text-xs uppercase font-bold text-slate-400 border-b border-slate-200">
-                            <tr>
-                                <th class="pb-3">Sector</th>
-                                <th class="pb-3 text-center">Sessions</th>
-                                <th class="pb-3 text-right">Avg Score</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            @forelse($sectorPerformance as $item)
-                            <tr>
-                                <td class="py-3 font-semibold text-slate-700">{{ $item->business_sector }}</td>
-                                <td class="py-3 text-center text-slate-500">{{ $item->sessions_count }}</td>
-                                <td class="py-3 text-right">
-                                    <span class="font-black text-slate-800">{{ number_format($item->avg_score, 2) }}</span>
-                                    <div class="w-24 bg-slate-100 h-1.5 rounded-full mt-1 ml-auto overflow-hidden">
-                                        <div class="bg-blue-600 h-full rounded-full" style="width: {{ ($item->avg_score / 5) * 100 }}%"></div>
-                                    </div>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="3" class="py-6 text-center text-slate-400 italic">No industry sector data available.</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                {{-- Overall Score Gauge & Metric --}}
+                <div class="md:col-span-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-2 text-center">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">{{ __('Global Compliance Index') }}</span>
+                    <div class="text-3xl font-black text-blue-600">
+                        {{ $executiveSummary['overall_compliance_percentage'] }}%
+                    </div>
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        {{ $executiveSummary['level_name'] }}
+                    </span>
+                    <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden shadow-inner mt-2">
+                        <div class="bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 h-full rounded-full transition-all duration-700" style="width: {{ $executiveSummary['overall_compliance_percentage'] }}%"></div>
+                    </div>
+                    <p class="text-[10px] text-slate-400 font-semibold pt-1">Average Rating: <strong class="text-slate-800">{{ $executiveSummary['average_score'] }} / 5.00</strong></p>
+                </div>
+
+                {{-- Single High-Level Overall Executive Conclusion in English --}}
+                <div class="md:col-span-8 bg-white/90 p-6 rounded-2xl border border-slate-200/80 shadow-xs flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center text-lg shrink-0 font-bold mt-0.5">
+                        <i class="fa-solid fa-file-contract"></i>
+                    </div>
+                    <div class="space-y-1.5 flex-1">
+                        <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">{{ __('Executive Audit Conclusion') }}</h3>
+                        <p class="text-xs text-slate-700 font-medium leading-relaxed">
+                            Overall ISO 27001:2022 compliance stands at <strong class="text-blue-700 font-bold">{{ $executiveSummary['overall_compliance_percentage'] }}%</strong> (overall average score <strong class="text-blue-700 font-bold">{{ $executiveSummary['average_score'] }} / 5.00</strong>) with <strong class="text-amber-700 font-bold">{{ $executiveSummary['total_gaps'] }} identified control gaps</strong>. Primary remediation focus is required for <strong class="text-indigo-900 font-bold">{{ $executiveSummary['weakest_domain'] }}</strong>.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        {{-- Section: Compliance by ISO Clauses --}}
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-            <div class="p-5 border-b border-slate-200 bg-slate-50">
-                <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-indigo-600"></i> Compliance Rates by ISO Clause
-                </h3>
+        {{-- Top 3 KPI Executive Stat Cards (Grid 3 Kolom Proposional) --}}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100/80 flex items-center justify-center text-base shrink-0 font-bold">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">{{ __('Completed Sessions') }}</div>
+                    <div class="text-2xl font-black text-emerald-600 mt-0.5">{{ number_format($completedSessions) }}</div>
+                </div>
             </div>
-            <div class="p-5 flex-1">
-                <div class="space-y-4">
-                    @foreach($clauseStats as $stat)
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100/80 flex items-center justify-center text-base shrink-0 font-bold">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">{{ __('Average Rating') }}</div>
+                    <div class="text-2xl font-black text-indigo-600 mt-0.5">{{ number_format($averageScore, 2) }} <span class="text-xs text-slate-400 font-normal">/ 5.00</span></div>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 border border-rose-100/80 flex items-center justify-center text-base shrink-0 font-bold">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">{{ __('High Risk Controls') }}</div>
+                    <div class="text-2xl font-black text-rose-600 mt-0.5">{{ number_format($highRiskCount) }}</div>
+                </div>
+            </div>
+        </div>
+
+        {{-- SECTION 1: Executive Compliance & Risk Overview (Grid 2 Kolom Proposional) --}}
+        <div class="space-y-3">
+            <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400">
+                <i class="fa-solid fa-shield-halved text-blue-600"></i> Section 1: Executive Compliance & Risk Status
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {{-- Chart 1: Overall Compliance Status Chart (Doughnut Chart) --}}
+                <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs print-chart-box flex flex-col justify-between min-h-[380px]">
                     <div>
-                        <div class="flex items-center justify-between text-sm mb-1">
-                            <span class="font-bold text-slate-700 truncate max-w-[80%]" title="Clause {{ $stat['code'] }}: {{ $stat['title'] }}">
-                                Clause {{ $stat['code'] }}: {{ $stat['title'] }}
-                            </span>
-                            <span class="font-bold text-slate-800">{{ number_format($stat['avg_rating'], 2) }} / 5.00</span>
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                            <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-emerald-600"></i> {{ __('Overall ISO 27001:2022 Compliance Status') }}
+                            </h3>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Control Status</span>
                         </div>
-                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                            <div class="h-full rounded-full 
-                                {{ $stat['avg_rating'] >= 4 ? 'bg-green-500' : '' }}
-                                {{ $stat['avg_rating'] >= 2 && $stat['avg_rating'] < 4 ? 'bg-yellow-500' : '' }}
-                                {{ $stat['avg_rating'] < 2 ? 'bg-red-500' : '' }}
-                            " style="width: {{ ($stat['avg_rating'] / 5) * 100 }}%"></div>
+                        <div class="h-56 relative flex items-center justify-center">
+                            <canvas id="complianceStatusChart"></canvas>
                         </div>
                     </div>
-                    @endforeach
+                    {{-- Chart 1 Summary Takeaway --}}
+                    <div class="mt-4 p-3.5 bg-emerald-50/70 border border-emerald-100/80 rounded-2xl text-xs text-slate-700 flex items-start gap-2.5">
+                        <i class="fa-solid fa-circle-check text-emerald-600 mt-0.5 shrink-0 text-sm"></i>
+                        <div>
+                            <strong class="font-bold text-emerald-950 block text-[10px] uppercase tracking-wider mb-0.5">{{ __('Compliance Status Summary') }}:</strong>
+                            <span>Contains <strong class="text-emerald-700 font-bold">{{ $compliantCount }} Compliant controls</strong> (Level 4-5), <strong class="text-amber-700 font-bold">{{ $needsImprovementCount }} Partially Compliant controls</strong> (Level 2-3), and <strong class="text-rose-700 font-bold">{{ $nonCompliantCount }} Non-Compliant controls</strong> (Level 0-1).</span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Chart 2: Risk Priority Distribution (Doughnut Chart) --}}
+                <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs print-chart-box flex flex-col justify-between min-h-[380px]">
+                    <div>
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                            <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-pie-chart text-amber-500"></i> {{ __('Risk Priority Distribution Across Gaps') }}
+                            </h3>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ $totalGaps }} Total Gaps (Below Level 5)</span>
+                        </div>
+                        <div class="h-56 relative flex items-center justify-center">
+                            <canvas id="riskDistributionChart"></canvas>
+                        </div>
+                    </div>
+                    {{-- Chart 2 Summary Takeaway --}}
+                    <div class="mt-4 p-3.5 bg-rose-50/70 border border-rose-100/80 rounded-2xl text-xs text-slate-700 flex items-start gap-2.5">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-600 mt-0.5 shrink-0 text-sm"></i>
+                        <div>
+                            <strong class="font-bold text-rose-950 block text-[10px] uppercase tracking-wider mb-0.5">{{ __('Risk Priority Summary') }}:</strong>
+                            <span>From <strong class="text-slate-800 font-black">{{ $totalGaps }} total gaps</strong> (controls below target Level 5): <strong class="text-rose-700 font-black">{{ $highRiskCount }} High Risk</strong> (Level 0-2), <strong class="text-amber-700 font-black">{{ $mediumRiskCount }} Medium Risk</strong> (Level 3), <strong class="text-emerald-700 font-black">{{ $lowRiskCount }} Low Risk</strong> (Level 4). Remediation must prioritize High Risk items first.</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    {{-- Section: Top 5 Failing Controls --}}
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden page-break">
-        <div class="p-5 border-b border-slate-200 bg-slate-50">
-            <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                <i class="fa-solid fa-triangle-exclamation text-red-600"></i> Top 5 Critical / Failing Controls
-            </h3>
-            <p class="text-xs text-slate-500 mt-0.5">Controls with the lowest average maturity scores across all completed audits.</p>
-        </div>
-        <div class="p-5">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-600">
-                    <thead class="text-xs uppercase font-bold text-slate-400 border-b border-slate-200">
-                        <tr>
-                            <th class="pb-3">Code</th>
-                            <th class="pb-3">Control Name</th>
-                            <th class="pb-3">Type</th>
-                            <th class="pb-3 text-center">Failing Audits</th>
-                            <th class="pb-3 text-right">Average Score</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        @forelse($failingControls as $ctrl)
-                        <tr>
-                            <td class="py-3 font-bold text-red-600">{{ $ctrl->code }}</td>
-                            <td class="py-3 font-semibold text-slate-700">{{ $ctrl->title }}</td>
-                            <td class="py-3 text-xs uppercase font-semibold text-slate-400">{{ $ctrl->type }}</td>
-                            <td class="py-3 text-center text-slate-500">{{ $ctrl->occurrences }} times</td>
-                            <td class="py-3 text-right">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-red-50 text-red-700 border border-red-200">
-                                    {{ number_format($ctrl->avg_rating, 2) }} / 5.00
-                                </span>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="5" class="py-6 text-center text-slate-400 italic">No failing controls found (all controls have met target compliance!).</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+        {{-- SECTION 2: ISO Standard & Security Domain Performance (Unified Bar Chart) --}}
+        <div class="space-y-3">
+            <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400">
+                <i class="fa-solid fa-list-check text-indigo-600"></i> Section 2: ISO 27001:2022 Domains Performance (Clauses 4-10 & Annex A.5-A.8)
+            </div>
+
+            <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs print-chart-box flex flex-col justify-between min-h-[380px]">
+                <div>
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-chart-bar text-indigo-600"></i> {{ __('ISO 27001:2022 Security & Management Domains Breakdown') }}
+                        </h3>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Maturity Rating (0 - 5.00)</span>
+                    </div>
+                    <div class="h-64 relative">
+                        <canvas id="domainsChart"></canvas>
+                    </div>
+                </div>
+                {{-- Domain Summary Takeaway --}}
+                <div class="mt-4 p-3.5 bg-indigo-50/70 border border-indigo-100/80 rounded-2xl text-xs text-slate-700 flex items-start gap-2.5">
+                    <i class="fa-solid fa-lightbulb text-indigo-600 mt-0.5 shrink-0 text-sm"></i>
+                    <div>
+                        <strong class="font-bold text-indigo-950 block text-[10px] uppercase tracking-wider mb-0.5">{{ __('Domain Performance Insight') }}:</strong>
+                        <span>Performance evaluation across all 11 ISO 27001:2022 domains maintains an overall average score of <strong class="text-blue-700 font-bold">{{ $executiveSummary['average_score'] }} / 5.00</strong>, with priority remediation focused on <strong class="text-indigo-900 font-bold">{{ $executiveSummary['weakest_domain'] }}</strong>.</span>
+                    </div>
+                </div>
             </div>
         </div>
+
+        {{-- SECTION 3: Sector Benchmarking & Top Failing Controls (Grid 2 Kolom Proposional) --}}
+        <div class="space-y-3">
+            <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400">
+                <i class="fa-solid fa-industry text-emerald-600"></i> Section 3: Sector Benchmarking & Critical Controls Breakdown
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                {{-- Left: Sector Performance Comparison (Horizontal Bar Chart) --}}
+                <div class="lg:col-span-5 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs print-chart-box flex flex-col justify-between min-h-[380px]">
+                    <div>
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                            <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-industry text-emerald-600"></i> {{ __('Performance by Business Sector') }}
+                            </h3>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Avg Score</span>
+                        </div>
+                        <div class="h-56 relative">
+                            <canvas id="sectorsChart"></canvas>
+                        </div>
+                    </div>
+                    {{-- Sector Summary Takeaway --}}
+                    <div class="mt-4 p-3.5 bg-emerald-50/70 border border-emerald-100/80 rounded-2xl text-xs text-slate-700 flex items-start gap-2.5">
+                        <i class="fa-solid fa-chart-line text-emerald-600 mt-0.5 shrink-0 text-sm"></i>
+                        <div>
+                            <strong class="font-bold text-emerald-950 block text-[10px] uppercase tracking-wider mb-0.5">{{ __('Industry Sector Insight') }}:</strong>
+                            <span>Comparative compliance benchmarking across organization business sectors for strategic industry analysis.</span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Right: Top 5 High Risk & High Gap Controls Table --}}
+                <div class="lg:col-span-7 bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden print-chart-box flex flex-col justify-between min-h-[380px]">
+                    <div>
+                        <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xs font-bold">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-slate-900 text-sm">{{ __('Top 5 High Risk & High Gap Controls') }}</h3>
+                                    <p class="text-[11px] text-slate-400 font-medium">{{ __('Controls requiring priority remediation action plans') }}</p>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-100 text-rose-700 text-[10px] font-bold uppercase tracking-wider">Priority List</span>
+                        </div>
+
+                        <div class="p-4">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="bg-slate-50 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-100">
+                                        <tr>
+                                            <th class="px-3 py-2.5">{{ __('Code') }}</th>
+                                            <th class="px-3 py-2.5">{{ __('Control Title') }}</th>
+                                            <th class="px-3 py-2.5 text-center">{{ __('Gap') }}</th>
+                                            <th class="px-3 py-2.5 text-center">{{ __('Risk') }}</th>
+                                            <th class="px-3 py-2.5 text-right">{{ __('Score') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        @forelse($failingControls as $ctrl)
+                                        @php
+                                            $rPriority = $ctrl->calculated_risk ?: 'High';
+                                        @endphp
+                                        <tr class="hover:bg-slate-50/60 transition-colors">
+                                            <td class="px-3 py-2.5 font-black text-rose-600">
+                                                <span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100 font-bold text-[11px]">{{ $ctrl->code }}</span>
+                                            </td>
+                                            <td class="px-3 py-2.5 font-bold text-slate-800 leading-snug max-w-[200px] truncate" title="{{ $ctrl->title }}">{{ $ctrl->title }}</td>
+                                            <td class="px-3 py-2.5 text-center">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                                    {{ number_format($ctrl->avg_gap) }}
+                                                </span>
+                                            </td>
+                                            <td class="px-3 py-2.5 text-center">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border
+                                                    {{ $rPriority == 'High' ? 'bg-rose-50 text-rose-700 border-rose-200' : '' }}
+                                                    {{ $rPriority == 'Medium' ? 'bg-amber-50 text-amber-700 border-amber-200' : '' }}
+                                                    {{ $rPriority == 'Low' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : '' }}
+                                                ">
+                                                    {{ $rPriority }}
+                                                </span>
+                                            </td>
+                                            <td class="px-3 py-2.5 text-right">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-black bg-slate-100 text-slate-800 border border-slate-200">
+                                                    {{ number_format($ctrl->avg_rating) }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        @empty
+                                        <tr>
+                                            <td colspan="5" class="px-4 py-8 text-center text-slate-400 italic">
+                                                {{ __('No failing controls found.') }}
+                                            </td>
+                                        </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Table Summary Takeaway --}}
+                    <div class="p-3.5 m-4 mt-0 bg-rose-50/70 border border-rose-100/80 rounded-2xl text-xs text-slate-700 flex items-start gap-2.5">
+                        <i class="fa-solid fa-lightbulb text-rose-600 mt-0.5 shrink-0 text-sm"></i>
+                        <div>
+                            <strong class="font-bold text-rose-950 block text-[10px] uppercase tracking-wider mb-0.5">{{ __('High Risk Controls Insight') }}:</strong>
+                            <span>The top 5 controls listed above represent the largest compliance gaps and should be prioritized in CAPA remediation plans.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
-{{-- Render Charts script --}}
-<script>
-    document.addEventListener("turbo:load", function() {
-        initCharts();
-    });
+    </div>
+</div>
 
-    // Handle initial load before Turbo transitions
-    if (document.readyState === "complete" || document.readyState === "interactive") {
-        initCharts();
+{{-- Render All Interactive Charts Script --}}
+<script>
+    function safeInitChart(id, config) {
+        const canvas = typeof id === 'string' ? document.getElementById(id) : id;
+        if (!canvas) return;
+        if (typeof Chart !== 'undefined') {
+            const existing = Chart.getChart(canvas);
+            if (existing) {
+                existing.destroy();
+            }
+            return new Chart(canvas, config);
+        }
     }
 
     function initCharts() {
-        const clausesCtx = document.getElementById('clausesChart');
-        const sectorsCtx = document.getElementById('sectorsChart');
-
-        if (!clausesCtx || !sectorsCtx) return;
-
-        // Destroy previous instances if they exist to prevent redraw bugs
-        if (window.myClausesChart) window.myClausesChart.destroy();
-        if (window.mySectorsChart) window.mySectorsChart.destroy();
-
-        // 1. Clauses Chart Data
-        const clauseLabels = @js(collect($clauseStats)->map(fn($c) => 'Clause ' . $c['code']));
-        const clauseData = @js(collect($clauseStats)->map(fn($c) => round($c['avg_rating'], 2)));
-
-        window.myClausesChart = new Chart(clausesCtx, {
-            type: 'bar',
+        // Chart 1: Compliance Status Chart (Doughnut Chart)
+        safeInitChart('complianceStatusChart', {
+            type: 'doughnut',
             data: {
-                labels: clauseLabels,
+                labels: ['Compliant', 'Partially Compliant', 'Non-Compliant'],
                 datasets: [{
-                    label: 'Avg Maturity Rating',
-                    data: clauseData,
-                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                    borderColor: 'rgb(59, 130, 246)',
-                    borderWidth: 1,
-                    borderRadius: 6
+                    data: [{{ $compliantCount }}, {{ $needsImprovementCount }}, {{ $nonCompliantCount }}],
+                    backgroundColor: ['#10b981', '#f59e0b', '#f43f5e'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false }
-                },
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // Chart 2: Risk Priority Distribution Doughnut Chart
+        safeInitChart('riskDistributionChart', {
+            type: 'doughnut',
+            data: {
+                labels: ['High (Level 0-2)', 'Medium (Level 3)', 'Low (Level 4)'],
+                datasets: [{
+                    data: [{{ $highRiskCount }}, {{ $mediumRiskCount }}, {{ $lowRiskCount }}],
+                    backgroundColor: ['#f43f5e', '#f59e0b', '#10b981'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // Unified Domains Bar Chart (Clauses 4-10 & Annex A.5-A.8)
+        const domainData = @json($domainStats);
+        safeInitChart('domainsChart', {
+            type: 'bar',
+            data: {
+                labels: domainData.map(d => d.code),
+                datasets: [{
+                    label: 'Maturity Rating (0-5)',
+                    data: domainData.map(d => d.avg_rating),
+                    backgroundColor: domainData.map(d => d.code.startsWith('Clause') ? '#3b82f6' : '#6366f1'),
+                    borderRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
                 scales: {
-                    y: {
-                        min: 0,
-                        max: 5,
-                        grid: { color: '#f1f5f9' },
-                        ticks: { stepSize: 1, color: '#64748b' }
-                    },
-                    x: {
-                        grid: { display: false },
-                        ticks: { color: '#64748b', font: { size: 10 } }
+                    y: { beginAtZero: true, max: 5 }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const d = domainData[context.dataIndex];
+                                return d.title + ': ' + context.raw + ' / 5.00';
+                            }
+                        }
                     }
                 }
             }
         });
 
-        // 2. Sectors Chart Data
-        const sectorLabels = @js(collect($sectorPerformance)->map(fn($s) => $s->business_sector));
-        const sectorData = @js(collect($sectorPerformance)->map(fn($s) => round($s->avg_score, 2)));
-
-        window.mySectorsChart = new Chart(sectorsCtx, {
+        // Chart 5: Sector Performance Horizontal Bar Chart
+        const sectorData = @json($sectorPerformance);
+        safeInitChart('sectorsChart', {
             type: 'bar',
             data: {
-                labels: sectorLabels,
+                labels: sectorData.map(s => s.business_sector),
                 datasets: [{
-                    label: 'Avg Maturity',
-                    data: sectorData,
-                    backgroundColor: 'rgba(99, 102, 241, 0.8)',
-                    borderColor: 'rgb(99, 102, 241)',
-                    borderWidth: 1,
-                    borderRadius: 6
+                    label: 'Avg Maturity Rating',
+                    data: sectorData.map(s => parseFloat(s.avg_score).toFixed(2)),
+                    backgroundColor: '#10b981',
+                    borderRadius: 8,
                 }]
             },
             options: {
+                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
-                indexAxis: 'y',
+                scales: {
+                    x: { beginAtZero: true, max: 5 }
+                },
                 plugins: {
                     legend: { display: false }
-                },
-                scales: {
-                    x: {
-                        min: 0,
-                        max: 5,
-                        grid: { color: '#f1f5f9' },
-                        ticks: { stepSize: 1, color: '#64748b' }
-                    },
-                    y: {
-                        grid: { display: false },
-                        ticks: { color: '#64748b', font: { size: 10 } }
-                    }
                 }
             }
         });
     }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener("DOMContentLoaded", initCharts);
+    } else {
+        initCharts();
+    }
+    document.addEventListener("turbo:load", initCharts);
 </script>
 @endsection

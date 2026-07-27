@@ -25,6 +25,8 @@ class User extends Authenticatable implements MustVerifyEmailContract
         'role',
         'status',
         'organization_id',
+        'job_title',
+        'role_description',
         'provider',
         'provider_id',
         'avatar',

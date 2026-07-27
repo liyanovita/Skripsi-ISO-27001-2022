@@ -24,9 +24,9 @@ class SessionController extends Controller
         $draftSessions     = AssessmentSession::where('status', 'draft')->count();
         $activeSessions    = AssessmentSession::where('status', 'in_progress')->count();
         $completedSessions = AssessmentSession::where('status', 'completed')->count();
+        $archivedSessions  = AssessmentSession::onlyTrashed()->count();
 
-        $sessions = AssessmentSession::with(['user', 'organization'])
-            ->withCount(['results', 'invitedUsers'])
+        $sessions = AssessmentSession::with(['user', 'organization', 'invitedUsers', 'results.standard'])
             ->when($search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                       ->orWhereHas('user', fn($q) => $q->where('name', 'like', "%{$search}%"))
@@ -52,7 +52,7 @@ class SessionController extends Controller
 
         return view('admin.sessions.index', compact(
             'sessions', 'search', 'statusFilter', 'userFilter',
-            'totalSessions', 'draftSessions', 'activeSessions', 'completedSessions',
+            'totalSessions', 'draftSessions', 'activeSessions', 'completedSessions', 'archivedSessions',
             'month'
         ));
     }
@@ -62,38 +62,73 @@ class SessionController extends Controller
         $session->load(['user', 'organization', 'invitedUsers', 'results.standard']);
 
         // Calculate stats
+        // $assessed = controls that have been rated (maturity_rating IS NOT NULL)
+        // This matches the CAPA Kanban logic and produces consistent counts across the system
         $results    = $session->results;
         $assessable = $results->filter(fn($r) => is_array($r->standard?->questions) && count($r->standard->questions) > 0);
         $applicable = $assessable->filter(fn($r) => $r->is_applicable);
-        $completed  = $applicable->where('status', 'completed');
+        $completed  = $applicable->where('status', 'completed');   // workflow-completed (for progress %)
+        $assessed   = $applicable->filter(fn($r) => $r->maturity_rating !== null); // actually rated
+
+        $criticalFindings = $assessed
+            ->filter(fn($r) => $r->maturity_rating < 5)
+            ->sortByDesc(fn($r) => $r->gap)
+            ->values();
+
+        $allApplicable = $results->where('is_applicable', true);
+        $allExcluded   = $results->where('is_applicable', false);
+        $assessed      = $allApplicable->filter(fn($r) => $r->maturity_rating !== null);
+
+        // Total questions and answered questions count across assessable controls
+        $totalQuestionsCount = 0;
+        $answeredQuestionsCount = 0;
+
+        foreach ($results as $result) {
+            $questions = $result->standard?->questions;
+            if (is_array($questions) && count($questions) > 0) {
+                $qCount = count($questions);
+                $totalQuestionsCount += $qCount;
+
+                if ($result->is_applicable && $result->maturity_rating !== null) {
+                    $answeredQuestionsCount += $qCount;
+                }
+            }
+        }
+
+        $completionPct = $applicable->count() > 0
+            ? round(($assessed->count() / $applicable->count()) * 100)
+            : 0;
 
         $stats = [
-            'total_controls' => $assessable->count(),
-            'applicable'     => $applicable->count(),
-            'completed'      => $completed->count(),
-            'compliant'      => $completed->where('maturity_rating', '>=', 4)->count(),
-            'partial'        => $completed->filter(fn($r) => $r->maturity_rating >= 2 && $r->maturity_rating <= 3)->count(),
-            'non_compliant'  => $completed->where('maturity_rating', '<=', 1)->count(),
-            'excluded'       => $assessable->where('is_applicable', false)->count(),
-            'completion_pct' => $applicable->count() > 0
-                ? round(($completed->count() / $applicable->count()) * 100)
-                : 0,
+            'total_controls'     => $results->count(),                      // 137
+            'total_questions'    => $totalQuestionsCount,                   // 151
+            'answered_questions' => $answeredQuestionsCount,                // 148 KPK / 96 BI
+            'applicable'         => $applicable->count(),                   // 119 KPK (assessable + applicable)
+            'completed'          => $assessed->count(),                     // 119 KPK / 67 BI
+            'completed_target'   => $applicable->count(),                   // 119 KPK
+            'compliant'          => $assessed->where('maturity_rating', '>=', 4)->count(),
+            'partial'            => $assessed->filter(fn($r) => $r->maturity_rating >= 2 && $r->maturity_rating <= 3)->count(),
+            'non_compliant'      => $assessed->where('maturity_rating', '<=', 1)->count(),
+            'gaps'               => $criticalFindings->count(),
+            'excluded'           => $allExcluded->count(),                  // 3 KPK
+            'completion_pct'     => $completionPct,
         ];
 
         $maturityDistribution = [
-            $completed->where('maturity_rating', 1)->count(),
-            $completed->where('maturity_rating', 2)->count(),
-            $completed->where('maturity_rating', 3)->count(),
-            $completed->where('maturity_rating', 4)->count(),
-            $completed->where('maturity_rating', 5)->count(),
+            $assessed->where('maturity_rating', 1)->count(),
+            $assessed->where('maturity_rating', 2)->count(),
+            $assessed->where('maturity_rating', 3)->count(),
+            $assessed->where('maturity_rating', 4)->count(),
+            $assessed->where('maturity_rating', 5)->count(),
         ];
 
-        $criticalFindings = $completed->filter(fn($r) => $r->maturity_rating <= 1)
+        $excludedControls = $assessable
+            ->filter(fn($r) => !$r->is_applicable)
             ->sortBy(fn($r) => $r->standard->code ?? '', SORT_NATURAL)
             ->values();
 
         return view('admin.sessions.show', compact(
-            'session', 'stats', 'maturityDistribution', 'criticalFindings'
+            'session', 'stats', 'maturityDistribution', 'criticalFindings', 'excludedControls'
         ));
     }
 
@@ -107,16 +142,42 @@ class SessionController extends Controller
         $applicable = $assessable->filter(fn($r) => $r->is_applicable);
         $completed  = $applicable->where('status', 'completed');
 
+        $allApplicable = $results->where('is_applicable', true);
+        $allExcluded   = $results->where('is_applicable', false);
+        $assessed      = $allApplicable->filter(fn($r) => $r->maturity_rating !== null);
+
+        // Total questions and answered questions count across assessable controls
+        $totalQuestionsCount = 0;
+        $answeredQuestionsCount = 0;
+
+        foreach ($results as $result) {
+            $questions = $result->standard?->questions;
+            if (is_array($questions) && count($questions) > 0) {
+                $qCount = count($questions);
+                $totalQuestionsCount += $qCount;
+
+                if ($result->is_applicable && $result->maturity_rating !== null) {
+                    $answeredQuestionsCount += $qCount;
+                }
+            }
+        }
+
+        $completionPct = $allApplicable->count() > 0
+            ? round(($assessed->count() / $allApplicable->count()) * 100)
+            : 0;
+
         $stats = [
-            'total_controls' => $assessable->count(),
-            'applicable'     => $applicable->count(),
-            'completed'      => $completed->count(),
-            'compliant'      => $completed->where('maturity_rating', '>=', 4)->count(),
-            'partial'        => $completed->filter(fn($r) => $r->maturity_rating >= 2 && $r->maturity_rating <= 3)->count(),
-            'non_compliant'  => $completed->where('maturity_rating', '<=', 1)->count(),
-            'completion_pct' => $applicable->count() > 0
-                ? round(($completed->count() / $applicable->count()) * 100)
-                : 0,
+            'total_controls'     => $results->count(),                      // 137
+            'total_questions'    => $totalQuestionsCount,                   // 151
+            'answered_questions' => $answeredQuestionsCount,                // 96
+            'applicable'         => $allApplicable->count(),                // 137
+            'completed'          => $assessed->count(),                     // 67
+            'completed_target'   => $allApplicable->count(),                // 137
+            'compliant'          => $completed->where('maturity_rating', '>=', 4)->count(),
+            'partial'            => $completed->filter(fn($r) => $r->maturity_rating >= 2 && $r->maturity_rating <= 3)->count(),
+            'non_compliant'      => $completed->where('maturity_rating', '<=', 1)->count(),
+            'excluded'           => $allExcluded->count(),                  // 0
+            'completion_pct'     => $completionPct,
         ];
 
         // Group results by parent clause for structured display
@@ -125,7 +186,7 @@ class SessionController extends Controller
             ->groupBy(fn($r) => $r->standard->parent?->code ?? $r->standard->code ?? 'Other');
 
         // CAPA items: results yang membutuhkan tindakan
-        $capaItems = $completed->filter(fn($r) => $r->maturity_rating < 4)->sortBy('maturity_rating')->values();
+        $capaItems = $completed->filter(fn($r) => $r->maturity_rating < 5)->sortBy('maturity_rating')->values();
 
         return view('admin.sessions.workspace', compact(
             'session', 'stats', 'groupedResults', 'capaItems'

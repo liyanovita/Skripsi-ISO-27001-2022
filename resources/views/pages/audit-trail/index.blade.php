@@ -3,26 +3,27 @@
 @section('view_name', 'Audit Trail')
 
 @section('content')
-<div class="max-w-6xl mx-auto space-y-5 pb-8">
-    {{-- Header --}}
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center text-white shadow-lg shadow-slate-800/20">
-                <i class="fa-solid fa-clock-rotate-left text-base"></i>
+<div class="space-y-5 pb-8">
+
+    {{-- Header Card --}}
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+        <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-slate-900/20">
+                <i class="fa-solid fa-clock-rotate-left text-lg"></i>
             </div>
-            <div class="leading-none">
-                <h1 class="text-xl font-black text-slate-900 tracking-tighter uppercase">{{ __('Audit Trail') }}</h1>
-                <p class="text-slate-400 font-bold uppercase tracking-widest text-[8px] mt-0.5">{{ __('History of Changes & Activities') }}</p>
+            <div>
+                <h1 class="text-xl font-black text-slate-800 tracking-tight">{{ __('Audit Trail') }}</h1>
+                <p class="text-slate-400 font-semibold text-xs mt-0.5">{{ __('History of changes, assessment activities, and user events across the platform') }}</p>
             </div>
         </div>
 
-        {{-- Session filter & Export --}}
+        {{-- Filters & Export --}}
         <div class="flex flex-col sm:flex-row items-center gap-2">
-            <form action="{{ route('audit-trail.index') }}" method="GET" id="audit-trail-filter" x-data class="flex flex-wrap items-center gap-2">
-                <div class="relative">
-                    <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]"></i>
+            <form action="{{ route('audit-trail.index') }}" method="GET" id="audit-trail-filter" x-data class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <div class="relative flex-1 sm:flex-none">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('Search logs...') }}"
-                        class="pl-8 {{ request('search') ? 'pr-8' : 'pr-3' }} py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-slate-800/30 transition-all w-full sm:w-44 placeholder:text-slate-400"
+                        class="pl-9 {{ request('search') ? 'pr-8' : 'pr-3' }} py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-800 transition-all w-full sm:w-48"
                         @input.debounce.500ms="$el.form.requestSubmit()">
                     @if(request('search'))
                         <a href="{{ route('audit-trail.index', array_merge(request()->except(['search', 'page']))) }}" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
@@ -30,9 +31,10 @@
                         </a>
                     @endif
                 </div>
+
                 <select name="session_id" @change="$el.form.requestSubmit()"
-                    class="bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-slate-800/30 transition-all cursor-pointer shadow-sm">
-                    <option value="" {{ empty($selectedId) ? 'selected' : '' }}>-- {{ __('All Sessions') }} --</option>
+                    class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-800 transition-all cursor-pointer w-full sm:w-auto">
+                    <option value="" {{ empty($selectedId) ? 'selected' : '' }}>— {{ __('All Assessment Sessions') }} —</option>
                     @foreach($sessions as $s)
                         <option value="{{ $s->id }}" {{ $selectedId == $s->id ? 'selected' : '' }}>
                             {{ $s->name }} ({{ $s->created_at->format('M Y') }})
@@ -40,52 +42,62 @@
                     @endforeach
                 </select>
             </form>
+
             <a href="{{ route('audit-trail.export', ['session_id' => $selectedId, 'search' => request('search')]) }}"
                id="btn-export-excel"
-               class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 shadow-md transition-all flex items-center gap-2 shrink-0">
-                <i class="fa-solid fa-file-excel"></i>{{ __('Export') }}</a>
+               class="px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20 active:scale-95 flex items-center gap-1.5 shrink-0">
+                <i class="fa-solid fa-file-excel text-xs"></i> {{ __('Export Excel') }}
+            </a>
         </div>
     </div>
 
-    {{-- Content --}}
+    {{-- Main Table Card --}}
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead class="bg-slate-50 border-b border-slate-100">
-                    <tr>
-                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ __('Date & Time') }}</th>
-                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ __('User') }}</th>
-                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ __('Control') }}</th>
-                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ __('Field Changed') }}</th>
-                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ __('Old Value') }}</th>
-                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ __('New Value') }}</th>
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-slate-50/80 border-b border-slate-100">
+                        <th class="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ __('Date & Time') }}</th>
+                        <th class="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ __('User / Actor') }}</th>
+                        <th class="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ __('Control Code') }}</th>
+                        <th class="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ __('Field Changed') }}</th>
+                        <th class="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ __('Old Value') }}</th>
+                        <th class="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ __('New Value') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
                     @forelse($trails as $trail)
-                        <tr class="hover:bg-slate-50/50 transition-all">
-                            <td class="px-4 py-3 whitespace-nowrap">
-                                <div class="text-xs font-bold text-slate-800">{{ $trail->created_at->format('d M Y') }}</div>
-                                <div class="text-[10px] font-medium text-slate-400">{{ $trail->created_at->format('H:i:s') }}</div>
+                        <tr class="hover:bg-slate-50/60 transition-colors">
+                            {{-- Date & Time --}}
+                            <td class="px-5 py-3.5 whitespace-nowrap">
+                                <div class="font-bold text-slate-800 text-xs">{{ $trail->created_at->format('d M Y') }}</div>
+                                <div class="text-[10px] text-slate-400 font-mono mt-0.5">{{ $trail->created_at->format('H:i:s') }}</div>
                             </td>
-                            <td class="px-4 py-3">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[9px] font-bold text-slate-600">
-                                        {{ substr($trail->user->name ?? '?', 0, 1) }}
+
+                            {{-- User --}}
+                            <td class="px-5 py-3.5">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 text-[10px] font-black shrink-0">
+                                        {{ strtoupper(substr($trail->user->name ?? 'S', 0, 1)) }}
                                     </div>
-                                    <span class="text-xs font-bold text-slate-700">{{ $trail->user->name ?? 'System' }}</span>
+                                    <span class="font-bold text-slate-800 text-xs truncate max-w-[140px]">{{ $trail->user->name ?? 'System' }}</span>
                                 </div>
                             </td>
-                            <td class="px-4 py-3">
-                                <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[9px] font-black uppercase tracking-widest">
+
+                            {{-- Control --}}
+                            <td class="px-5 py-3.5">
+                                <span class="px-2.5 py-1 bg-slate-900 text-white rounded-md text-xs font-mono font-bold">
                                     {{ $trail->model?->standard?->code ?? 'N/A' }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3">
-                                <span class="text-xs font-bold text-indigo-600">
-                                    {{ str_replace('_', ' ', Str::title($trail->field_changed)) }}
+
+                            {{-- Field Changed --}}
+                            <td class="px-5 py-3.5">
+                                <span class="inline-flex items-center px-2.5 py-0.5 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold border border-indigo-100">
+                                    {{ friendly_field_label($trail->field_changed) }}
                                 </span>
                             </td>
+
                             @php
                                 $booleanFields = ['is_applicable'];
                                 $isBool = in_array($trail->field_changed, $booleanFields);
@@ -98,28 +110,32 @@
                                     ? ($isBool ? ($newRaw == '1' ? 'Yes' : 'No') : $newRaw)
                                     : null;
                             @endphp
-                            <td class="px-4 py-3">
+
+                            {{-- Old Value --}}
+                            <td class="px-5 py-3.5 text-xs">
                                 @if(is_null($oldDisplay))
-                                    <span class="text-slate-300 text-xs">—</span>
+                                    <span class="text-slate-300 italic">—</span>
                                 @elseif($isBool)
-                                    <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest {{ $oldDisplay === 'Yes' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500' }}">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider {{ $oldDisplay === 'Yes' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700' }}">
                                         {{ $oldDisplay }}
                                     </span>
                                 @else
-                                    <div class="text-xs text-rose-500 font-medium bg-rose-50 px-2 py-0.5 rounded inline-block max-w-[120px] truncate">
+                                    <div class="max-w-[140px] truncate bg-rose-50/80 text-rose-700 border border-rose-100/80 px-2 py-0.5 rounded-lg text-xs font-medium" title="{{ $oldDisplay }}">
                                         {{ $oldDisplay }}
                                     </div>
                                 @endif
                             </td>
-                            <td class="px-4 py-3">
+
+                            {{-- New Value --}}
+                            <td class="px-5 py-3.5 text-xs">
                                 @if(is_null($newDisplay))
-                                    <span class="text-slate-300 text-xs">—</span>
+                                    <span class="text-slate-300 italic">—</span>
                                 @elseif($isBool)
-                                    <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest {{ $newDisplay === 'Yes' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500' }}">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider {{ $newDisplay === 'Yes' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700' }}">
                                         {{ $newDisplay }}
                                     </span>
                                 @else
-                                    <div class="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded inline-block max-w-[120px] truncate">
+                                    <div class="max-w-[140px] truncate bg-emerald-50/80 text-emerald-700 border border-emerald-100/80 px-2 py-0.5 rounded-lg text-xs font-bold" title="{{ $newDisplay }}">
                                         {{ $newDisplay }}
                                     </div>
                                 @endif
@@ -127,45 +143,26 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-14 text-center">
-                                <div class="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                                    <i class="fa-solid fa-clock-rotate-left text-xl text-slate-300"></i>
+                            <td colspan="6" class="py-20 text-center">
+                                <div class="w-16 h-16 rounded-3xl bg-slate-50 border border-slate-100 flex items-center justify-center mx-auto mb-4">
+                                    <i class="fa-solid fa-clock-rotate-left text-3xl text-slate-200"></i>
                                 </div>
-                                <p class="text-slate-400 font-bold uppercase tracking-widest text-[10px]">{{ __('No changes found in the audit trail.') }}</p>
+                                <p class="text-slate-800 font-bold text-sm">{{ __('No changes found in the audit trail') }}</p>
+                                <p class="text-xs text-slate-400 mt-1">{{ __('Try selecting another audit session or clearing search filters.') }}</p>
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+
+        {{-- Pagination --}}
+        @if($trails->hasPages())
+            <div class="px-5 py-4 border-t border-slate-100 bg-slate-50/50">
+                {{ $trails->links() }}
+            </div>
+        @endif
     </div>
 
-    {{-- Pagination --}}
-    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 px-1">
-        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            {{ __('Showing') }} <span class="text-slate-700">{{ $trails->firstItem() ?? 0 }}</span>
-            {{ __('to') }} <span class="text-slate-700">{{ $trails->lastItem() ?? 0 }}</span>
-        </div>
-        <div class="flex items-center gap-2">
-            @if ($trails->onFirstPage())
-                <span class="px-4 py-2 rounded-xl border border-slate-100 bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest cursor-not-allowed opacity-60 flex items-center gap-2">
-                    <i class="fa-solid fa-chevron-left"></i> {{ __('Prev') }}
-                </span>
-            @else
-                <a href="{{ $trails->previousPageUrl() }}" class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[10px] font-black uppercase tracking-widest hover:border-blue-200 hover:text-blue-600 transition-all shadow-sm flex items-center gap-2">
-                    <i class="fa-solid fa-chevron-left"></i> {{ __('Prev') }}
-                </a>
-            @endif
-            @if ($trails->hasMorePages())
-                <a href="{{ $trails->nextPageUrl() }}" class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[10px] font-black uppercase tracking-widest hover:border-blue-200 hover:text-blue-600 transition-all shadow-sm flex items-center gap-2">
-                    {{ __('Next') }} <i class="fa-solid fa-chevron-right"></i>
-                </a>
-            @else
-                <span class="px-4 py-2 rounded-xl border border-slate-100 bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest cursor-not-allowed opacity-60 flex items-center gap-2">
-                    {{ __('Next') }} <i class="fa-solid fa-chevron-right"></i>
-                </span>
-            @endif
-        </div>
-    </div>
 </div>
 @endsection

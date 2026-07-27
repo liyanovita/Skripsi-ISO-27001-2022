@@ -56,7 +56,7 @@ class AnalyticsService
             $results = $this->filterAssessableResults($latestSession->results);
 
             // Get findings using trait method
-            $findings = $this->getFindings($results, 3);
+            $findings = $this->getFindings($results);
             $complianceBreakdown = $this->calculateComplianceBreakdown($results);
 
             $scored = $results->where('status', 'completed');
@@ -112,10 +112,11 @@ class AnalyticsService
             ]);
 
         if ($latestSession) {
+            $latestSession->calculateMaturityScore();
             $comparison = $this->buildComparison($latestSession, $previousSession);
 
             $results = $this->filterAssessableResults($latestSession->results);
-            $findings = $this->getFindings($results, 3);
+            $findings = $this->getFindings($results);
 
             // Calculate maturity distribution using trait method
             $maturityDistribution = array_values($this->calculateMaturityDistribution($results));
@@ -132,26 +133,55 @@ class AnalyticsService
                 ])->values()->all(),
             ];
 
-            // Calculate stats
+            // Calculate stats using assessable results (119 applicable + 3 excluded = 122 total assessable controls)
             $activeResults = $results->where('is_applicable', true);
+            $excludedResults = $results->where('is_applicable', false);
+
             $stats = [
-                'total_gaps' => $findings->count(),
+                'total_gaps' => $activeResults->where('status', 'completed')->whereNotNull('maturity_rating')->where('maturity_rating', '<', 5)->count(),
                 'critical' => $this->getCriticalFindings($results)->count(),
                 'compliant' => $complianceBreakdown['compliant'],
                 'partial' => $complianceBreakdown['partial'],
                 'non_compliant' => $complianceBreakdown['non_compliant'],
-                'needs_improvement' => $findings->count(),
+                'needs_improvement' => $activeResults->where('status', 'completed')->whereNotNull('maturity_rating')->where('maturity_rating', '<', 5)->count(),
                 'unassessed' => $complianceBreakdown['unassessed'],
-                'excluded' => $complianceBreakdown['excluded'] ?? 0,
-                'total_controls' => $activeResults->count() ?: 1,
+                'excluded' => $excludedResults->count(),
+                'total_controls' => max($activeResults->count(), 1),
             ];
+            $groupedResults = $latestSession->results
+                ->filter(fn($r) => is_array($r->standard?->questions) && count($r->standard->questions) > 0)
+                ->groupBy(function($r) {
+                    $code = $r->standard->code ?? '';
+                    if (\Illuminate\Support\Str::startsWith($code, 'A.')) {
+                        $parts = explode('.', $code);
+                        return $parts[0] . '.' . ($parts[1] ?? '');
+                    }
+                    $parts = explode('.', $code);
+                    return $parts[0] ?? 'Main Clauses';
+                })
+                ->sortKeys();
+        } else {
+            $groupedResults = collect();
         }
 
-        $isAiProcessing = $latestSession
-            ? Cache::get("session_{$latestSession->id}_summary_status") === 'processing'
-            : false;
+        $isAiProcessing = false;
+        if ($latestSession && $latestSession->status === 'completed') {
+            $isAiProcessing = \Illuminate\Support\Facades\Cache::get("session_{$latestSession->id}_ai_summary_processing", false);
+        }
 
-        return compact('sessions', 'latestSession', 'comparison', 'selectedId', 'stats', 'maturityDistribution', 'complianceBreakdown', 'maturityViews', 'maturityTrends', 'isAiProcessing');
+        return compact(
+            'sessions',
+            'latestSession',
+            'selectedId',
+            'comparison',
+            'stats',
+            'maturityDistribution',
+            'complianceBreakdown',
+            'maturityViews',
+            'maturityTrends',
+            'isAiProcessing',
+            'groupedResults'
+        );
     }
 
     /**
@@ -169,6 +199,10 @@ class AnalyticsService
 
     protected function calculateSessionMaturityScore(AssessmentSession $session): float
     {
+        if ((float) $session->overall_maturity_score > 0) {
+            return (float) $session->overall_maturity_score;
+        }
+
         $score = $this->filterApplicableResults($this->filterAssessableResults($session->results))
             ->where('status', 'completed')
             ->where('maturity_rating', '>=', 0)

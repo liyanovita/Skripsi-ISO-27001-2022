@@ -4,153 +4,185 @@
 @section('header_title', 'Knowledge Base')
 
 @section('content')
-<div>
+<div class="space-y-6">
 
     {{-- Page Header --}}
-    <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h2 class="text-xl font-black text-slate-800">Knowledge Base</h2>
-            <p class="text-sm text-slate-500">Manage guidance articles, policy documents, and templates.</p>
+            <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs shrink-0">
+                    <i class="fa-solid fa-book-open"></i>
+                </span>
+                Knowledge Base
+            </h2>
+            <p class="text-sm text-slate-500 mt-0.5 ml-9">Manage guidance articles, ISO 27001:2022 policy templates, SOPs, and compliance evidence.</p>
         </div>
-        <a href="{{ route('admin.knowledge.create') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm">
-            <i class="fa-solid fa-plus"></i> Add Article / Document
+        <a href="{{ route('admin.knowledge.create') }}"
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 active:scale-95 transition-all shadow-md shadow-indigo-600/20 shrink-0">
+            <i class="fa-solid fa-plus text-xs"></i> Add Document
         </a>
     </div>
 
-    {{-- Stats Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <div class="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-4 shadow-sm">
-            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0">
-                <i class="fa-solid fa-book-open"></i>
+    {{-- KPI Stats Cards --}}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Articles</span>
+                <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <i class="fa-solid fa-book-open text-xs"></i>
+                </div>
             </div>
-            <div>
-                <div class="text-2xl font-black text-slate-800">{{ number_format($totalCount) }}</div>
-                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Articles</div>
-            </div>
+            <div class="text-3xl font-black text-slate-900 tracking-tight">{{ number_format($totalCount) }}</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">System knowledge items</div>
         </div>
-        <div class="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-4 shadow-sm">
-            <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
-                <i class="fa-solid fa-download"></i>
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Downloads</span>
+                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <i class="fa-solid fa-download text-xs"></i>
+                </div>
             </div>
-            <div>
-                <div class="text-2xl font-black text-slate-800">{{ number_format($totalDownloads) }}</div>
-                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Downloads</div>
+            <div class="text-3xl font-black text-emerald-600 tracking-tight">{{ number_format($totalDownloads) }}</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">Cumulative downloads</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Categories</span>
+                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <i class="fa-solid fa-layer-group text-xs"></i>
+                </div>
             </div>
+            <div class="text-3xl font-black text-slate-900 tracking-tight">4</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">Guides, Templates, SOP, Evidence</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Standard</span>
+                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <i class="fa-solid fa-award text-xs"></i>
+                </div>
+            </div>
+            <div class="text-2xl font-black text-blue-600 tracking-tight">ISO 27001:2022</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">2022 Implementation Asset</div>
         </div>
     </div>
 
-    {{-- Table Card --}}
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    {{-- Main Table Card --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
 
         {{-- Filter Bar --}}
-        <div class="p-4 border-b border-slate-200 bg-slate-50">
-            <form method="GET" action="{{ route('admin.knowledge.index') }}" x-data class="flex flex-col sm:flex-row gap-3">
-                <div class="flex-1 relative">
-                    <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+        <div class="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50/80 to-white">
+            <form method="GET" action="{{ route('admin.knowledge.index') }}" x-data class="flex flex-col sm:flex-row gap-3 items-center">
+                <div class="flex-1 relative w-full">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 text-sm pointer-events-none"></i>
                     <input type="text" name="search" value="{{ request('search') }}"
-                        x-on:input.debounce.500ms="$el.closest('form').requestSubmit()"
-                        placeholder="Search title, description or content..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        x-on:input.debounce.400ms="$el.closest('form').requestSubmit()"
+                        placeholder="Search title, description or content…"
+                        class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 transition-all bg-white">
                 </div>
-                <select name="category" x-on:change="$el.closest('form').requestSubmit()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white min-w-[140px]">
-                    <option value="">{{ __('All Categories') }}</option>
-                    @foreach($categories as $cat)
-                        <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>
-                            {{ $cat === 'sop' ? 'SOP' : __(ucfirst($cat)) }}
-                        </option>
-                    @endforeach
-                </select>
-                @if(request()->hasAny(['search', 'category']))
-                    <a href="{{ route('admin.knowledge.index') }}" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-xmark"></i> Clear
-                    </a>
-                @endif
+                <div class="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                    <select name="category" x-on:change="$el.closest('form').requestSubmit()"
+                        class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none bg-white font-semibold text-slate-600 cursor-pointer w-full sm:w-auto">
+                        <option value="">All Categories</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>
+                                {{ $cat === 'sop' ? 'SOP' : __(ucfirst($cat)) }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @if(request()->hasAny(['search', 'category']))
+                        <a href="{{ route('admin.knowledge.index') }}"
+                            class="px-3 py-2.5 bg-slate-100 text-slate-500 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors flex items-center gap-1.5 shrink-0">
+                            <i class="fa-solid fa-xmark text-xs"></i> Clear
+                        </a>
+                    @endif
+                </div>
             </form>
         </div>
 
         {{-- Table --}}
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm text-slate-600">
-                <thead class="bg-slate-50 text-xs uppercase font-bold text-slate-500 border-b border-slate-200">
-                    <tr>
-                        <th class="px-6 py-4">Title & Details</th>
-                        <th class="px-6 py-4">Category</th>
-                        <th class="px-6 py-4">Attachment</th>
-                        <th class="px-6 py-4 text-center">Downloads</th>
-                        <th class="px-6 py-4 text-right">Actions</th>
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-slate-50/80 border-b border-slate-100">
+                        <th class="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Document & Details</th>
+                        <th class="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Category</th>
+                        <th class="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Attachment</th>
+                        <th class="px-5 py-3 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Downloads</th>
+                        <th class="px-5 py-3 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody class="divide-y divide-slate-50">
                     @forelse($knowledgeBases as $kb)
                     @php
-                        $item = [
-                            'title'       => $kb->title,
-                            'category'    => $kb->category,
-                            'description' => $kb->description,
-                            'content'     => $kb->content,
-                            'icon'        => $kb->icon ?? 'fa-solid fa-file-lines',
-                            'is_system'   => $kb->is_system,
-                            'format'      => $kb->format,
-                            'size'        => $kb->size,
-                        ];
+                        $catStyle = match($kb->category) {
+                            'guides' => 'bg-indigo-50 text-indigo-700 border-indigo-100',
+                            'templates' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                            'sop' => 'bg-amber-50 text-amber-700 border-amber-100',
+                            'evidence' => 'bg-blue-50 text-blue-700 border-blue-100',
+                            default => 'bg-slate-100 text-slate-600 border-slate-200',
+                        };
                     @endphp
-                    <tr class="hover:bg-slate-50/80 transition-colors">
-                        <td class="px-6 py-4">
+                    <tr class="hover:bg-indigo-50/20 transition-colors">
+                        <td class="px-5 py-3.5">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0">
+                                <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-black text-sm shrink-0">
                                     <i class="{{ $kb->icon ?? 'fa-solid fa-file-lines' }}"></i>
                                 </div>
-                                <div>
-                                    <div class="font-bold text-slate-800 max-w-xs truncate">{{ $kb->title }}</div>
-                                    <div class="text-xs text-slate-400 line-clamp-1 mt-0.5 max-w-xs" title="{{ $kb->description }}">{{ $kb->description }}</div>
+                                <div class="min-w-0">
+                                    <a href="{{ route('admin.knowledge.show', $kb) }}" class="font-bold text-slate-900 hover:text-indigo-600 transition-colors block truncate max-w-sm">
+                                        {{ $kb->title }}
+                                    </a>
+                                    <div class="text-[11px] text-slate-400 truncate max-w-sm mt-0.5" title="{{ $kb->description }}">
+                                        {{ $kb->description }}
+                                    </div>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-slate-100 text-slate-600">
+                        <td class="px-5 py-3.5">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border {{ $catStyle }}">
                                 {{ $kb->category === 'sop' ? 'SOP' : __(ucfirst($kb->category)) }}
                             </span>
                         </td>
-
-                        <td class="px-6 py-4">
+                        <td class="px-5 py-3.5">
                             @if($kb->attachment_path)
-                                <div class="flex items-center gap-2">
-                                    <span class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded text-xs font-bold uppercase">{{ $kb->format }}</span>
-                                    <span class="text-xs text-slate-400">{{ $kb->size }}</span>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-black uppercase tracking-wider border border-emerald-100">
+                                        {{ $kb->format ?? 'FILE' }}
+                                    </span>
+                                    @if($kb->size)
+                                        <span class="text-[10px] text-slate-400 font-mono">{{ $kb->size }}</span>
+                                    @endif
                                 </div>
                             @else
-                                <span class="text-xs text-slate-400 italic">No attachment</span>
+                                <span class="text-xs text-slate-300 italic">No attachment</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 text-center">
-                            <span class="font-bold text-slate-700">{{ number_format($kb->downloads_count) }}</span>
+                        <td class="px-5 py-3.5 text-center">
+                            <span class="font-black text-slate-700">{{ number_format($kb->downloads_count) }}</span>
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-5 py-3.5 text-right">
                             <div class="flex items-center justify-end gap-1.5">
-                                {{-- Preview --}}
                                 <a href="{{ route('admin.knowledge.show', $kb) }}"
-                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors"
-                                    title="Preview">
+                                    class="w-8 h-8 rounded-xl flex items-center justify-center text-blue-500 hover:bg-blue-50 border border-blue-100 bg-white transition-colors" title="View">
                                     <i class="fa-solid fa-eye text-xs"></i>
                                 </a>
-                                {{-- Edit --}}
                                 <a href="{{ route('admin.knowledge.edit', $kb) }}"
-                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 hover:bg-blue-50 transition-colors"
-                                    title="Edit">
+                                    class="w-8 h-8 rounded-xl flex items-center justify-center text-amber-600 hover:bg-amber-50 border border-amber-100 bg-white transition-colors" title="Edit">
                                     <i class="fa-solid fa-pen text-xs"></i>
                                 </a>
-                                {{-- Delete --}}
                                 <form method="POST" action="{{ route('admin.knowledge.destroy', $kb) }}"
                                     x-data
                                     @submit.prevent="
                                         Swal.fire({
-                                            title: '{{ addslashes(__('Delete Document?')) }}',
-                                            text: '{{ addslashes(__('Are you sure you want to delete document ":title"? This action cannot be undone.', ['title' => $kb->title])) }}',
+                                            title: 'Delete Document?',
+                                            text: 'Are you sure you want to delete document &quot;{{ addslashes($kb->title) }}&quot;? This action cannot be undone.',
                                             icon: 'warning',
                                             showCancelButton: true,
                                             confirmButtonColor: '#ef4444',
                                             cancelButtonColor: '#64748b',
-                                            confirmButtonText: '{{ addslashes(__('Yes, Delete!')) }}',
-                                            cancelButtonText: '{{ addslashes(__('Cancel')) }}',
+                                            confirmButtonText: 'Yes, Delete!',
+                                            cancelButtonText: 'Cancel',
                                             width: '22rem',
                                             customClass: {
                                                 title: 'text-base font-bold text-slate-800',
@@ -159,15 +191,12 @@
                                                 cancelButton: 'text-xs px-3 py-2 rounded-lg font-semibold'
                                             }
                                         }).then((result) => {
-                                            if (result.isConfirmed) {
-                                                $el.submit();
-                                            }
+                                            if (result.isConfirmed) { $el.submit(); }
                                         });
                                     ">
                                     @csrf @method('DELETE')
                                     <button type="submit"
-                                        class="w-8 h-8 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors"
-                                        title="Delete">
+                                        class="w-8 h-8 rounded-xl flex items-center justify-center text-red-400 hover:bg-red-50 border border-red-100 bg-white transition-colors" title="Delete">
                                         <i class="fa-solid fa-trash-can text-xs"></i>
                                     </button>
                                 </form>
@@ -176,12 +205,12 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-16 text-center">
-                            <i class="fa-solid fa-folder-open text-4xl mb-4 text-slate-300 block"></i>
-                            <p class="text-slate-500 font-medium">No knowledge base items found.</p>
-                            @if(request()->hasAny(['search', 'category', 'source']))
-                                <p class="text-sm text-slate-400 mt-1">Try clearing your filters.</p>
-                            @endif
+                        <td colspan="5" class="py-20 text-center">
+                            <div class="w-16 h-16 rounded-3xl bg-slate-50 border border-slate-100 flex items-center justify-center mx-auto mb-4">
+                                <i class="fa-solid fa-book-open text-3xl text-slate-200"></i>
+                            </div>
+                            <p class="text-slate-500 font-bold text-sm">No Knowledge Base Items Found</p>
+                            <p class="text-slate-400 text-xs mt-1">Try adjusting your search query or category filters.</p>
                         </td>
                     </tr>
                     @endforelse
@@ -189,13 +218,13 @@
             </table>
         </div>
 
+        {{-- Pagination --}}
         @if($knowledgeBases->hasPages())
-        <div class="p-4 border-t border-slate-200 bg-slate-50">
+        <div class="px-5 py-4 border-t border-slate-100 bg-slate-50/50">
             {{ $knowledgeBases->links() }}
         </div>
         @endif
     </div>
-
 
 </div>
 @endsection

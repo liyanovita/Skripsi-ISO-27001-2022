@@ -1,131 +1,196 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit User')
+@section('title', 'Edit User — ' . $user->name)
 @section('header_title', 'Edit User')
 
 @section('content')
+<style>
+    .form-input { transition: border-color 0.15s, box-shadow 0.15s; }
+    .form-input:focus { box-shadow: 0 0 0 3px rgba(139,92,246,0.1); border-color: #c4b5fd; outline: none; background: #fff; }
+    .section-card { background: #fff; border-radius: 1.25rem; border: 1px solid #f1f5f9; box-shadow: 0 1px 4px 0 rgba(30,58,138,0.04); }
+</style>
+
 <div class="max-w-2xl">
-    <div class="mb-6">
-        <a href="{{ route('admin.users.show', $user) }}" class="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors">
-            <i class="fa-solid fa-arrow-left"></i> Back to User Profile
-        </a>
+    {{-- Back --}}
+    <a href="{{ route('admin.users.show', $user) }}"
+        class="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-violet-600 transition-colors mb-5 font-medium group">
+        <i class="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> Back to {{ $user->name }}
+    </a>
+
+    {{-- Page Title --}}
+    <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white flex items-center justify-center font-black text-sm shadow-md shadow-violet-600/20">
+            {{ strtoupper(substr($user->name, 0, 2)) }}
+        </div>
+        <div>
+            <h2 class="text-lg font-black text-slate-800">Edit Profile</h2>
+            <p class="text-xs text-slate-400 font-medium">Update details for <strong class="text-slate-600">{{ $user->name }}</strong></p>
+        </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-5 border-b border-slate-100">
-            <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                <i class="fa-solid fa-user-pen text-blue-500"></i> Edit: {{ $user->name }}
+    {{-- Profile Update Form --}}
+    <form method="POST" action="{{ route('admin.users.update', $user) }}" class="space-y-5" x-data="{ role: '{{ old('role', $user->role) }}' }">
+        @csrf @method('PUT')
+
+        {{-- Identity --}}
+        <div class="section-card p-6 space-y-4">
+            <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <i class="fa-solid fa-id-card text-violet-400"></i> Account Identity
             </h3>
-        </div>
-
-        <form method="POST" action="{{ route('admin.users.update', $user) }}" class="p-6 space-y-5">
-            @csrf @method('PUT')
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Full Name *</label>
-                    <input type="text" name="name" value="{{ old('name', $user->name) }}" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                    @error('name') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Full Name <span class="text-red-400">*</span></label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-sm pointer-events-none"></i>
+                        <input type="text" name="name" value="{{ old('name', $user->name) }}" required
+                            class="form-input w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                    </div>
+                    @error('name') <p class="text-xs text-red-500 mt-1.5 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation text-[10px]"></i> {{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Email *</label>
-                    <input type="email" name="email" value="{{ old('email', $user->email) }}" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                    @error('email') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Email Address <span class="text-red-400">*</span></label>
+                    <div class="relative">
+                        <i class="fa-regular fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-sm pointer-events-none"></i>
+                        <input type="email" name="email" value="{{ old('email', $user->email) }}" required
+                            class="form-input w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                    </div>
+                    @error('email') <p class="text-xs text-red-500 mt-1.5 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation text-[10px]"></i> {{ $message }}</p> @enderror
                 </div>
             </div>
+        </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        {{-- Role & Status --}}
+        <div class="section-card p-6 space-y-4">
+            <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-violet-400"></i> Role & Access
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Role *</label>
-                    <select name="role" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" {{ $user->id === auth()->id() ? 'disabled' : '' }}>
-                        <option value="user" {{ old('role', $user->role) === 'user' ? 'selected' : '' }}>User</option>
-                        <option value="admin" {{ old('role', $user->role) === 'admin' ? 'selected' : '' }}>Admin (Auditor)</option>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Role <span class="text-red-400">*</span></label>
+                    <select name="role" x-model="role" required
+                        class="form-input w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm cursor-pointer {{ $user->id === auth()->id() ? 'opacity-60 cursor-not-allowed' : '' }}"
+                        {{ $user->id === auth()->id() ? 'disabled' : '' }}>
+                        <option value="user">User</option>
+                        <option value="admin">Administrator</option>
                     </select>
                     @if($user->id === auth()->id())
                         <input type="hidden" name="role" value="{{ $user->role }}">
-                        <p class="text-xs text-amber-600 mt-1"><i class="fa-solid fa-lock"></i> Cannot change your own role</p>
+                        <p class="text-[11px] text-amber-500 mt-1.5 flex items-center gap-1 font-medium">
+                            <i class="fa-solid fa-lock text-[10px]"></i> Cannot change your own role
+                        </p>
                     @endif
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Status *</label>
-                    <select name="status" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                        <option value="active" {{ old('status', $user->status) === 'active' ? 'selected' : '' }}>Active</option>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Account Status <span class="text-red-400">*</span></label>
+                    <select name="status" required class="form-input w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm cursor-pointer">
+                        <option value="active"    {{ old('status', $user->status) === 'active' ? 'selected' : '' }}>Active</option>
                         <option value="suspended" {{ old('status', $user->status) === 'suspended' ? 'selected' : '' }}>Suspended</option>
                     </select>
                 </div>
             </div>
-
-            <hr class="border-slate-200">
-
-            <h4 class="font-bold text-sm text-slate-600 flex items-center gap-2">
-                <i class="fa-solid fa-building text-slate-400"></i> Organization (Optional)
-            </h4>
-
-            <div>
-                <div class="flex items-center justify-between mb-1.5">
-                    <label class="block text-sm font-bold text-slate-700">Select Organization</label>
-                    <a href="{{ route('admin.organizations.create') }}" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
-                        <i class="fa-solid fa-plus-circle"></i> Buat Organisasi Baru
-                    </a>
-                </div>
-                <select name="organization_id" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                    <option value="">Select organization...</option>
-                    @foreach($organizations as $org)
-                        <option value="{{ $org->id }}" {{ old('organization_id', $user->organization_id) == $org->id ? 'selected' : '' }}>
-                            {{ $org->name }} ({{ $org->code }})
-                        </option>
-                    @endforeach
-                </select>
-                @error('organization_id') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-            </div>
-
-            <div class="flex items-center justify-end gap-3 pt-4">
-                <a href="{{ route('admin.users.show', $user) }}" class="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors">Cancel</a>
-                <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors flex items-center gap-2">
-                    <i class="fa-solid fa-save"></i> Save Changes
-                </button>
-            </div>
-        </form>
-    </div>
-
-    {{-- Reset Password Section --}}
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mt-6">
-        <div class="p-5 border-b border-slate-100">
-            <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                <i class="fa-solid fa-key text-amber-500"></i> Reset Password
-            </h3>
         </div>
-        <form method="POST" action="{{ route('admin.users.reset-password', $user) }}" class="p-6 space-y-5">
+
+        {{-- Organization --}}
+        <div class="section-card p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fa-solid fa-building text-violet-400"></i> Organization
+                    <span class="text-[9px] font-medium text-slate-300 normal-case tracking-normal">Optional</span>
+                </h3>
+                <a href="{{ route('admin.organizations.create') }}"
+                    class="text-[11px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 bg-blue-50 px-2.5 py-1.5 rounded-lg hover:bg-blue-100 transition-colors">
+                    <i class="fa-solid fa-plus-circle text-[10px]"></i> Add New Organization
+                </a>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div :class="role === 'user' ? '' : 'sm:col-span-2'">
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Select Organization</label>
+                    <select name="organization_id" class="form-input w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm cursor-pointer">
+                        <option value="">— No organization —</option>
+                        @foreach($organizations as $org)
+                            <option value="{{ $org->id }}" {{ old('organization_id', $user->organization_id) == $org->id ? 'selected' : '' }}>
+                                {{ $org->name }}{{ $org->code ? ' (' . $org->code . ')' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('organization_id') <p class="text-xs text-red-500 mt-1.5 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation text-[10px]"></i> {{ $message }}</p> @enderror
+                </div>
+                <div x-show="role === 'user'">
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Position / Job Title</label>
+                    <input type="text" name="job_title" value="{{ old('job_title', $user->job_title) }}"
+                        placeholder="e.g. CISO, IT Auditor, Risk Manager"
+                        class="form-input w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                    @error('job_title') <p class="text-xs text-red-500 mt-1.5 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation text-[10px]"></i> {{ $message }}</p> @enderror
+                </div>
+            </div>
+            <div x-show="role === 'user'">
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">Role Description & Responsibilities</label>
+                <textarea name="role_description" rows="2"
+                    placeholder="Describe user's role and security responsibilities within the organization…"
+                    class="form-input w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm resize-none">{{ old('role_description', $user->role_description) }}</textarea>
+                @error('role_description') <p class="text-xs text-red-500 mt-1.5 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation text-[10px]"></i> {{ $message }}</p> @enderror
+            </div>
+        </div>
+
+        {{-- Actions --}}
+        <div class="flex justify-between items-center">
+            <a href="{{ route('admin.users.show', $user) }}"
+                class="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+                Cancel
+            </a>
+            <button type="submit"
+                class="px-6 py-2.5 rounded-xl bg-violet-600 text-white text-sm font-bold hover:bg-violet-700 active:scale-95 transition-all shadow-md shadow-violet-600/20 flex items-center gap-2">
+                <i class="fa-solid fa-floppy-disk text-xs"></i> Save Changes
+            </button>
+        </div>
+    </form>
+
+    {{-- Reset Password --}}
+    <div class="section-card p-6 space-y-4 mt-5"
+        x-data="{ password: '', password_confirmation: '', showPass: false, generate() {
+            const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()';
+            let pass = '';
+            for (let i = 0; i < 12; i++) { pass += chars.charAt(Math.floor(Math.random() * chars.length)); }
+            this.password = pass; this.password_confirmation = pass; this.showPass = true;
+        }}">
+        <div class="flex items-center justify-between">
+            <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <i class="fa-solid fa-key text-amber-400"></i> Reset Password
+            </h3>
+            <button type="button" @click="generate()"
+                class="text-[11px] font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1.5 bg-amber-50 px-2.5 py-1.5 rounded-lg hover:bg-amber-100 transition-colors">
+                <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Auto Generate
+            </button>
+        </div>
+        <form method="POST" action="{{ route('admin.users.reset-password', $user) }}" class="space-y-4">
             @csrf
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5" x-data="{ password: '', password_confirmation: '', showPass: false, generate() { const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()'; let pass = ''; for (let i = 0; i < 12; i++) { pass += chars.charAt(Math.floor(Math.random() * chars.length)); } this.password = pass; this.password_confirmation = pass; this.showPass = true; } }">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label class="block text-sm font-bold text-slate-700">New Password *</label>
-                        <button type="button" @click="generate()" class="text-xs font-bold text-amber-600 hover:underline flex items-center gap-1">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> Generate
-                        </button>
-                    </div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">New Password <span class="text-red-400">*</span></label>
                     <div class="relative">
-                        <input :type="showPass ? 'text' : 'password'" name="password" x-model="password" required class="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                        <button type="button" @click="showPass = !showPass" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
-                            <i class="fa-solid" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-sm pointer-events-none"></i>
+                        <input :type="showPass ? 'text' : 'password'" name="password" x-model="password" required
+                            class="form-input w-full pl-9 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <button type="button" @click="showPass = !showPass"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                            <i class="fa-solid text-sm" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
                         </button>
                     </div>
-                    @error('password') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                    @error('password') <p class="text-xs text-red-500 mt-1.5 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation text-[10px]"></i> {{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Confirm Password *</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Confirm Password <span class="text-red-400">*</span></label>
                     <div class="relative">
-                        <input :type="showPass ? 'text' : 'password'" name="password_confirmation" x-model="password_confirmation" required class="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                        <button type="button" @click="showPass = !showPass" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
-                            <i class="fa-solid" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
-                        </button>
+                        <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-sm pointer-events-none"></i>
+                        <input :type="showPass ? 'text' : 'password'" name="password_confirmation" x-model="password_confirmation" required
+                            class="form-input w-full pl-9 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
                     </div>
                 </div>
             </div>
             <div class="flex justify-end">
-                <button type="submit" class="px-5 py-2.5 bg-amber-600 text-white rounded-lg text-sm font-bold hover:bg-amber-700 transition-colors flex items-center gap-2">
-                    <i class="fa-solid fa-key"></i> Reset Password
+                <button type="submit"
+                    class="px-5 py-2.5 rounded-xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 active:scale-95 transition-all shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-key text-xs"></i> Reset Password
                 </button>
             </div>
         </form>

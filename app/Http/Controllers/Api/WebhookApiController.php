@@ -34,8 +34,8 @@ use Illuminate\Support\Facades\Cache;
  *     @OA\Property(
  *         property="channels",
  *         type="array",
- *         @OA\Items(type="string", enum={"telegram"}),
- *         example={"telegram"}
+ *         @OA\Items(type="string", enum={"email"}),
+ *         example={"email"}
  *     ),
  *     @OA\Property(property="template", type="string", enum={"reminder", "completion"}, example="reminder"),
  *     @OA\Property(

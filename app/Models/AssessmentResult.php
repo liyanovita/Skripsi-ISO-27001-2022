@@ -78,19 +78,56 @@ class AssessmentResult extends Model
     }
 
     /**
-     * Get compliance status based on maturity rating
-     * Compliant: >= 4, Partially Compliant: >= 2, Non-Compliant: < 2
+     * Get Gap value based on thesis formula: Gap = T - C
+     * T = 5 (Target implementation)
+     * C = maturity_rating (Actual self-assessment score)
+     */
+    public function getGapAttribute(): int
+    {
+        if ($this->maturity_rating === null) return 5;
+        return max(0, 5 - (int)$this->maturity_rating);
+    }
+
+    /**
+     * Get compliance status based on maturity rating & gap analysis
+     * C = 5 (Gap = 0) -> Compliant
+     * C = 3, 4 (Gap = 2, 1) -> Partially Compliant
+     * C <= 2 (Gap >= 3) -> Non-Compliant
      */
     public function getComplianceStatusAttribute(): string
     {
-        if ($this->maturity_rating >= 4) return 'Compliant';
-        if ($this->maturity_rating >= 2) return 'Partially Compliant';
+        $c = (int) $this->maturity_rating;
+        if ($c >= 5) return 'Compliant';
+        if ($c >= 3) return 'Partially Compliant';
         return 'Non-Compliant';
     }
 
     /**
-     * Get risk level based on maturity rating.
-     * Maturity 0–1: Critical, 2: High, 3: Medium, 4–5: Compliant (no residual risk)
+     * Get risk priority level based on thesis decision matrix:
+     * Non-Compliant & Gap >= 3 -> High
+     * Non-Compliant & Gap < 3  -> Medium
+     * Partially Compliant & Gap >= 2 -> Medium
+     * Partially Compliant & Gap < 2 -> Low
+     * Compliant (Semua nilai) -> Low
+     */
+    public function getCalculatedRiskPriorityAttribute(): string
+    {
+        if (!$this->is_applicable) return 'Low';
+        
+        $status = $this->compliance_status;
+        $gap = $this->gap;
+
+        if ($status === 'Non-Compliant') {
+            return $gap >= 3 ? 'High' : 'Medium';
+        }
+        if ($status === 'Partially Compliant') {
+            return $gap >= 2 ? 'Medium' : 'Low';
+        }
+        return 'Low';
+    }
+
+    /**
+     * Get risk level attribute (falls back to saved risk_priority or calculated_risk_priority)
      */
     public function getRiskLevelAttribute(): string
     {
@@ -98,13 +135,7 @@ class AssessmentResult extends Model
             return $this->status === 'completed' ? 'Low' : 'Unassessed';
         }
 
-        return match((int)$this->maturity_rating) {
-            0       => $this->status === 'completed' ? 'High' : 'Unassessed',
-            1       => 'High',
-            2, 3    => 'Medium',
-            4, 5    => 'Low',
-            default => $this->status === 'completed' ? 'Low' : 'Unassessed'
-        };
+        return $this->risk_priority ?: $this->calculated_risk_priority;
     }
 
     /**

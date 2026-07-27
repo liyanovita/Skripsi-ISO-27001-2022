@@ -63,8 +63,7 @@ class AppServiceProvider extends ServiceProvider
                 'sidebarOpenGaps'           => AssessmentResult::whereHas('session', fn($q) => $q->where('user_id', $userId))
                                                     ->where('status', 'completed')
                                                     ->where('is_applicable', true)
-                                                    ->where('maturity_rating', '<', 4)
-                                                    ->where('treatment_status', 'open')
+                                                    ->where('maturity_rating', '<', 5)
                                                     ->count(),
                 'sidebarKbCustomCount'      => KnowledgeBase::custom()->count(),
 

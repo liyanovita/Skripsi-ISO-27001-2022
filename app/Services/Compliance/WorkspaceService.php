@@ -38,17 +38,20 @@ class WorkspaceService
                 ->values();
         }
 
-        // Calculate stats from already-loaded results
+        $notApplicableCount = $results->where('is_applicable', false)->count();
+        $applicableCount = max(0, 137 - $notApplicableCount);
+
+        // Calculate stats from already-loaded results (Gaps are controls with maturity_rating < 5)
         $stats = [
-            'total'         => $results->count(),
-            'gaps'          => $results->where('is_applicable', true)->where('status', 'completed')->whereNotNull('maturity_rating')->where('maturity_rating', '<', 4)->count(),
-            'applicable'    => $results->where('is_applicable', true)->count(),
-            'not_applicable'=> $results->where('is_applicable', false)->count(),
+            'total'         => 137,
+            'gaps'          => $results->where('is_applicable', true)->where('status', 'completed')->whereNotNull('maturity_rating')->where('maturity_rating', '<', 5)->count(),
+            'applicable'    => $applicableCount,
+            'not_applicable'=> $notApplicableCount,
             'closed'        => $results
                 ->where('is_applicable', true)
                 ->where('status', 'completed')
                 ->whereNotNull('maturity_rating')
-                ->where('maturity_rating', '<', 4)
+                ->where('maturity_rating', '<', 5)
                 ->where('treatment_status', 'closed')
                 ->count(),
         ];
@@ -86,6 +89,9 @@ class WorkspaceService
         }
 
         if ($user && !$user->isAdmin()) {
+            if ($result->session->isLockedForUser($user) || $result->session->status === 'completed') {
+                abort(403, __('This audit session is completed and locked. Modifications are disabled.'));
+            }
             $isPic = ($result->treatment_pic == $user->id) || ($result->treatment_pic === $user->name);
             if (!$isLead && !$isPic) {
                 abort(403, __('Unauthorized. You are not the assigned PIC for this control.'));
@@ -122,6 +128,16 @@ class WorkspaceService
             if (in_array($data['treatment_status'], $allowed)) {
                 $updateData['treatment_status'] = $data['treatment_status'];
             }
+        }
+        if (array_key_exists('notes', $data)) {
+            $updateData['notes'] = $data['notes'];
+        }
+        if (request()->hasFile('evidence_file')) {
+            $file = request()->file('evidence_file');
+            $path = $file->store('evidence', 'public');
+            $existing = is_array($result->evidence_file) ? $result->evidence_file : (empty($result->evidence_file) ? [] : [$result->evidence_file]);
+            $existing[] = $path;
+            $updateData['evidence_file'] = array_values(array_unique($existing));
         }
 
         $result->update($updateData);

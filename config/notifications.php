@@ -22,16 +22,11 @@ return [
     |
     */
     'channels' => [
-        'telegram' => [
-            'enabled' => env('TELEGRAM_ENABLED', false),
-            'bot_token' => env('TELEGRAM_BOT_TOKEN'),
-            'chat_id' => env('TELEGRAM_CHAT_ID'),
-            'parse_mode' => 'Markdown',
+        'email' => [
+            'enabled' => env('EMAIL_NOTIFICATIONS_ENABLED', true),
             'retry_attempts' => 3,
             'retry_delay' => 5, // seconds
         ],
-
-        // Future channels: Email, SMS, Slack, WhatsApp, etc.
     ],
 
     /*
@@ -45,7 +40,7 @@ return [
     */
     'capa_reminders' => [
         'enabled' => env('CAPA_REMINDERS_ENABLED', true),
-        'channels' => [], // Removed Telegram
+        'channels' => ['email'], // Default to email channel
         'days_ahead' => env('CAPA_DAYS_AHEAD', 3),
         'schedule' => env('CAPA_REMINDER_SCHEDULE', '0 8 * * 1-5'), // Weekdays 8AM
     ],

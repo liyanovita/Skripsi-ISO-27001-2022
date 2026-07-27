@@ -218,14 +218,15 @@
                 {{-- Quick Action --}}
                 <div class="px-2 mb-3" x-show="sidebarOpen">
                     <a href="{{ route('admin.sessions.create') }}" 
-                       class="flex items-center justify-center gap-2 w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-blue-100 font-black text-[11px] uppercase tracking-wider rounded-xl transition-all hover:-translate-y-0.5 backdrop-blur-sm">
-                        <i class="fa-solid fa-plus"></i>
-                        <span>Create Audit Session</span>
+                       class="flex items-center justify-center gap-2 w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-blue-100 font-bold text-xs uppercase tracking-wider rounded-xl transition-all hover:-translate-y-0.5 backdrop-blur-sm">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>{{ __('New Audit Session') }}</span>
                     </a>
                 </div>
                 <div class="px-2 mb-3 flex justify-center" x-show="!sidebarOpen">
                     <a href="{{ route('admin.sessions.create') }}" 
-                       class="flex items-center justify-center w-8 h-8 bg-white/5 hover:bg-white/10 border border-white/10 text-blue-100 rounded-xl transition-all hover:-translate-y-0.5 backdrop-blur-sm">
+                       title="{{ __('New Audit Session') }}"
+                       class="flex items-center justify-center w-9 h-9 bg-white/5 hover:bg-white/10 border border-white/10 text-blue-100 rounded-xl transition-all hover:-translate-y-0.5 backdrop-blur-sm">
                         <i class="fa-solid fa-plus text-sm"></i>
                     </a>
                 </div>

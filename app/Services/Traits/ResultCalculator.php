@@ -105,7 +105,7 @@ trait ResultCalculator
     protected function getCriticalFindings(Collection $results): Collection
     {
         return $this->filterAssessableResults($results)
-            ->filter(fn($r) => $r->is_applicable && $r->status === 'completed' && ($r->risk_level === 'High' || $r->maturity_rating <= 1))
+            ->filter(fn($r) => $r->is_applicable && $r->status === 'completed' && ($r->calculated_risk_priority === 'High' || $r->maturity_rating <= 1))
             ->sortBy(fn($r) => $r->standard->code ?? '', SORT_NATURAL | SORT_FLAG_CASE);
     }
 
@@ -121,7 +121,7 @@ trait ResultCalculator
             !empty($r->treatment_due_date) &&
             $r->is_applicable &&
             $r->status === 'completed' &&
-            $r->maturity_rating < 4 &&
+            $r->maturity_rating < 5 &&
             $r->treatment_status !== 'closed'
         )->sortBy('treatment_due_date');
     }

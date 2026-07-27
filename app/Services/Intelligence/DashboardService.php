@@ -32,10 +32,8 @@ class DashboardService
             
         $completedCycles = $allSessions->where('status', 'completed')->count();
 
-        // 2. Get the "Latest State" of ALL controls across ALL sessions
-        // By ordering by updated_at desc and using unique('standard_id'), 
-        // we get the most recent score for each ISO 27001 control.
-        $results = \App\Models\AssessmentResult::with(['standard', 'session'])
+        // 2. Get the "Latest State" of ALL assessable controls across sessions
+        $rawResults = \App\Models\AssessmentResult::with(['standard', 'session'])
             ->whereHas('session', fn($q) => $q->where('user_id', $userId))
             ->where('status', 'completed')
             ->orderByDesc('updated_at')
@@ -43,14 +41,22 @@ class DashboardService
             ->unique('iso_standard_id')
             ->values();
 
+        $results = $this->filterAssessableResults($rawResults);
+
         if ($results->isEmpty()) {
             return ['allSessions' => collect(), 'hasData' => false];
         }
 
-        // 3. Calculate Global Stats
+        // 3. Calculate Global Stats (matching Admin Dashboard & Reports methodology)
         $stats = $this->calculateResultStats($results);
         
-        $averageMaturity = $allSessions->count() > 0 ? $allSessions->avg('overall_maturity_score') : 0;
+        $completedSessionsWithScore = $allSessions->where('status', 'completed')->where('overall_maturity_score', '>', 0);
+        if ($completedSessionsWithScore->count() > 0) {
+            $averageMaturity = (float) $completedSessionsWithScore->avg('overall_maturity_score');
+        } else {
+            $sessionsWithScore = $allSessions->where('overall_maturity_score', '>', 0);
+            $averageMaturity = $sessionsWithScore->count() > 0 ? (float) $sessionsWithScore->avg('overall_maturity_score') : 0;
+        }
         
         $complianceScore = $this->calculateCompliancePercentage($averageMaturity);
         $statusKematangan = match (true) {
@@ -65,9 +71,9 @@ class DashboardService
         // Delta is not applicable for a global view unless comparing timeframes
         $complianceDelta = 0;
 
-        // 4. Global Findings and Active Tasks
-        $findings = $this->getFindings($results);
-        $totalGaps = $findings->count();
+        // 4. Global Findings and Active Tasks (Gaps are all controls with maturity < 5)
+        $findings = $this->getFindings($results, 4);
+        $totalGaps = $results->where('is_applicable', true)->whereNotNull('maturity_rating')->where('maturity_rating', '<', 5)->count();
         $highestGaps = $findings->sortBy('maturity_rating')->take(5);
         
         // Active CAPA Tasks: Get all pending tasks across all sessions of the user (not collapsed by unique standard)
@@ -84,12 +90,21 @@ class DashboardService
             
         $distribution = $this->calculateComplianceBreakdown($results);
 
-        // 5. Variables for Blade
+        // 5. Variables for Blade (Aligned with Admin Reports & Standard Risk Classification)
         $totalCount = $stats['total'];
         $answeredCount = $stats['answered'];
         $assessmentProgress = $stats['completion_percentage'];
-        $criticalGapCount = $results->where('maturity_rating', 1)->count();
-        $highGapCount = $results->where('maturity_rating', 2)->count();
+        $highRiskGapsCount = $results->where('is_applicable', true)->filter(function($r) {
+            return $r->calculated_risk_priority === 'High' || ($r->risk_priority === null && $r->maturity_rating <= 2);
+        })->count();
+        $mediumRiskGapsCount = $results->where('is_applicable', true)->filter(function($r) {
+            return $r->calculated_risk_priority === 'Medium' || ($r->risk_priority === null && $r->maturity_rating == 3);
+        })->count();
+        $lowRiskGapsCount = $results->where('is_applicable', true)->filter(function($r) {
+            return $r->calculated_risk_priority === 'Low' || ($r->risk_priority === null && $r->maturity_rating == 4);
+        })->count();
+        $criticalGapCount = $highRiskGapsCount;
+        $highGapCount = $mediumRiskGapsCount;
         $distTotal = max(1, ($distribution['compliant'] ?? 0) + ($distribution['partial'] ?? 0) + ($distribution['non_compliant'] ?? 0) + ($distribution['unassessed'] ?? 0));
 
         // 6. Active Session Progress (latest session only)
@@ -261,7 +276,8 @@ class DashboardService
             'hasData', 'latestSession', 'allSessions', 'complianceScore', 'complianceDelta',
             'averageMaturity', 'statusKematangan', 'stats', 'highestGaps', 'totalGaps',
             'completedCycles', 'distribution', 'activeTasks',
-            'totalCount', 'answeredCount', 'assessmentProgress', 'criticalGapCount', 'highGapCount', 'distTotal',
+            'totalCount', 'answeredCount', 'assessmentProgress', 'criticalGapCount', 'highGapCount',
+            'highRiskGapsCount', 'mediumRiskGapsCount', 'lowRiskGapsCount', 'distTotal',
             'totalIsoControls', 'activeSessionAnswered', 'activeSessionProgress',
             'historicalCoveredCount', 'historicalCoveragePercent', 'trendData', 'executiveSummary',
             'radarData', 'recentAuditTrails', 'assessorBadge',

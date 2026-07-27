@@ -34,26 +34,6 @@ class UpdateKnowledgeBaseRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get the validated data from the request.
-     */
-    public function validated($key = null, $default = null)
-    {
-        $validated = parent::validated($key, $default);
-
-        if ($key !== null) {
-            if ($key === 'content' && !auth()->user()?->isAdmin()) {
-                return null;
-            }
-            return $validated;
-        }
-
-        if (is_array($validated) && !auth()->user()?->isAdmin()) {
-            unset($validated['content']);
-        }
-
-        return $validated;
-    }
 
     /**
      * Get custom messages for validator errors.

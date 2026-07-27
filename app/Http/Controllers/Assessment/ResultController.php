@@ -25,15 +25,27 @@ class ResultController extends Controller
 
     public function edit(int $sessionId): View
     {
+        $user = auth()->user();
         $session = AssessmentSession::with(['results.standard'])
-            ->where('user_id', auth()->id())
+            ->where(function ($query) use ($user) {
+                if ($user && $user->isAdmin()) {
+                    return;
+                }
+                $query->where('user_id', $user->id)
+                      ->orWhereHas('invitedUsers', fn($q) => $q->where('user_id', $user->id));
+            })
             ->findOrFail($sessionId);
+
         $missing = $this->sessionService->getMissingScores($session);
+        $isLocked = $session->isLockedForUser($user);
+        $lockReason = $session->getLockReason($user);
 
         return view('results.edit', [
             'session'      => $session,
             'missingCodes' => $missing['codes'],
-            'missingCount' => $missing['count']
+            'missingCount' => $missing['count'],
+            'isLocked'     => $isLocked,
+            'lockReason'   => $lockReason
         ]);
     }
 

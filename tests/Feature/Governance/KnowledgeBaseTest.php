@@ -450,9 +450,14 @@ class KnowledgeBaseTest extends TestCase
     {
         $resource = $this->createKnowledgeResource([
             'title' => 'Unsafe <b>PDF</b> Resource',
-            'content' => 'Safe content <script>alert("xss")</script>',
             'downloads_count' => 0,
         ]);
+
+        \Illuminate\Support\Facades\DB::table('knowledge_bases')
+            ->where('id', $resource->id)
+            ->update(['content' => 'Safe content <script>alert("xss")</script>']);
+
+        $resource->refresh();
 
         $service = app(\App\Services\Governance\KnowledgeBaseService::class);
         $html = $service->generatePdfContent($resource);
@@ -758,5 +763,42 @@ class KnowledgeBaseTest extends TestCase
             ->actingAs($user2)
             ->delete(route('knowledge-base.destroy', $resource->id))
             ->assertRedirect(route('dashboard'));
+    }
+
+    public function test_content_is_automatically_sanitized_to_prevent_xss(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        // 1. Create content via web store route with unsafe HTML tags/attributes
+        $unsafeContent = '<p>Good paragraph</p><script>alert("xss")</script><div onload="alert(1)">Hello</div><a href="javascript:alert(1)">Link</a>';
+        
+        $this->actingAs($admin)
+            ->post(route('knowledge-base.store'), $this->validPayload([
+                'title' => 'Unsafe Content Test Resource',
+                'content' => $unsafeContent,
+            ]))
+            ->assertRedirect(route('knowledge-base.index'));
+
+        $resource = KnowledgeBase::where('title', 'Unsafe Content Test Resource')->firstOrFail();
+        
+        // Assert that HTMLPurifier cleaned the HTML
+        $this->assertStringContainsString('<p>Good paragraph</p>', $resource->content);
+        $this->assertStringContainsString('<div>Hello</div>', $resource->content);
+        // Script tags and javascript: URIs must be completely removed/sanitized
+        $this->assertStringNotContainsString('<script>', $resource->content);
+        $this->assertStringNotContainsString('onload', $resource->content);
+        $this->assertStringNotContainsString('javascript:', $resource->content);
+
+        // 2. Test that preview route also sanitizes HTML preview request
+        $this->actingAs($admin)
+            ->postJson(route('knowledge-base.preview'), [
+                'content' => '<div>Safe block</div><script>console.log(9)</script><img src="x" onerror="evil()">'
+            ])
+            ->assertOk()
+            ->assertJsonPath('html', fn(string $html) =>
+                str_contains($html, '<div>Safe block</div>')
+                && !str_contains($html, '<script>')
+                && !str_contains($html, 'onerror')
+            );
     }
 }

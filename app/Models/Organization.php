@@ -24,6 +24,28 @@ class Organization extends Model
     ];
 
     /**
+     * Standard business sector categories.
+     */
+    public static function getBusinessSectors(): array
+    {
+        return [
+            'Banking & Financial Services',
+            'Government & Public Sector',
+            'Technology & Software',
+            'Telecommunications',
+            'Healthcare & Pharmaceuticals',
+            'Education & Research',
+            'Manufacturing & Industry',
+            'Energy, Oil & Mining',
+            'Retail & E-Commerce',
+            'Transportation & Logistics',
+            'Media & Entertainment',
+            'Professional & Consulting Services',
+            'Other'
+        ];
+    }
+
+    /**
      * Get the sessions associated with this organization.
      */
     public function sessions(): HasMany

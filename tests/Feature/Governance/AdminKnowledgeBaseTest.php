@@ -309,7 +309,7 @@ class AdminKnowledgeBaseTest extends TestCase
             ->assertOk()
             ->assertSee('Specific Official Audit SOP')
             ->assertSee('Back')
-            ->assertSee('Edit Article');
+            ->assertSee('Edit Document');
     }
 
     public function test_admin_cannot_view_user_custom_document_detail(): void

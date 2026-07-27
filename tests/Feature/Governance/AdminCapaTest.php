@@ -29,7 +29,7 @@ class AdminCapaTest extends TestCase
         $session = AssessmentSession::create([
             'user_id' => $user->id,
             'name' => 'IT Department Audit ' . $code,
-            'status' => 'in_progress',
+            'status' => 'completed',
         ]);
 
         $standard = IsoStandard::create([
@@ -89,6 +89,12 @@ class AdminCapaTest extends TestCase
             'maturity_rating' => 1 // Keep CAPA eligible via rating
         ]);
 
+        $overdueCapa = $this->setupCapaData($user, 'A.5.3', 'Overdue Standard', [
+            'treatment_status' => 'in_progress',
+            'treatment_due_date' => now()->subDays(5)->toDateString(),
+            'maturity_rating' => 1
+        ]);
+
         // Filter Open
         $this->actingAs($admin)
             ->get(route('admin.capa.index', ['status' => 'open']))
@@ -102,6 +108,13 @@ class AdminCapaTest extends TestCase
             ->assertOk()
             ->assertSee('Completed Standard')
             ->assertDontSee('Open Standard');
+
+        // Filter Overdue
+        $this->actingAs($admin)
+            ->get(route('admin.capa.index', ['status' => 'overdue']))
+            ->assertOk()
+            ->assertSee('Overdue Standard')
+            ->assertDontSee('Completed Standard');
     }
 
     public function test_admin_can_filter_capa_by_risk(): void

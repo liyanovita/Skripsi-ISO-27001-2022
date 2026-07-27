@@ -33,10 +33,8 @@ class AdminDashboardTest extends TestCase
             ->assertOk()
             ->assertSee('System Overview')
             ->assertSee('Total Users')
-            ->assertSee('Active Sessions')
-            ->assertSee('Completed Sessions')
-            ->assertSee('Avg Maturity')
-            ->assertSee('Suspended');
+            ->assertSee('Audit Sessions')
+            ->assertSee('Avg Maturity');
     }
 
     public function test_non_admin_cannot_access_dashboard(): void
@@ -108,7 +106,7 @@ class AdminDashboardTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee('Improvement Tasks Require Immediate Attention')
+            ->assertSee('Improvement Action Required')
             ->assertSee('overdue');
     }
 
@@ -137,7 +135,7 @@ class AdminDashboardTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee('Recent User Registrations')
+            ->assertSee('Recent User Accounts')
             ->assertSee('Recent User Alpha')
             ->assertSee('Recent Audit Activity')
             ->assertSee('Recent Audit Session Beta');

@@ -52,12 +52,6 @@ return [
         'webhook_summary_url' => env('N8N_WEBHOOK_SUMMARY_URL', ''),
     ],
 
-    'telegram' => [
-        'enabled'  => env('TELEGRAM_ENABLED', false),
-        'token'    => env('TELEGRAM_BOT_TOKEN', ''),
-        'chat_id'  => env('TELEGRAM_CHAT_ID', ''),
-    ],
-
     'webhook' => [
         'secret' => env('WEBHOOK_SECRET', ''),
     ],

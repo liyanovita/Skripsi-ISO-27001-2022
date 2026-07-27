@@ -151,7 +151,7 @@
     <div class="page-break"></div>
 
     <!-- 3. GAP ANALYSIS -->
-    <div class="section-title">3. Gap Analysis (Critical & Partially Compliant Controls)</div>
+    <div class="section-title">3. Gap Analysis (High Risk & Partially Compliant Controls)</div>
     <p style="margin-top: 0; margin-bottom: 10px; color: #64748b; font-size: 8.5px;">
         {{ __('The following table displays all applicable controls that did not reach the target compliance level (Maturity Level 4 - Managed).') }}
     </p>
@@ -168,14 +168,15 @@
         </thead>
         <tbody>
             @forelse($gapResults as $index => $result)
+            @php $mRating = is_null($result->maturity_rating) ? 0 : $result->maturity_rating; @endphp
             <tr>
                 <td style="text-align: center;">{{ $index + 1 }}</td>
                 <td style="font-weight: bold; color: #0B2545;">{{ $result->standard->code }}</td>
                 <td>{{ $result->standard->title }}</td>
-                <td style="text-align: center; font-weight: bold;">{{ $result->maturity_rating }} / 5</td>
-                <td style="text-align: center; font-weight: bold; color: #dc2626;">{{ 5 - $result->maturity_rating }}</td>
+                <td style="text-align: center; font-weight: bold;">{{ $mRating }} / 5</td>
+                <td style="text-align: center; font-weight: bold; color: #dc2626;">{{ 5 - $mRating }}</td>
                 <td style="text-align: center;">
-                    <span class="badge {{ $result->maturity_rating >= 4 ? 'badge-success' : ($result->maturity_rating >= 2 ? 'badge-warning' : 'badge-danger') }}">
+                    <span class="badge {{ $mRating >= 4 ? 'badge-success' : ($mRating >= 2 ? 'badge-warning' : 'badge-danger') }}">
                         {{ $result->compliance_status }}
                     </span>
                 </td>
@@ -217,6 +218,7 @@
                 });
             @endphp
             @forelse($sortedByRisk as $result)
+            @php $mRating = is_null($result->maturity_rating) ? 0 : $result->maturity_rating; @endphp
             <tr>
                 <td style="text-align: center;">
                     <span class="badge
@@ -230,9 +232,9 @@
                 </td>
                 <td style="font-weight: bold; color: #0b2545;">{{ $result->standard->code }}</td>
                 <td>{{ $result->standard->title }}</td>
-                <td style="text-align: center;">{{ $result->maturity_rating }} / 5</td>
-                <td style="font-weight: bold; color: {{ $result->maturity_rating <= 1 ? '#991b1b' : '#92400e' }}; text-align: center;">
-                    {{ $result->maturity_rating <= 1 ? '30 Days' : ($result->maturity_rating == 2 ? '60 Days' : '90 Days') }}
+                <td style="text-align: center;">{{ $mRating }} / 5</td>
+                <td style="font-weight: bold; color: {{ $mRating <= 1 ? '#991b1b' : '#92400e' }}; text-align: center;">
+                    {{ $mRating <= 1 ? '30 Days' : ($mRating == 2 ? '60 Days' : '90 Days') }}
                 </td>
             </tr>
             @empty
@@ -247,124 +249,51 @@
 
     <div class="page-break"></div>
 
-    <!-- 5. AI ANALYSIS -->
-    <div class="section-title">5. Artificial Intelligence (AI) Audit Insights</div>
-    
-    @if(!empty($overallSummary))
-        <div class="ai-card" style="border-left: 4px solid #0B2545;">
-            <div class="ai-card-header" style="background: #0B2545;">A. OVERALL ASSESSMENT SUMMARY</div>
-            <div class="ai-card-body" style="font-size: 8.5px; color: #334155; line-height: 1.6;">
-                {{ $overallSummary }}
-            </div>
-        </div>
-    @endif
-
-    @if(!empty($controlInsight))
-        <div class="ai-card" style="border-left: 4px solid #dc2626;">
-            <div class="ai-card-header" style="background: #dc2626;">B. CONTROL INSIGHT & WEAKNESS AREAS</div>
-            <div class="ai-card-body" style="font-size: 8.5px; color: #334155; line-height: 1.6;">
-                {{ $controlInsight }}
-            </div>
-        </div>
-    @endif
-
-    @if(!empty($impactInterpretation))
-        <div class="ai-card" style="border-left: 4px solid #0284c7;">
-            <div class="ai-card-header" style="background: #0284c7;">C. IMPACT INTERPRETATION & RISK ASSESSMENT</div>
-            <div class="ai-card-body" style="font-size: 8.5px; color: #334155; line-height: 1.6;">
-                {{ $impactInterpretation }}
-            </div>
-        </div>
-    @endif
-
-    @if(!empty($strategicRec))
-        <div class="ai-card" style="border-left: 4px solid #d97706;">
-            <div class="ai-card-header" style="background: #d97706;">D. STRATEGIC RECOMMENDATIONS</div>
-            <div class="ai-card-body" style="font-size: 8.5px; color: #334155; line-height: 1.6;">
-                @if(is_array($strategicRec))
-                    <ol style="margin: 0; padding-left: 15px;">
-                        @foreach($strategicRec as $rec)
-                            <li style="margin-bottom: 4px;">{{ $rec }}</li>
-                        @endforeach
-                    </ol>
-                @else
-                    {{ $strategicRec }}
-                @endif
-            </div>
-        </div>
-    @endif
-
-    @if(!empty($actionPlan))
-        <div class="ai-card" style="border-left: 4px solid #059669;">
-            <div class="ai-card-header" style="background: #059669;">E. REMEDIATION ACTION PLAN</div>
-            <div class="ai-card-body" style="font-size: 8.5px; color: #334155; line-height: 1.6;">
-                {{ $actionPlan }}
-            </div>
-        </div>
-    @endif
-
-    <div class="page-break"></div>
-
-    <!-- 6. IMPROVEMENT TRACKING (CAPA) -->
-    <div class="section-title">6. Remediation & Improvement Tracking (CAPA)</div>
-    <p style="margin-top: 0; margin-bottom: 10px; color: #64748b; font-size: 8.5px;">
-        {{ __('The following roadmap logs real-time corrective actions, assignees, deadlines, and verified physical evidence of compliance improvements.') }}
+    <!-- 5. AI RECOMMENDATIONS FOR ALL GAPS -->
+    <div class="section-title">5. Artificial Intelligence (AI) Audit Recommendations for All Identified Gaps</div>
+    <p style="margin-top: 0; margin-bottom: 12px; color: #64748b; font-size: 8.5px;">
+        {{ __('Targeted AI audit recommendations and corrective guidance generated for every control identified with a gap (Maturity Rating < 5).') }}
     </p>
-    
+
     <table>
         <thead>
             <tr>
-                <th style="width: 10%">{{ __('Control') }}</th>
-                <th style="width: 25%">{{ __('Corrective Action Plan') }}</th>
-                <th style="width: 12%">{{ __('PIC') }}</th>
-                <th style="width: 13%">{{ __('Due Date') }}</th>
-                <th style="width: 15%">{{ __('Status & Progress') }}</th>
-                <th style="width: 25%">{{ __('Evidence After Improvement') }}</th>
+                <th style="width: 7%">{{ __('No') }}</th>
+                <th style="width: 12%">{{ __('Code') }}</th>
+                <th style="width: 25%">{{ __('Control Name') }}</th>
+                <th style="width: 12%; text-align: center;">{{ __('Maturity / Gap') }}</th>
+                <th style="width: 44%">{{ __('AI Audit Recommendation & Action Plan') }}</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($trackingResults as $result)
+            @forelse($gapResults as $index => $result)
             @php
+                $mRating = is_null($result->maturity_rating) ? 0 : $result->maturity_rating;
                 $plan = $result->corrective_action_plan ?: [];
-                $planActionText = is_array($plan) ? ($plan['action'] ?? '-') : ($plan ?: '-');
-                
-                $status = $result->treatment_status ?: 'open';
-                $progress = $result->treatment_progress ?? 0;
+                $planText = is_array($plan) ? ($plan['action'] ?? '') : ($plan ?: '');
+                $recText = $result->ai_recommendation ?: ($planText ?: __('Tingkatkan dokumentasi proses, lakukan sosialisasi, dan verifikasi penerapan kontrol secara berkala.'));
             @endphp
             <tr>
-                <td style="font-weight: bold; color: #0b2545;">{{ $result->standard->code }}</td>
-                <td style="font-size: 8px; line-height: 1.4;">{{ $planActionText }}</td>
-                <td style="font-weight: bold; color: #475569;">{{ $result->treatment_pic ?: '-' }}</td>
-                <td style="font-size: 8px; font-weight: bold; text-align: center;">
-                    @if($result->treatment_due_date)
-                        @if($result->treatment_due_date->isPast() && $status !== 'completed')
-                            <span style="color: #dc2626;">{{ $result->treatment_due_date->format('d M Y') }} (Overdue)</span>
-                        @else
-                            <span>{{ $result->treatment_due_date->format('d M Y') }}</span>
-                        @endif
-                    @else
-                        <span style="color: #94a3b8; font-style: italic;">Not Set</span>
+                <td style="text-align: center;">{{ $index + 1 }}</td>
+                <td style="font-weight: bold; color: #0B2545;">{{ $result->standard->code }}</td>
+                <td style="font-weight: bold; color: #334155;">{{ $result->standard->title }}</td>
+                <td style="text-align: center;">
+                    <span style="font-weight: bold; color: #0B2545;">{{ $mRating }} / 5</span><br>
+                    <span style="font-size: 7.5px; color: #dc2626; font-weight: bold;">(Gap: {{ 5 - $mRating }})</span>
+                </td>
+                <td style="font-size: 8px; line-height: 1.4; color: #1e293b;">
+                    <div style="font-weight: bold; color: #008B9B; margin-bottom: 2px;">{{ __('AI Guidance:') }}</div>
+                    <div>{{ $recText }}</div>
+                    @if($planText && $planText !== $recText)
+                        <div style="font-weight: bold; color: #0B2545; margin-top: 4px; margin-bottom: 2px;">{{ __('Proposed Action:') }}</div>
+                        <div style="color: #475569;">{{ $planText }}</div>
                     @endif
-                </td>
-                <td>
-                    <span class="badge
-                        {{ $status == 'completed' ? 'badge-success' : '' }}
-                        {{ $status == 'in_progress' ? 'badge-info' : '' }}
-                        {{ $status == 'open' ? 'badge-danger' : '' }}
-                    " style="margin-bottom: 4px;">
-                        {{ ucfirst($status) }}
-                    </span>
-                    <br>
-                    <span style="font-weight: bold; font-size: 8px; color: #475569;">Progress: {{ $progress }}%</span>
-                </td>
-                <td style="font-size: 8px; font-style: italic; color: #64748b; line-height: 1.4;">
-                    {{ $result->evidence_after_improvement ?: '-' }}
                 </td>
             </tr>
             @empty
             <tr>
-                <td colspan="6" style="text-align: center; color: #94a3b8; font-style: italic; padding: 15px;">
-                    {{ __('No improvement activities currently logged.') }}
+                <td colspan="5" style="text-align: center; color: #94a3b8; font-style: italic; padding: 15px;">
+                    {{ __('No gap controls requiring AI recommendations.') }}
                 </td>
             </tr>
             @endforelse

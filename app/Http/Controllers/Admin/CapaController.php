@@ -12,16 +12,19 @@ class CapaController extends Controller
 {
     public function index(Request $request)
     {
-        $baseQuery = AssessmentResult::where(function ($q) {
-            // CAPA is relevant for items with priority risk OR non-compliant OR explicitly scheduled
-            $q->where('maturity_rating', '<', 4)
-              ->where('maturity_rating', '>=', 0)
-              ->orWhereNotNull('treatment_due_date')
-              ->orWhereNotNull('treatment_status');
-        });
+        $hasCompletedSessions = \App\Models\AssessmentSession::where('status', 'completed')->exists();
+
+        $baseQuery = AssessmentResult::where('is_applicable', true)
+            ->whereNotNull('maturity_rating')
+            ->where('maturity_rating', '<', 5)
+            ->where('maturity_rating', '>=', 0);
 
         if ($request->filled('session_id')) {
             $baseQuery->where('session_id', $request->session_id);
+        } else {
+            $baseQuery->whereHas('session', function($q) {
+                $q->where('status', 'completed');
+            });
         }
 
         // Compute summary counts
@@ -37,32 +40,76 @@ class CapaController extends Controller
             ->where('treatment_status', '!=', 'completed')
             ->count();
 
-        // Apply filters
-        $query = AssessmentResult::with(['session.user', 'session.organization', 'standard'])
-            ->where(function ($q) {
-                $q->where('maturity_rating', '<', 4)
-                  ->where('maturity_rating', '>=', 0)
-                  ->orWhereNotNull('treatment_due_date')
-                  ->orWhereNotNull('treatment_status');
+        $excludedBaseQuery = AssessmentResult::where('is_applicable', false);
+        if ($request->filled('session_id')) {
+            $excludedBaseQuery->where('session_id', $request->session_id);
+        } else {
+            $excludedBaseQuery->whereHas('session', function($q) {
+                $q->where('status', 'completed');
             });
+        }
+        $excludedCount = $excludedBaseQuery->count();
+
+        // Apply filters
+        $query = AssessmentResult::with(['session.user', 'session.organization', 'standard']);
+
+        if ($request->status === 'excluded') {
+            $query->where('is_applicable', false);
+        } else {
+            $query->where('is_applicable', true)
+                ->whereNotNull('maturity_rating')
+                ->where('maturity_rating', '<', 5)
+                ->where('maturity_rating', '>=', 0);
+        }
 
         if ($request->filled('session_id')) {
             $query->where('session_id', $request->session_id);
+        } else {
+            $query->whereHas('session', function($q) {
+                $q->where('status', 'completed');
+            });
         }
 
-        if ($request->filled('status')) {
+        if ($request->filled('status') && $request->status !== 'excluded') {
             if ($request->status == 'pending') {
                 $query->where(function ($q) {
                     $q->whereIn('treatment_status', ['open', 'in_progress'])
                       ->orWhereNull('treatment_status');
                 });
+            } elseif ($request->status == 'overdue') {
+                $query->whereNotNull('treatment_due_date')
+                      ->where('treatment_due_date', '<', now()->toDateString())
+                      ->where(function ($q) {
+                          $q->whereNull('treatment_status')
+                            ->orWhere('treatment_status', '!=', 'completed');
+                      });
             } else {
                 $query->where('treatment_status', $request->status);
             }
         }
 
         if ($request->filled('risk')) {
-            $query->where('risk_priority', $request->risk);
+            $risk = $request->risk;
+            $query->where(function ($q) use ($risk) {
+                $q->where('risk_priority', $risk);
+                
+                if ($risk === 'High') {
+                    $q->orWhere(function ($q2) {
+                        $q2->whereNull('risk_priority')
+                           ->where('maturity_rating', '<=', 2);
+                    });
+                } elseif ($risk === 'Medium') {
+                    $q->orWhere(function ($q2) {
+                        $q2->whereNull('risk_priority')
+                           ->where('maturity_rating', 3);
+                    });
+                } elseif ($risk === 'Low') {
+                    $q->orWhere(function ($q2) {
+                        $q2->whereNull('risk_priority')
+                           ->where('maturity_rating', '>=', 4);
+                    });
+                }
+            });
         }
 
         if ($request->filled('search')) {
@@ -77,6 +124,34 @@ class CapaController extends Controller
             });
         }
 
+        // Get excluded capas for Kanban matrix column
+        $excludedQueryAll = AssessmentResult::with(['session.user', 'session.organization', 'standard'])
+            ->where('is_applicable', false);
+        if ($request->filled('session_id')) {
+            $excludedQueryAll->where('session_id', $request->session_id);
+        } else {
+            $excludedQueryAll->whereHas('session', function($q) {
+                $q->where('status', 'completed');
+            });
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $excludedQueryAll->where(function ($q2) use ($search) {
+                $q2->whereHas('standard', function ($q) use ($search) {
+                    $q->where('code', 'like', "%{$search}%")
+                      ->orWhere('title', 'like', "%{$search}%");
+                })->orWhereHas('session.user', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                });
+            });
+        }
+        $excludedCapas = $excludedQueryAll->get();
+
+        // Get unpaginated collection for Kanban BEFORE paginate mutates the query builder with limit 15
+        $allCapas = (clone $query)->orderByRaw('CASE WHEN treatment_due_date IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('treatment_due_date', 'asc')
+            ->get();
+
         $capas = $query->orderByRaw('CASE WHEN treatment_due_date IS NULL THEN 1 ELSE 0 END')
             ->orderBy('treatment_due_date', 'asc')
             ->paginate(15)
@@ -88,22 +163,36 @@ class CapaController extends Controller
             $filteredSession = \App\Models\AssessmentSession::with('user')->find($request->session_id);
         }
 
-        // Fetch all sessions for the session filter dropdown
-        $sessions = \App\Models\AssessmentSession::with('user')->orderBy('name', 'asc')->get();
+        // Fetch only completed sessions for the filter dropdown
+        $sessions = \App\Models\AssessmentSession::with('user')->where('status', 'completed')->orderBy('name', 'asc')->get();
 
         return view('admin.capa.index', compact(
-            'capas', 'totalCapa', 'openCount', 'inProgressCount', 'completedCount', 'overdueCount', 'filteredSession', 'sessions'
+            'capas', 'allCapas', 'totalCapa', 'openCount', 'inProgressCount', 'completedCount', 'overdueCount', 'excludedCount', 'excludedCapas', 'filteredSession', 'sessions'
         ));
     }
 
     public function edit(AssessmentResult $capa)
     {
-        $capa->load(['session.user', 'standard']);
+        $capa->load(['session.user', 'session.invitedUsers', 'standard']);
+        
+        // Retrieve session lead/owner and all invited users for the session
+        $sessionUsers = collect();
+        if ($capa->session && $capa->session->user) {
+            $sessionUsers->push($capa->session->user);
+        }
+        if ($capa->session && $capa->session->relationLoaded('invitedUsers')) {
+            foreach ($capa->session->invitedUsers as $invited) {
+                $sessionUsers->push($invited);
+            }
+        }
+        $sessionUsers = $sessionUsers->unique('id');
+
         $history = \App\Models\AuditTrail::with('user')
             ->forModel(get_class($capa), $capa->id)
             ->latest()
             ->get();
-        return view('admin.capa.edit', compact('capa', 'history'));
+
+        return view('admin.capa.edit', compact('capa', 'history', 'sessionUsers'));
     }
 
     public function update(Request $request, AssessmentResult $capa)
@@ -112,25 +201,51 @@ class CapaController extends Controller
             'treatment_status' => 'required|in:open,in_progress,completed',
             'treatment_due_date' => 'nullable|date',
             'treatment_pic' => 'nullable|string|max:255',
-            'corrective_action_plan_text' => 'required|string',
-            'risk_priority' => 'required|in:Low,Medium,High',
+            'corrective_action_plan_text' => 'nullable|string',
+            'risk_priority' => 'nullable|in:Low,Medium,High',
             'treatment_progress' => 'required|integer|min:0|max:100',
             'evidence_after_improvement' => 'nullable|string',
+            'evidence_after_file' => 'nullable|file|mimes:pdf,doc,docx,png,jpg,jpeg,zip,rar,xlsx,xls|max:10240',
+            'maturity_rating' => 'nullable|integer|between:0,5',
         ]);
+
+        if ($capa->session && !auth()->user()->isAdmin() && ($capa->session->isLockedForUser(auth()->user()) || $capa->session->status === 'completed')) {
+            return redirect()->back()->with('error', __('This audit session is completed and locked. Modifications are disabled.'));
+        }
 
         $capa->treatment_status = $validated['treatment_status'];
         $capa->treatment_due_date = $validated['treatment_due_date'];
         $capa->treatment_pic = $validated['treatment_pic'];
-        $capa->risk_priority = $validated['risk_priority'];
+        if (!empty($validated['risk_priority'])) {
+            $capa->risk_priority = $validated['risk_priority'];
+        }
         $capa->treatment_progress = $validated['treatment_progress'];
-        $capa->evidence_after_improvement = $validated['evidence_after_improvement'];
+
+        // Handle document file upload for post-improvement evidence
+        if ($request->hasFile('evidence_after_file')) {
+            $path = $request->file('evidence_after_file')->store('capa_evidence', 'public');
+            $fileTag = "[Document] " . $path;
+            if (!empty($validated['evidence_after_improvement'])) {
+                $capa->evidence_after_improvement = $fileTag . "\n" . $validated['evidence_after_improvement'];
+            } else {
+                $capa->evidence_after_improvement = $fileTag;
+            }
+        } elseif (array_key_exists('evidence_after_improvement', $validated)) {
+            $capa->evidence_after_improvement = $validated['evidence_after_improvement'];
+        }
+
+        if (isset($validated['maturity_rating'])) {
+            $capa->maturity_rating = (int) $validated['maturity_rating'];
+        }
         
+        $planText = !empty($validated['corrective_action_plan_text']) ? $validated['corrective_action_plan_text'] : ($capa->ai_recommendation ?: 'Remediation plan generated from AI assessment.');
+
         // Save plan text into corrective_action_plan array
         $plan = $capa->corrective_action_plan ?? [];
         if (!is_array($plan)) {
             $plan = [];
         }
-        $plan['action'] = $validated['corrective_action_plan_text'];
+        $plan['action'] = $planText;
         $plan['last_updated_by'] = auth()->user()->name;
         $plan['updated_at'] = now()->toDateTimeString();
         
@@ -172,16 +287,20 @@ class CapaController extends Controller
 
     public function exportCsv(Request $request)
     {
+        $hasCompletedSessions = \App\Models\AssessmentSession::where('status', 'completed')->exists();
+
         $query = AssessmentResult::with(['session.user', 'session.organization', 'standard'])
-            ->where(function ($q) {
-                $q->where('maturity_rating', '<', 4)
-                  ->where('maturity_rating', '>=', 0)
-                  ->orWhereNotNull('treatment_due_date')
-                  ->orWhereNotNull('treatment_status');
-            });
+            ->where('is_applicable', true)
+            ->whereNotNull('maturity_rating')
+            ->where('maturity_rating', '<', 5)
+            ->where('maturity_rating', '>=', 0);
 
         if ($request->filled('session_id')) {
             $query->where('session_id', $request->session_id);
+        } else {
+            $query->whereHas('session', function($q) {
+                $q->where('status', 'completed');
+            });
         }
 
         if ($request->filled('status')) {
@@ -196,7 +315,27 @@ class CapaController extends Controller
         }
 
         if ($request->filled('risk')) {
-            $query->where('risk_priority', $request->risk);
+            $risk = $request->risk;
+            $query->where(function ($q) use ($risk) {
+                $q->where('risk_priority', $risk);
+                
+                if ($risk === 'High') {
+                    $q->orWhere(function ($q2) {
+                        $q2->whereNull('risk_priority')
+                           ->where('maturity_rating', '<=', 2);
+                    });
+                } elseif ($risk === 'Medium') {
+                    $q->orWhere(function ($q2) {
+                        $q2->whereNull('risk_priority')
+                           ->where('maturity_rating', 3);
+                    });
+                } elseif ($risk === 'Low') {
+                    $q->orWhere(function ($q2) {
+                        $q2->whereNull('risk_priority')
+                           ->where('maturity_rating', '>=', 4);
+                    });
+                }
+            });
         }
 
         $capas = $query->orderByRaw('CASE WHEN treatment_due_date IS NULL THEN 1 ELSE 0 END')

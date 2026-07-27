@@ -62,7 +62,7 @@ class AdminDashboardTest extends TestCase
         $response->assertOk();
         $response->assertViewHas('overdueSessions', 1);
         $response->assertViewHas('upcomingSessions', 1);
-        $response->assertSee('1 overdue sessions');
-        $response->assertSee('1 sessions approaching deadline');
+        $response->assertSee('overdue audit sessions');
+        $response->assertSee('sessions due within the next 7 days');
     }
 }

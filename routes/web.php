@@ -101,10 +101,9 @@ Route::middleware(['auth'])->group(function () {
         return redirect()->intended();
     });
 
-    // Dashboard — redirect admin ke admin panel jika mengakses route ini
+    // Dashboard — User Portal Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->name('dashboard')
-        ->middleware('redirect.admin');
+        ->name('dashboard');
 
     // Assessment Domain - Sessions
     Route::controller(SessionController::class)->prefix('sessions')->name('sessions.')->group(function () {
@@ -182,7 +181,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', 'edit')->name('edit');
         Route::match(['patch', 'put'], '/', 'update')->name('update');
         Route::delete('/', 'destroy')->name('destroy');
-        Route::put('/password', 'updatePassword')->name('password.update');
+        Route::put('/password', 'updatePassword')->name('password');
     });
 
     // Governance Domain - Notifications

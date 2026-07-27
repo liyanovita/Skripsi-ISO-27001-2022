@@ -51,7 +51,7 @@ class AdminLogsTest extends TestCase
             ->assertSee('Changes Today')
             ->assertSee('Unique Actors')
             ->assertSee($user->name)
-            ->assertSee('treatment_status');
+            ->assertSee('Improvement Status');
     }
 
     public function test_non_admin_cannot_access_logs(): void

@@ -25,7 +25,7 @@ class SendNotificationRequest extends FormRequest
     {
         return [
             'channels' => 'required|array|min:1',
-            'channels.*' => 'required|string|in:telegram',
+            'channels.*' => 'required|string|in:email',
             'template' => 'required|string|in:capa_overdue,capa_upcoming',
             'data' => 'required|array',
             'data.pic' => 'required|string|max:255',
@@ -45,7 +45,7 @@ class SendNotificationRequest extends FormRequest
         return [
             'channels.required' => 'At least one notification channel is required.',
             'channels.array' => 'Channels must be an array.',
-            'channels.*.in' => 'Invalid notification channel. Only "telegram" is supported.',
+            'channels.*.in' => 'Invalid notification channel. Only "email" is supported.',
             'template.required' => 'Notification template is required.',
             'template.in' => 'Invalid template. Must be "capa_overdue" or "capa_upcoming".',
             'data.required' => 'Notification data is required.',

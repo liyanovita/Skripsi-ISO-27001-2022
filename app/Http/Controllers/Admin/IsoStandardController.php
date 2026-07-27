@@ -23,7 +23,17 @@ class IsoStandardController extends Controller
             ->orderByRaw('LENGTH(code) ASC, code ASC')
             ->get();
 
-        return view('admin.standards.index', compact('clauses', 'controls'));
+        $totalItems = \App\Models\IsoStandard::count();
+
+        $totalQuestions = 0;
+        $allStandardsWithQuestions = \App\Models\IsoStandard::whereNotNull('questions')->get(['questions']);
+        foreach ($allStandardsWithQuestions as $std) {
+            if (is_array($std->questions)) {
+                $totalQuestions += count($std->questions);
+            }
+        }
+
+        return view('admin.standards.index', compact('clauses', 'controls', 'totalItems', 'totalQuestions'));
     }
 
     public function create()

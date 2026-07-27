@@ -28,6 +28,8 @@ class UpdateWorkspaceEntryRequest extends FormRequest
             'treatment_due_date' => 'nullable|date',
             'treatment_pic' => 'nullable|string|max:255',
             'treatment_status' => 'nullable|string|in:open,in_progress,closed',
+            'notes' => 'nullable|string|max:2000',
+            'evidence_file' => 'nullable|file|mimes:pdf,png,jpg,jpeg,doc,docx,xls,xlsx,zip|max:10240',
         ];
     }
 

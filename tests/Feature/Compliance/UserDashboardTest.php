@@ -63,6 +63,5 @@ class UserDashboardTest extends TestCase
         $response->assertSee('Compliance Score');
         $response->assertSee('Overall Maturity Score');
         $response->assertSee('Risk Priority');
-        $response->assertSee('AI Rec Status');
     }
 }

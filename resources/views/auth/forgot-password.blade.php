@@ -76,9 +76,7 @@
         <!-- Logo Branding Header -->
         <div class="text-center mb-8">
             <a href="{{ route('landing') }}" class="inline-flex items-center gap-3 group">
-                <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/30 group-hover:shadow-blue-600/50 transition-all">
-                    <i class="fa-solid fa-shield-halved text-white text-2xl"></i>
-                </div>
+                <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-12 h-12 rounded-xl object-contain bg-white p-0.5 shadow-md shadow-blue-600/20 group-hover:scale-105 transition-all">
                 <div class="text-left">
                     <h1 class="text-xl font-bold text-gray-900 leading-none">{{ __('ISO 27001:2022') }}</h1>
                     <p class="text-[10px] text-gray-600 uppercase tracking-widest mt-0.5 font-bold">{{ __('Self-Assessment Tool') }}</p>

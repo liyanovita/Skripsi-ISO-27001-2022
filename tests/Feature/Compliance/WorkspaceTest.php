@@ -159,7 +159,7 @@ class WorkspaceTest extends TestCase
         $this->assertSame(1, $response->viewData('stats')['gaps']);
         $this->assertSame(0, $response->viewData('stats')['closed']);
         $this->assertSame(1, $response->viewData('tacticalStats')['total_gaps']);
-        $this->assertSame(0, $response->viewData('tacticalStats')['critical']);
+        $this->assertSame(1, $response->viewData('tacticalStats')['critical']);
         $this->assertCount(1, $response->viewData('findings'));
     }
 

@@ -449,7 +449,7 @@ class IntelligenceApiController extends BaseApiController
                     $r->is_applicable &&
                     $r->status === 'completed' &&
                     $r->maturity_rating >= 0 &&
-                    $r->maturity_rating < 4 &&
+                    $r->maturity_rating < 5 &&
                     is_array($r->standard?->questions) &&
                     count($r->standard->questions) > 0
                 )

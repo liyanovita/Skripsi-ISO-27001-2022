@@ -75,6 +75,31 @@
         </div>
     </div>
 
+    {{-- Lock & Deadline Banner --}}
+    @php
+        $sessionLocked = $session->isLockedForUser(auth()->user());
+        $lockReasonMsg = $session->getLockReason(auth()->user());
+    @endphp
+
+    @if($sessionLocked)
+    <div class="p-4 bg-amber-50 border border-amber-300 rounded-2xl shadow-sm flex items-start gap-4 text-amber-900 mb-6">
+        <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 shrink-0 border border-amber-200">
+            <i class="fa-solid fa-lock text-lg"></i>
+        </div>
+        <div class="flex-1">
+            <div class="flex items-center justify-between gap-2">
+                <h4 class="font-bold text-sm text-amber-950">{{ __('Audit Session Locked (Read-Only Mode)') }}</h4>
+                <span class="px-2.5 py-0.5 bg-amber-200/80 text-amber-900 rounded-md text-[10px] font-black uppercase tracking-wider border border-amber-300">
+                    {{ $session->isPastDeadline() ? __('Deadline Expired') : __('Completed') }}
+                </span>
+            </div>
+            <p class="text-xs text-amber-800 font-medium mt-1 leading-relaxed">
+                {{ $lockReasonMsg }}
+            </p>
+        </div>
+    </div>
+    @endif
+
     {{-- Assessment Forms --}}
     <div class="space-y-6">
         @foreach($assessableResults as $result)
@@ -130,6 +155,7 @@
             <form action="{{ route('results.update', $result->id) }}" method="POST" enctype="multipart/form-data" class="p-8">
                 @csrf
                 @method('POST')
+                <fieldset @if($sessionLocked) disabled class="opacity-75 pointer-events-none select-none" @endif>
 
                 <div class="flex flex-col lg:flex-row gap-12">
                     {{-- Control Metadata --}}
@@ -282,7 +308,7 @@
                         {{-- Maturity Scale --}}
                         <div>
                             <div class="flex items-center justify-between mb-4">
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">{{ __('Maturity Level (Likert 0-5)') }}</label>
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">{{ __('Likert Scale') }}</label>
                                 <span class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase tracking-wider">{{ __('Affects Overall Score') }}</span>
                             </div>
                             <div class="grid grid-cols-2 md:grid-cols-6 gap-2">
@@ -486,7 +512,7 @@
 
                             </div>{{-- /AI accordion wrapper --}}
 
-                            @elseif($result->status === 'completed' && $result->maturity_rating < 3 && empty($result->ai_recommendation))
+                            @elseif($result->status === 'completed' && $result->maturity_rating < 5 && empty($result->ai_recommendation))
                             <div class="mt-6 bg-gradient-to-br from-indigo-50/30 to-purple-50/30 rounded-3xl border border-indigo-100/50 p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-4 py-8 relative overflow-hidden" 
                                  x-data="{
                                     poll() {
@@ -628,15 +654,16 @@
                                             if (res.status === 409 || (data && data.no_change)) {
                                                 Swal.fire({
                                                     icon: 'warning',
-                                                    title: `{{ __('No data has changed') }}`,
-                                                    text: `{{ __('The assessment data for this control has not changed since the last AI generation.') }}`,
-                                                    confirmButtonColor: '#3b82f6',
-                                                    width: '24rem',
+                                                    title: `{{ __('Warning: No Data Changes Detected') }}`,
+                                                    html: `<p class="text-sm text-slate-600 font-medium leading-relaxed">{{ __('Re-generation of AI recommendation is disabled because no assessment data has changed.') }}</p>` +
+                                                          `<p class="text-xs text-amber-700 bg-amber-50 p-2.5 rounded-lg border border-amber-200 mt-3 font-semibold flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation text-amber-600"></i> {{ __('Please update maturity score or remarks to re-generate AI recommendations.') }}</p>`,
+                                                    confirmButtonColor: '#f59e0b',
+                                                    width: '27rem',
                                                     customClass: {
                                                         popup: 'rounded-2xl p-4',
-                                                        title: 'text-sm font-bold text-slate-800 mt-2',
-                                                        htmlContainer: 'text-xs text-slate-500 font-medium my-2',
-                                                        confirmButton: 'rounded-xl font-bold px-4 py-2 text-xs'
+                                                        title: 'text-base font-bold text-slate-800 mt-2',
+                                                        htmlContainer: 'text-left px-2',
+                                                        confirmButton: 'rounded-xl font-bold px-4 py-2 text-xs uppercase tracking-widest'
                                                     }
                                                 });
                                                 btn.disabled = false;
@@ -675,6 +702,7 @@
                         </div> {{-- /applicable content section --}}
                     </div>
                 </div>
+                </fieldset>
             </form>
             </div>{{-- /accordion body --}}
         </div>
@@ -711,7 +739,17 @@
             @if($session->status === 'completed')
                 <div class="px-6 py-3 bg-emerald-50 text-emerald-700 text-xs font-black uppercase tracking-widest rounded-xl border border-emerald-200 flex items-center gap-2">
                     <i class="fa-solid fa-circle-check"></i>
-                    {{ __('Audit Completed') }}
+                    {{ __('Completed') }}
+                    @if($sessionLocked)
+                        <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded border border-amber-200 text-[9px] font-black uppercase tracking-wider ml-1">
+                            <i class="fa-solid fa-lock text-[8px] text-amber-600"></i> {{ __('Locked') }}
+                        </span>
+                    @endif
+                </div>
+            @elseif($sessionLocked)
+                <div class="px-6 py-3 bg-amber-50 text-amber-900 text-xs font-black uppercase tracking-widest rounded-xl border border-amber-200 flex items-center gap-2">
+                    <i class="fa-solid fa-lock text-amber-600"></i>
+                    {{ __('In Progress') }} <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded border border-amber-200 text-[9px] font-black uppercase tracking-wider ml-1">({{ __('Locked - Deadline Expired') }})</span>
                 </div>
             @else
                 {{-- Shown only when all applicable controls are completed --}}

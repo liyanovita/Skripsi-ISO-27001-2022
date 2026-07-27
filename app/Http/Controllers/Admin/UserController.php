@@ -60,6 +60,8 @@ class UserController extends Controller
             'role' => 'required|in:user,admin',
             'status' => 'required|in:active,suspended',
             'organization_id' => 'nullable|exists:organizations,id',
+            'job_title' => 'nullable|string|max:255',
+            'role_description' => 'nullable|string|max:1000',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
@@ -101,6 +103,8 @@ class UserController extends Controller
             'role' => 'required|in:user,admin',
             'status' => 'required|in:active,suspended',
             'organization_id' => 'nullable|exists:organizations,id',
+            'job_title' => 'nullable|string|max:255',
+            'role_description' => 'nullable|string|max:1000',
         ]);
 
         // Prevent changing your own role

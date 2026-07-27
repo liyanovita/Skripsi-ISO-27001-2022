@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>ISO 27001 Compliance Dashboard Report</title>
+    <title>ISO 27001:2022 Compliance Dashboard Report</title>
     <style>
         body { font-family: 'Helvetica', sans-serif; color: #333; line-height: 1.6; font-size: 11px; }
         .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #2563eb; padding-bottom: 15px; }
@@ -64,7 +64,7 @@
                     </div>
                 </td>
                 <td style="border: none; padding: 0; text-align: right; vertical-align: middle; color: #475569;">
-                    <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">ISO 27001 Compliance Audit Report</div>
+                    <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">ISO 27001:2022 Compliance Audit Report</div>
                     <div style="font-size: 8px; margin-top: 2px; color: #64748b;">
                         Global System Aggregates & Analytics | Generated: {{ $date }}
                     </div>
@@ -126,7 +126,7 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th style="width: 70%;">ISO 27001 Clause</th>
+                <th style="width: 70%;">ISO 27001:2022 Clause</th>
                 <th style="width: 30%; text-align: right;">Average Maturity Rating</th>
             </tr>
         </thead>
@@ -152,7 +152,7 @@
         </tbody>
     </table>
 
-    <div class="section-title">Top 5 Critical / Failing Controls</div>
+    <div class="section-title">Top 5 High Risk / Failing Controls</div>
     <table class="data-table">
         <thead>
             <tr>
@@ -160,7 +160,7 @@
                 <th style="width: 45%;">Control Name</th>
                 <th style="width: 15%;">Type</th>
                 <th style="width: 12%; text-align: center;">Occurrences</th>
-                <th style="width: 13%; text-align: right;">Avg Rating</th>
+                <th style="width: 13%; text-align: right;">Avg Score</th>
             </tr>
         </thead>
         <tbody>
@@ -172,7 +172,7 @@
                 <td style="text-align: center;">{{ $ctrl->occurrences }} times</td>
                 <td style="text-align: right;">
                     <span class="badge badge-danger">
-                        {{ number_format($ctrl->avg_rating, 2) }} / 5.00
+                        {{ number_format($ctrl->avg_rating) }} / 5
                     </span>
                 </td>
             </tr>
@@ -185,7 +185,7 @@
     </table>
 
     <div class="footer">
-        AuditGuard &copy; {{ date('Y') }} | ISO 27001 Compliance Dashboard Report
+        AuditGuard &copy; {{ date('Y') }} | ISO 27001:2022 Compliance Dashboard Report
     </div>
 </body>
 </html>

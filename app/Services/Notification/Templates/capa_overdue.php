@@ -7,20 +7,23 @@
  */
 
 return [
-    'telegram' => [
-        'subject' => '[OVERDUE] ISO 27001:2022 CAPA ALERT',
-        'body' => <<<'MARKDOWN'
-*[OVERDUE] ISO 27001:2022 CAPA ALERT*
+    'email' => [
+        'subject' => '[OVERDUE] ISO/IEC 27001:2022 CAPA ALERT',
+        'body' => <<<TEXT
+[OVERDUE] ISO/IEC 27001:2022 CAPA ALERT
 
-*Control:* {control_code} - {control_title}
-*PIC:* {pic}
-*Deadline:* {due_date}
-*Status:* Late by {days_overdue} day(s)!
-*Session:* {session_name}
+Tindakan perbaikan (CAPA) berikut telah melewati batas waktu (deadline):
 
-*Action Required:* Please submit the corrective evidence immediately.
+Kontrol ISO: {control_code} - {control_title}
+PIC: {pic}
+Batas Waktu: {due_date}
+Status: Terlambat {days_overdue} hari!
+Sesi Audit: {session_name}
 
-_This is an automated reminder from ISO 27001:2022 Audit System_
-MARKDOWN,
+Tindakan yang Diperlukan:
+Mohon segera unggah dokumen bukti perbaikan (evidence) ke dalam sistem AuditGuard.
+
+Email ini dikirimkan secara otomatis oleh Sistem Audit ISO/IEC 27001:2022.
+TEXT,
     ],
 ];

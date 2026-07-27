@@ -33,7 +33,7 @@ class CapaReminderService
     public function sendDueReminders(?int $daysAhead = null, ?array $channels = null, bool $dryRun = false): array
     {
         $daysAhead ??= (int) config('notifications.capa_reminders.days_ahead', 3);
-        $channels ??= config('notifications.capa_reminders.channels', ['telegram']);
+        $channels ??= config('notifications.capa_reminders.channels', ['email']);
 
         $tasks = $this->dueTasks($daysAhead);
         $results = [];
@@ -65,9 +65,17 @@ class CapaReminderService
         $today = now()->startOfDay();
         $daysDifference = (int) $today->diffInDays($dueDate, false);
 
+        $picEmail = null;
+        if (!empty($task->treatment_pic)) {
+            $picUser = \App\Models\User::where('name', $task->treatment_pic)->first();
+            $picEmail = $picUser?->email;
+        }
+        $picEmail ??= $task->session?->user?->email;
+
         return [
             'id' => $task->id,
             'pic' => $task->treatment_pic ?? 'Unassigned',
+            'pic_email' => $picEmail,
             'due_date' => $task->treatment_due_date->format('Y-m-d'),
             'is_overdue' => $daysDifference < 0,
             'days_left' => $daysDifference,

@@ -56,10 +56,24 @@ class SessionController extends Controller
         $session = $this->sessionService->getSession($id, auth()->id());
         $missing = $this->sessionService->getMissingScores($session);
 
+        $groupedResults = $session->results
+            ->filter(fn($r) => is_array($r->standard?->questions) && count($r->standard->questions) > 0)
+            ->groupBy(function($r) {
+                $code = $r->standard->code ?? '';
+                if (\Illuminate\Support\Str::startsWith($code, 'A.')) {
+                    $parts = explode('.', $code);
+                    return $parts[0] . '.' . ($parts[1] ?? '');
+                }
+                $parts = explode('.', $code);
+                return $parts[0] ?? 'Main Clauses';
+            })
+            ->sortKeys();
+
         return view('sessions.show', [
             'session' => $session,
             'missingCodes' => $missing['codes'],
-            'missingCount' => $missing['count']
+            'missingCount' => $missing['count'],
+            'groupedResults' => $groupedResults
         ]);
     }
 

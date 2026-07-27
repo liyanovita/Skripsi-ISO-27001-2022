@@ -30,11 +30,12 @@ trait MaturityHelper
      * Calculate compliance percentage from maturity score
      *
      * @param float $maturityScore Average maturity score (0-5)
-     * @return int Compliance percentage (0-100)
+     * @param int $decimals Decimal precision
+     * @return float Compliance percentage (0-100)
      */
-    public function calculateCompliancePercentage(float $maturityScore): int
+    public function calculateCompliancePercentage(float $maturityScore, int $decimals = 2): float
     {
-        return (int) round(($maturityScore / 5) * 100);
+        return round(($maturityScore / 5) * 100, $decimals);
     }
 
     /**

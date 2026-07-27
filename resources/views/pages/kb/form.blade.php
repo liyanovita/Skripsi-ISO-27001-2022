@@ -6,26 +6,56 @@
 @push('styles')
 <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 <style>
-    #quill-editor {
-        min-height: 380px;
-        font-size: 14px;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        color: #334155;
-        background: #fff;
-    }
     .ql-toolbar.ql-snow {
-        border-radius: 0.75rem 0.75rem 0 0;
-        border-color: #e2e8f0;
         background: #f8fafc;
-        padding: 10px 8px;
+        border-color: #e2e8f0;
+        border-radius: 0.75rem 0.75rem 0 0;
+        padding: 8px 10px;
+        flex-wrap: wrap;
     }
     .ql-container.ql-snow {
-        border-radius: 0 0 0.75rem 0.75rem;
         border-color: #e2e8f0;
-        background: #fff;
+        border-radius: 0 0 0.75rem 0.75rem;
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
-    .ql-toolbar.ql-snow .ql-formats { margin-right: 10px; }
+    .ql-editor {
+        min-height: 400px;
+        font-size: 14px;
+        color: #334155;
+        padding: 16px;
+    }
     .ql-editor.ql-blank::before { color: #94a3b8; font-style: italic; }
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="10px"]::before,
+    .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="10px"]::before { content: '10px'; }
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="12px"]::before,
+    .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="12px"]::before { content: '12px'; }
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="14px"]::before,
+    .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="14px"]::before { content: '14px'; }
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="16px"]::before,
+    .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="16px"]::before { content: '16px'; }
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="18px"]::before,
+    .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="18px"]::before { content: '18px'; }
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="24px"]::before,
+    .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="24px"]::before { content: '24px'; }
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="36px"]::before,
+    .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="36px"]::before { content: '36px'; }
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="48px"]::before,
+    .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="48px"]::before { content: '48px'; }
+    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Arial"]::before,
+    .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Arial"]::before { content: 'Arial'; font-family: Arial; }
+    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Georgia"]::before,
+    .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Georgia"]::before { content: 'Georgia'; font-family: Georgia; }
+    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Verdana"]::before,
+    .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Verdana"]::before { content: 'Verdana'; font-family: Verdana; }
+    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="TimesNewRoman"]::before,
+    .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="TimesNewRoman"]::before { content: 'Times New Roman'; font-family: 'Times New Roman'; }
+    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="CourierNew"]::before,
+    .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="CourierNew"]::before { content: 'Courier New'; font-family: 'Courier New'; }
+    .ql-font-Arial { font-family: Arial, sans-serif; }
+    .ql-font-Georgia { font-family: Georgia, serif; }
+    .ql-font-Verdana { font-family: Verdana, sans-serif; }
+    .ql-font-TimesNewRoman { font-family: 'Times New Roman', serif; }
+    .ql-font-CourierNew { font-family: 'Courier New', monospace; }
 </style>
 @endpush
 @endif
@@ -33,7 +63,7 @@
 @section('content')
 <div class="w-full pb-12">
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        
+
         {{-- Header --}}
         <div class="p-6 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
             <div class="flex items-center gap-4">
@@ -69,8 +99,8 @@
                             {{ app()->getLocale() == 'id' ? 'Panduan Pengisian Konten' : 'Content Entry Guidance' }}
                         </p>
                         <p class="text-slate-500 leading-relaxed font-medium">
-                            {{ app()->getLocale() == 'id' 
-                                ? 'Tulis konten lengkap pada editor di bawah jika ingin menampilkan dokumen sebagai artikel online interaktif dan diekspor ke format PDF. Jika Anda hanya ingin mengunggah dokumen yang sudah jadi (seperti Word, Excel, CSV, atau PDF) untuk diunduh langsung oleh pengguna, cukup unggah file tersebut di bagian lampiran di bawah dan tulis ringkasan singkat pada kolom editor.' 
+                            {{ app()->getLocale() == 'id'
+                                ? 'Tulis konten lengkap pada editor di bawah jika ingin menampilkan dokumen sebagai artikel online interaktif dan diekspor ke format PDF. Jika Anda hanya ingin mengunggah dokumen yang sudah jadi (seperti Word, Excel, CSV, atau PDF) untuk diunduh langsung oleh pengguna, cukup unggah file tersebut di bagian lampiran di bawah dan tulis ringkasan singkat pada kolom editor.'
                                 : 'Write the complete text in the editor below if you want the resource to display as a fully-formatted online article and export directly to PDF. If you only wish to submit a pre-made document (Word, Excel, CSV, PDF, etc.) for direct download, simply upload it as an attachment below and write a brief summary in the content field.' }}
                         </p>
                     </div>
@@ -136,7 +166,7 @@
                         <span>{{ __('Knowledge Base Content') }}</span>
                         <span class="text-indigo-500 font-bold">{{ __('Word-like editor (will be exported to PDF)') }}</span>
                     </label>
-                    
+
                     {{-- PDF Generation Warning Banner --}}
                     <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2.5">
                         <div class="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
@@ -147,11 +177,13 @@
                         </div>
                     </div>
 
+                    {{-- Hidden textarea for form submission --}}
+                    <textarea name="content" id="content-input" class="hidden">{!! old('content', $resource->content ?? '') !!}</textarea>
+
                     {{-- Quill Editor --}}
-                    <div class="rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                        <div id="quill-editor">{!! old('content', $resource->content ?? '') !!}</div>
+                    <div class="rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                        <div id="quill-editor"></div>
                     </div>
-                    <input type="hidden" name="content" id="content-input" value="{{ old('content', $resource->content ?? '') }}">
                     @error('content') <p class="text-xs text-rose-500 font-bold">{{ $message }}</p> @enderror
                 </div>
 
@@ -179,39 +211,63 @@
 </div>
 
 @if(auth()->user()->isAdmin())
-<script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script>
-const quill = new Quill('#quill-editor', {
-    theme: 'snow',
-    placeholder: '{{ __("Enter the full policy text, SOP steps, or guide content here...") }}',
-    modules: {
-        toolbar: [
-            [{ 'font': [] }, { 'size': ['small', false, 'large', 'huge'] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ 'color': [] }, { 'background': [] }],
-            [{ 'script': 'sub' }, { 'script': 'super' }],
-            ['blockquote', 'code-block'],
-            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-            [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-            [{ 'direction': 'rtl' }, { 'align': [] }],
-            ['link', 'image'],
-            ['clean']
-        ]
+(function() {
+    // Register custom fonts
+    var Font = Quill.import('formats/font');
+    Font.whitelist = ['Arial', 'Georgia', 'Verdana', 'TimesNewRoman', 'CourierNew'];
+    Quill.register(Font, true);
+
+    // Register custom font sizes
+    var Size = Quill.import('attributors/style/size');
+    Size.whitelist = ['10px', '12px', '14px', '16px', '18px', '24px', '36px', '48px'];
+    Quill.register(Size, true);
+
+    var quill = new Quill('#quill-editor', {
+        theme: 'snow',
+        placeholder: '{{ __("Enter the full policy text, SOP steps, or guide content here...") }}',
+        modules: {
+            toolbar: [
+                [{ 'font': ['Arial', 'Georgia', 'Verdana', 'TimesNewRoman', 'CourierNew'] }],
+                [{ 'size': ['10px', '12px', '14px', '16px', '18px', '24px', '36px', '48px'] }],
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'script': 'sub' }, { 'script': 'super' }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+                [{ 'direction': 'rtl' }, { 'align': [] }],
+                ['blockquote', 'code-block'],
+                ['link'],
+                ['clean']
+            ]
+        }
+    });
+
+    // Pre-fill with existing content
+    var existingContent = document.getElementById('content-input').value;
+    if (existingContent && existingContent.trim()) {
+        quill.root.innerHTML = existingContent;
     }
-});
 
-const preview = document.getElementById('content-preview');
-quill.on('text-change', function() {
-    const html = quill.root.innerHTML;
-    document.getElementById('content-input').value = html;
-    preview.innerHTML = quill.getText().trim()
-        ? html
-        : '<p class="text-slate-400 italic">{{ __("Start typing to preview this resource...") }}</p>';
-});
+    // Live preview sync
+    var preview = document.getElementById('content-preview');
+    quill.on('text-change', function() {
+        var html = quill.root.innerHTML;
+        var text = quill.getText().trim();
+        document.getElementById('content-input').value = html;
+        if (preview) {
+            preview.innerHTML = text
+                ? html
+                : '<p class="text-slate-400 italic">{{ __("Start typing to preview this resource...") }}</p>';
+        }
+    });
 
-document.getElementById('kb-form').addEventListener('submit', function() {
-    document.getElementById('content-input').value = quill.root.innerHTML;
-});
+    // Sync to hidden textarea before form submit
+    document.getElementById('kb-form').addEventListener('submit', function() {
+        document.getElementById('content-input').value = quill.root.innerHTML;
+    });
+})();
 </script>
 @endif
 @endsection

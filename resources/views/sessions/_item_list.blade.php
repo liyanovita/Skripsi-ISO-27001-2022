@@ -295,13 +295,13 @@
                                 self.aiImpact     = aiResult.impact_interpretation || '';
                             }
                             Swal.fire({
-                                icon: 'info',
-                                title: '{{ __('No data has changed') }}',
-                                html: '<p class=\'text-sm text-slate-600 leading-relaxed\'>{{ addslashes(__('The assessment data for this control has not changed since the last AI generation.')) }}</p>' +
-                                      '<p class=\'text-xs text-slate-400 mt-2\'>{{ addslashes(__('Regeneration is only required after modifying maturity scores or audit notes in any control.')) }}</p>',
+                                icon: 'warning',
+                                title: '{{ __('Warning: No Data Changes Detected') }}',
+                                html: '<p class=\'text-sm text-slate-600 font-medium leading-relaxed\'>{{ addslashes(__('Re-generation of AI recommendation is disabled because no maturity scores, notes, or applicability data have changed since the last AI generation.')) }}</p>' +
+                                      '<p class=\'text-xs text-amber-700 bg-amber-50 p-2.5 rounded-lg border border-amber-200 mt-3 font-semibold flex items-center gap-2\'><i class=\'fa-solid fa-triangle-exclamation text-amber-600\'></i> {{ addslashes(__('Please update the maturity score or remarks before attempting to re-generate AI recommendations.')) }}</p>',
                                 confirmButtonText: '{{ __('Understood') }}',
-                                confirmButtonColor: '#4f46e5',
-                                width: '26rem',
+                                confirmButtonColor: '#f59e0b',
+                                width: '27rem',
                                 customClass: {
                                     title: 'text-base font-bold text-slate-800',
                                     htmlContainer: 'text-left px-2',
@@ -381,6 +381,7 @@
             <div x-show="open" x-collapse x-cloak>
                 <form x-ref="form" action="{{ route('results.update', $result->id) }}" method="POST" class="p-5 space-y-5 border-t border-slate-100">
                     @csrf
+                    <fieldset @if($session->isLockedForUser(auth()->user())) disabled class="opacity-75 pointer-events-none select-none" @endif>
 
                     @if(!$isClause)
                     {{-- Statement of Applicability (SoA) - Annex A only --}}
@@ -604,17 +605,17 @@
                     </div>
 
                     {{-- Compact AI Status Indicator --}}
-                    <template x-if="rating < 4">
+                    <template x-if="rating < 5">
                         <div class="pt-4 border-t border-slate-100 mt-2 flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all" 
-                                     :class="aiLoading ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20 animate-pulse' : (aiRec ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20' : 'bg-slate-200 text-slate-400')">
+                                     :class="aiLoading ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20 animate-pulse' : (aiRec ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'bg-slate-200 text-slate-400')">
                                     <i class="fa-solid" :class="aiLoading ? 'fa-spinner animate-spin text-xs' : 'fa-robot text-xs'"></i>
                                 </div>
                                 <div>
                                     <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest leading-none">{{ __('AI Synthesis Status') }}</h4>
                                     <template x-if="aiLoading">
-                                        <p class="text-[9px] font-bold text-indigo-600 uppercase tracking-widest mt-1 animate-pulse"><i class="fa-solid fa-spinner animate-spin mr-1"></i>{{ __('Synthesizing...') }}</p>
+                                        <p class="text-[9px] font-bold text-blue-600 uppercase tracking-widest mt-1 animate-pulse"><i class="fa-solid fa-spinner animate-spin mr-1"></i>{{ __('Synthesizing...') }}</p>
                                     </template>
                                     <template x-if="!aiLoading && aiRec">
                                         <p class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mt-1"><i class="fa-solid fa-check-circle mr-1"></i>{{ __('Analysis Ready') }}</p>
@@ -640,24 +641,24 @@
                                             validation: '',
                                             impact: aiImpact
                                         }}))"
-                                        class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shadow-md shadow-indigo-600/20">
+                                        class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shadow-md shadow-blue-600/20">
                                         <i class="fa-solid fa-eye mr-1"></i>{{ __('View Result') }}</button>
-                                    <a href="{{ route('workspace.index', ['session_id' => $session->id, 'focus' => $result->id]) }}" class="px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg text-[8px] font-black uppercase tracking-widest transition-all border border-indigo-100">{{ __('Workspace') }}<i class="fa-solid fa-arrow-right ml-1"></i>
+                                    <a href="{{ route('workspace.index', ['session_id' => $session->id, 'focus' => $result->id]) }}" class="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-lg text-[8px] font-black uppercase tracking-widest transition-all border border-blue-100">{{ __('Workspace') }}<i class="fa-solid fa-arrow-right ml-1"></i>
                                     </a>
-                                    <template x-if="rating < 4">
+                                    <template x-if="rating < 5">
                                         <button type="button" @click="generateAi()" :disabled="aiLoading"
-                                                class="px-4 py-2 bg-white border border-slate-200 hover:border-indigo-400 hover:text-indigo-600 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 text-slate-600">
-                                            <i class="fa-solid fa-arrows-rotate" :class="aiLoading && 'animate-spin text-indigo-500'"></i>
+                                                class="px-4 py-2 bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 text-slate-600">
+                                            <i class="fa-solid fa-arrows-rotate" :class="aiLoading && 'animate-spin text-blue-500'"></i>
                                             <span x-text="aiLoading ? '{{ __('Regenerating...') }}' : '{{ __('Regenerate') }}'"></span>
                                         </button>
                                     </template>
                                 </div>
                             </template>
 
-                            <template x-if="isCompleted && rating < 4 && !aiRec">
+                            <template x-if="isCompleted && rating < 5 && !aiRec">
                                 <button type="button" @click="generateAi()" :disabled="aiLoading"
-                                        class="px-4 py-2 bg-white border border-slate-200 hover:border-indigo-400 hover:text-indigo-600 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 text-slate-600">
-                                    <i class="fa-solid fa-wand-magic-sparkles" :class="aiLoading && 'animate-spin text-indigo-500'"></i>
+                                        class="px-4 py-2 bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 text-slate-600">
+                                    <i class="fa-solid fa-wand-magic-sparkles" :class="aiLoading && 'animate-spin text-blue-500'"></i>
                                     <span x-text="aiLoading ? '{{ __('Synthesizing...') }}' : '{{ __('Generate AI') }}'"></span>
                                 </button>
                             </template>
@@ -673,6 +674,7 @@
                             {{ __('Verify & Finalize') }}
                         </button>
                     </div>
+                    </fieldset>
                 </form>
             </div>
         </div>

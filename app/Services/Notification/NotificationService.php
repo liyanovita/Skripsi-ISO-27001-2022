@@ -30,12 +30,10 @@ class NotificationService
      */
     protected function initializeChannels(): void
     {
-        // Register Telegram channel
-        if (config('notifications.channels.telegram.enabled')) {
-            $this->channels['telegram'] = new Channels\TelegramChannel();
+        // Register Email channel
+        if (config('notifications.channels.email.enabled', true)) {
+            $this->channels['email'] = new Channels\EmailChannel();
         }
-
-        // Future: Register Email, SMS, Slack, etc.
     }
 
     /**

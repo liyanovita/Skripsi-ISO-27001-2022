@@ -176,9 +176,20 @@ class SessionService
 
     public function finalizeSession(int $id, int $userId): AssessmentSession
     {
+        $user = auth()->user();
         $session = AssessmentSession::with('results.standard')
-            ->where('user_id', $userId)
+            ->where(function($query) use ($userId, $user) {
+                if ($user && $user->isAdmin()) {
+                    return;
+                }
+                $query->where('user_id', $userId)
+                      ->orWhereHas('invitedUsers', fn($q) => $q->where('user_id', $userId));
+            })
             ->findOrFail($id);
+
+        if ($session->isLockedForUser($user)) {
+            throw new \Exception($session->getLockReason($user));
+        }
 
         $assessableResults = $this->getAssessableResults($session);
         $applicableAssessable = $assessableResults->filter(fn($r) => $r->is_applicable);

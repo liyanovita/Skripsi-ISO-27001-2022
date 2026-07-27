@@ -78,9 +78,7 @@
             {{-- Header --}}
             <div class="text-center mb-6 relative z-10">
                 <a href="{{ route('landing') }}" class="inline-block mb-4">
-                    <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-teal-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 transition-all">
-                        <i class="fa-solid fa-lock-open text-white text-2xl"></i>
-                    </div>
+                    <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-14 h-14 rounded-2xl object-contain bg-white p-0.5 shadow-md shadow-blue-600/20 mx-auto hover:scale-105 transition-all">
                 </a>
                 <h1 class="text-2xl font-bold gradient-text">{{ __('Set New Password') }}</h1>
                 <p class="text-sm text-gray-500 mt-2">{{ __('Enter your new password below.') }}</p>

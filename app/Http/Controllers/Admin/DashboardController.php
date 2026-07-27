@@ -22,8 +22,14 @@ class DashboardController extends Controller
         $completedSessions = AssessmentSession::where('status', 'completed')->count();
         $totalSessions = AssessmentSession::count();
 
-        $averageScore = AssessmentSession::where('overall_maturity_score', '>', 0)
-            ->avg('overall_maturity_score') ?? 0;
+        $averageScore = AssessmentSession::where('status', 'completed')
+            ->where('overall_maturity_score', '>', 0)
+            ->avg('overall_maturity_score');
+
+        if ($averageScore === null) {
+            $averageScore = AssessmentSession::where('overall_maturity_score', '>', 0)
+                ->avg('overall_maturity_score') ?? 0;
+        }
 
         // Recent items
         $recentUsers = User::orderBy('created_at', 'desc')->take(5)->get();
@@ -63,14 +69,17 @@ class DashboardController extends Controller
         $sessionActivityData = array_map(fn($m) => $sessionActivity[$m] ?? 0, $months);
         $monthLabels = array_map(fn($m) => \Carbon\Carbon::parse($m . '-01')->format('M Y'), $months);
 
-        // Global maturity distribution
-        $maturityDistribution = [
-            AssessmentResult::where('maturity_rating', 1)->where('status', 'completed')->count(),
-            AssessmentResult::where('maturity_rating', 2)->where('status', 'completed')->count(),
-            AssessmentResult::where('maturity_rating', 3)->where('status', 'completed')->count(),
-            AssessmentResult::where('maturity_rating', 4)->where('status', 'completed')->count(),
-            AssessmentResult::where('maturity_rating', 5)->where('status', 'completed')->count(),
-        ];
+        // Global maturity distribution (only from completed audit sessions, excluding soft-deleted)
+        $maturityBase = AssessmentResult::join('assessment_sessions', 'assessment_results.session_id', '=', 'assessment_sessions.id')
+            ->whereNull('assessment_sessions.deleted_at')
+            ->where('assessment_sessions.status', 'completed')
+            ->where('assessment_results.is_applicable', true)
+            ->whereNotNull('assessment_results.maturity_rating');
+
+        $maturityDistribution = [];
+        for ($level = 1; $level <= 5; $level++) {
+            $maturityDistribution[] = (clone $maturityBase)->where('assessment_results.maturity_rating', $level)->count();
+        }
 
         // Organization sector distribution
         $sectorDistribution = Organization::whereNotNull('business_sector')
@@ -93,9 +102,19 @@ class DashboardController extends Controller
 
 
 
-        // Knowledge Base stats
+        // Knowledge Base & Standards stats
         $totalArticles       = \App\Models\KnowledgeBase::count();
         $totalOrganizations  = Organization::count();
+        $totalStandards      = \App\Models\IsoStandard::count();
+        $suspendedUsers      = User::where('status', 'suspended')->count();
+
+        // ISO Standards breakdown: top-level ISMS clauses (4-10) vs Annex A leaf controls
+        $mainClausesCount = \App\Models\IsoStandard::whereNull('parent_id')
+            ->whereRaw("code REGEXP '^[0-9]'")
+            ->count();
+        $annexControlsCount = \App\Models\IsoStandard::doesntHave('children')
+            ->where('code', 'like', 'A.%')
+            ->count();
 
         // Pending CAPA tasks
         $pendingCapa = AssessmentResult::whereNotNull('treatment_due_date')
@@ -130,6 +149,7 @@ class DashboardController extends Controller
 
         return view('admin.dashboard', compact(
             'totalUsers',
+            'suspendedUsers',
             'activeSessions',
             'completedSessions',
             'totalSessions',
@@ -142,9 +162,11 @@ class DashboardController extends Controller
             'maturityDistribution',
             'sectorDistribution',
             'scaleDistribution',
-
             'totalArticles',
             'totalOrganizations',
+            'totalStandards',
+            'mainClausesCount',
+            'annexControlsCount',
             'pendingCapa',
             'overdueCapa',
             'overdueSessions',
