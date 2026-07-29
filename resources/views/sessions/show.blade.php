@@ -11,9 +11,8 @@
         $focusTab = 'annex';
     }
     $assessableResults = $session->results->filter(fn($result) => is_array($result->standard?->questions) && count($result->standard->questions) > 0);
-    $applicableResults = $assessableResults->where('is_applicable', true);
-    $assessedCount     = $applicableResults->where('status', 'completed')->count();
-    $totalAssessable   = $applicableResults->count();
+    $totalAssessable   = $assessableResults->count();
+    $assessedCount     = $assessableResults->filter(fn($r) => !$r->is_applicable || $r->status === 'completed' || $r->maturity_rating !== null)->count();
 
     $answeredQCount = 0;
     foreach ($session->results as $r) {

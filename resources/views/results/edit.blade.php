@@ -19,17 +19,17 @@
         { id: {{ $r->id }}, code: '{{ $r->standard->code }}', is_applicable: {{ $r->is_applicable ? 'true' : 'false' }}, is_completed: {{ $r->status === 'completed' ? 'true' : 'false' }} },
         @endforeach
     ],
-    get totalApplicable() {
-        return this.results.filter(r => r.is_applicable).length;
+    get totalAssessable() {
+        return this.results.length;
     },
-    get completedApplicable() {
-        return this.results.filter(r => r.is_applicable && r.is_completed).length;
+    get completedCount() {
+        return this.results.filter(r => !r.is_applicable || r.is_completed).length;
     },
     get allCompleted() {
-        return this.totalApplicable > 0 && this.totalApplicable === this.completedApplicable;
+        return this.totalAssessable > 0 && this.totalAssessable === this.completedCount;
     },
     get progressPercentage() {
-        return this.totalApplicable > 0 ? Math.round((this.completedApplicable / this.totalApplicable) * 100) : 0;
+        return this.totalAssessable > 0 ? Math.round((this.completedCount / this.totalAssessable) * 100) : 0;
     },
     updateResultState(id, isApplicable, isCompleted) {
         let r = this.results.find(res => res.id === id);

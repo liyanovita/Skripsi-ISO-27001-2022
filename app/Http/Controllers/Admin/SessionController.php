@@ -144,7 +144,7 @@ class SessionController extends Controller
 
         $allApplicable = $results->where('is_applicable', true);
         $allExcluded   = $results->where('is_applicable', false);
-        $assessed      = $allApplicable->filter(fn($r) => $r->maturity_rating !== null);
+        $assessed      = $results->filter(fn($r) => !$r->is_applicable || $r->maturity_rating !== null || $r->status === 'completed');
 
         // Total questions and answered questions count across assessable controls
         $totalQuestionsCount = 0;
@@ -156,14 +156,14 @@ class SessionController extends Controller
                 $qCount = count($questions);
                 $totalQuestionsCount += $qCount;
 
-                if ($result->is_applicable && $result->maturity_rating !== null) {
+                if (!$result->is_applicable || $result->maturity_rating !== null) {
                     $answeredQuestionsCount += $qCount;
                 }
             }
         }
 
-        $completionPct = $allApplicable->count() > 0
-            ? round(($assessed->count() / $allApplicable->count()) * 100)
+        $completionPct = $results->count() > 0
+            ? round(($assessed->count() / $results->count()) * 100)
             : 0;
 
         $stats = [

@@ -146,9 +146,9 @@
                     <tr>
                         <th class="px-6 py-4 w-5/12">{{ __('Session Name & Scope') }}</th>
                         <th class="px-5 py-4 w-2/12">{{ __('PIC') }}</th>
-                        <th class="px-4 py-4 w-1/12">{{ __('Status') }}</th>
-                        <th class="px-4 py-4 w-1/12 text-center">{{ __('Questions') }}</th>
+                        <th class="px-4 py-4 w-2/12">{{ __('Progress') }}</th>
                         <th class="px-4 py-4 w-2/12">{{ __('Maturity Score') }}</th>
+                        <th class="px-4 py-4 w-1/12">{{ __('Status') }}</th>
                         <th class="px-4 py-4 w-1/12 text-right">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
@@ -190,47 +190,30 @@
                             </a>
                         </td>
 
-                        {{-- Status Pill --}}
+                        {{-- Progress Bar --}}
                         <td class="px-4 py-4">
-                            @if($session->trashed())
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border bg-amber-50 text-amber-700 border-amber-200">
-                                    <i class="fa-solid fa-box-archive text-[8px]"></i> Archived
-                                </span>
-                            @else
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border
-                                    {{ $session->status === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
-                                       ($session->status === 'in_progress' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-slate-50 text-slate-600 border-slate-200') }}">
-                                    <span class="w-1.5 h-1.5 rounded-full {{ $session->status === 'completed' ? 'bg-emerald-500 animate-pulse' : ($session->status === 'in_progress' ? 'bg-blue-500 animate-pulse' : 'bg-slate-400') }}"></span>
-                                    {{ $session->status === 'in_progress' ? 'In Progress' : str_replace('_', ' ', $session->status) }}
-                                </span>
-                            @endif
-                        </td>
-
-                        {{-- Questions Progress --}}
-                        <td class="px-4 py-4 text-center">
                             @php
-                                $totalQ = 0;
-                                $answeredQ = 0;
-                                foreach ($session->results as $r) {
-                                    $questions = $r->standard?->questions;
-                                    if (is_array($questions) && count($questions) > 0) {
-                                        $qCount = count($questions);
-                                        $totalQ += $qCount;
-                                        if ($r->is_applicable && $r->maturity_rating !== null) {
-                                            $answeredQ += $qCount;
-                                        }
-                                    }
-                                }
+                                $totalControls = 137;
+                                $completedControls = $session->status === 'completed'
+                                    ? 137
+                                    : ($session->results ? $session->results->filter(fn($r) => !$r->is_applicable || $r->status === 'completed' || $r->maturity_rating !== null)->count() : 0);
+                                $prog = min(100, round(($completedControls / $totalControls) * 100));
                             @endphp
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/80 font-bold text-slate-800 text-xs">
-                                {{ $answeredQ }} / {{ $totalQ }}
-                            </span>
+                            <div class="flex flex-col gap-1.5 w-32">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">{{ $completedControls }} / {{ $totalControls }}</span>
+                                    <span class="text-[10px] font-black text-slate-700">{{ $prog }}%</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden flex items-center">
+                                    <div class="h-full {{ $prog == 100 ? 'bg-emerald-500' : 'bg-blue-500' }} rounded-full" style="width: {{ $prog }}%"></div>
+                                </div>
+                            </div>
                         </td>
 
-                        {{-- Maturity Score & Progress Bar --}}
+                        {{-- Maturity Score --}}
                         <td class="px-4 py-4">
                             <div class="flex items-center gap-2.5">
-                                <div class="w-20 h-2 bg-slate-100 rounded-full overflow-hidden shrink-0">
+                                <div class="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden shrink-0">
                                     <div class="h-full rounded-full transition-all
                                         {{ $session->overall_maturity_score >= 4 ? 'bg-emerald-500' : ($session->overall_maturity_score >= 2.5 ? 'bg-amber-500' : 'bg-rose-500') }}"
                                          style="width: {{ ($session->overall_maturity_score / 5) * 100 }}%">
@@ -241,6 +224,33 @@
                                     {{ number_format($session->overall_maturity_score, 2) }}
                                 </span>
                             </div>
+                        </td>
+
+                        {{-- Status Pill --}}
+                        <td class="px-4 py-4">
+                            @if($session->trashed())
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 border-amber-200 text-[9px] font-bold rounded-lg uppercase tracking-widest border">
+                                    <i class="fa-solid fa-box-archive text-[8px]"></i>
+                                    {{ __('Archived') }}
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 
+                                    {{ $session->status == 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
+                                       ($session->status == 'draft' ? 'bg-slate-50 text-slate-600 border-slate-200' : 'bg-blue-50 text-blue-600 border-blue-100') }} 
+                                    text-[9px] font-bold rounded-lg uppercase tracking-widest border">
+                                    @if($session->status === 'completed') <i class="fa-solid fa-circle-check text-[8px]"></i>
+                                    @elseif($session->status === 'in_progress') <i class="fa-solid fa-circle-notch animate-spin text-[8px]"></i>
+                                    @else <i class="fa-solid fa-pen-to-square text-[8px]"></i>
+                                    @endif
+                                    <span>{{ $session->status == 'completed' ? __('Completed') : ($session->status == 'draft' ? __('Draft') : __('In Progress')) }}</span>
+
+                                    @if($session->status === 'completed' || $session->status === 'closed' || $session->isPastDeadline() || $session->isLockedForUser(auth()->user()))
+                                        <span class="px-1.5 py-0.2 bg-amber-100 text-amber-800 rounded border border-amber-200 text-[8px] font-black uppercase tracking-wider flex items-center gap-1 ml-0.5" title="{{ __('Session is completed/locked in read-only mode') }}">
+                                            <i class="fa-solid fa-lock text-[7px] text-amber-600"></i> {{ __('Locked') }}
+                                        </span>
+                                    @endif
+                                </span>
+                            @endif
                         </td>
 
                         {{-- Action Toolbar --}}

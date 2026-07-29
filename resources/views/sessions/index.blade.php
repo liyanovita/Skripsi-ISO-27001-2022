@@ -153,20 +153,18 @@
                               </td>
                             <td class="px-6 py-5">
                                 @php
-                                    $completedControls = $session->results
-                                        ? $session->results->filter(fn($r) => $r->is_applicable && $r->status === 'completed')->count()
-                                        : 0;
-                                    if ($session->status === 'completed' && $completedControls === 0) {
-                                        $completedControls = 137;
-                                    }
+                                    $completedControls = $session->status === 'completed'
+                                        ? 137
+                                        : ($session->results ? $session->results->filter(fn($r) => !$r->is_applicable || $r->status === 'completed' || $r->maturity_rating !== null)->count() : 0);
                                     $prog = min(100, round(($completedControls / 137) * 100));
                                 @endphp
                                 <div class="flex flex-col gap-1.5 w-32">
                                     <div class="flex items-center justify-between">
                                         <span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">{{ $completedControls }} / 137</span>
+                                        <span class="text-[10px] font-black text-slate-700">{{ $prog }}%</span>
                                     </div>
                                     <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden flex items-center">
-                                        <div class="h-full {{ $prog == 100 ? 'bg-green-500' : 'bg-blue-500' }} rounded-full" style="width: {{ $prog }}%"></div>
+                                        <div class="h-full {{ $prog == 100 ? 'bg-emerald-500' : 'bg-blue-500' }} rounded-full" style="width: {{ $prog }}%"></div>
                                     </div>
                                 </div>
                             </td>
@@ -197,8 +195,8 @@
                                         @endif
                                         <span>{{ $session->status == 'completed' ? __('Completed') : ($session->status == 'draft' ? __('Draft') : __('In Progress')) }}</span>
 
-                                        @if($session->isLockedForUser(auth()->user()))
-                                            <span class="px-1.5 py-0.2 bg-amber-100 text-amber-800 rounded border border-amber-200 text-[8px] font-black uppercase tracking-wider flex items-center gap-1 ml-0.5" title="{{ $session->getLockReason(auth()->user()) }}">
+                                        @if($session->status === 'completed' || $session->status === 'closed' || $session->isPastDeadline() || $session->isLockedForUser(auth()->user()))
+                                            <span class="px-1.5 py-0.2 bg-amber-100 text-amber-800 rounded border border-amber-200 text-[8px] font-black uppercase tracking-wider flex items-center gap-1 ml-0.5" title="{{ $session->getLockReason(auth()->user()) ?? __('Completed / Locked') }}">
                                                 <i class="fa-solid fa-lock text-[7px] text-amber-600"></i> {{ __('Locked') }}
                                             </span>
                                         @endif
