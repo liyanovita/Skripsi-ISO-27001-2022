@@ -56,7 +56,7 @@
         {{-- Card 1: Primary Information --}}
         <div class="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-7 shadow-sm space-y-6">
             <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
-                <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold">
+                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">
                     <i class="fa-solid fa-file-signature"></i>
                 </div>
                 <div>
@@ -121,7 +121,7 @@
         {{-- Card 2: PIC & Session Status --}}
         <div class="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-7 shadow-sm space-y-6">
             <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
-                <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xs font-bold">
+                <div class="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xs font-bold">
                     <i class="fa-solid fa-user-shield"></i>
                 </div>
                 <div>
@@ -210,7 +210,7 @@
                         <input type="checkbox" name="invited_users[]" value="{{ $user->id }}"
                             {{ in_array($user->id, old('invited_users', $currentInvitedIds)) ? 'checked' : '' }}
                             class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer">
-                        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-sm">
+                        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-sm">
                             {{ strtoupper(substr($user->name, 0, 2)) }}
                         </div>
                         <div class="flex-1 min-w-0">

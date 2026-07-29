@@ -16,7 +16,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
-                <span class="w-7 h-7 rounded-lg bg-violet-600 text-white flex items-center justify-center text-xs shrink-0">
+                <span class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs shrink-0">
                     <i class="fa-solid fa-users"></i>
                 </span>
                 User Management
@@ -24,7 +24,7 @@
             <p class="text-sm text-slate-400 mt-0.5 ml-9">Manage accounts, roles, and platform access control.</p>
         </div>
         <a href="{{ route('admin.users.create') }}"
-            class="inline-flex items-center gap-2 px-4 py-2.5 bg-violet-600 text-white rounded-xl text-sm font-bold hover:bg-violet-700 active:scale-95 transition-all shadow-md shadow-violet-600/20 shrink-0">
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all shadow-md shadow-blue-600/20 shrink-0">
             <i class="fa-solid fa-user-plus text-xs"></i> Add User
         </a>
     </div>
@@ -54,11 +54,11 @@
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Admins</span>
-                <div class="w-8 h-8 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
+                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                     <i class="fa-solid fa-shield-halved text-xs"></i>
                 </div>
             </div>
-            <div class="text-3xl font-black text-violet-600 tracking-tight">{{ number_format($adminCount) }}</div>
+            <div class="text-3xl font-black text-blue-600 tracking-tight">{{ number_format($adminCount) }}</div>
             <div class="text-[10px] text-slate-400 mt-0.5">Administrators</div>
         </div>
     </div>
@@ -123,16 +123,16 @@
                 </thead>
                 <tbody class="divide-y divide-slate-50">
                     @forelse($users as $user)
-                    <tr class="user-row hover:bg-violet-50/20 transition-colors">
+                    <tr class="user-row hover:bg-blue-50/20 transition-colors">
                         {{-- User --}}
                         <td class="px-5 py-3.5">
                             <a href="{{ route('admin.users.show', $user) }}" class="flex items-center gap-3 group">
                                 <div class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs shrink-0
-                                    {{ $user->isAdmin() ? 'bg-violet-100 text-violet-700' : 'bg-blue-50 text-blue-600' }}">
+                                    {{ $user->isAdmin() ? 'bg-blue-100 text-blue-700' : 'bg-blue-50 text-blue-600' }}">
                                     {{ strtoupper(substr($user->name, 0, 2)) }}
                                 </div>
                                 <div>
-                                    <div class="font-bold text-slate-900 group-hover:text-violet-600 transition-colors">{{ $user->name }}</div>
+                                    <div class="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{{ $user->name }}</div>
                                     <div class="text-[11px] text-slate-400">{{ $user->email }}</div>
                                     @if($user->job_title)
                                         <div class="text-[10px] font-bold text-blue-600 mt-0.5"><i class="fa-solid fa-briefcase text-[8px]"></i> {{ $user->job_title }}</div>
@@ -152,7 +152,7 @@
                         {{-- Role --}}
                         <td class="px-5 py-3.5">
                             @if($user->isAdmin())
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-violet-100 text-violet-700 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-[10px] font-black uppercase tracking-widest">
                                     <i class="fa-solid fa-shield-halved text-[8px]"></i> Admin
                                 </span>
                             @else
@@ -190,7 +190,7 @@
                                     <i class="fa-solid fa-eye text-xs"></i>
                                 </a>
                                 <a href="{{ route('admin.users.edit', $user) }}"
-                                    class="w-8 h-8 rounded-xl flex items-center justify-center text-violet-600 hover:bg-violet-50 border border-violet-100 bg-white transition-colors" title="Edit">
+                                    class="w-8 h-8 rounded-xl flex items-center justify-center text-blue-600 hover:bg-blue-50 border border-blue-100 bg-white transition-colors" title="Edit">
                                     <i class="fa-solid fa-pen text-xs"></i>
                                 </a>
                                 <form method="POST" action="{{ route('admin.users.toggle-status', $user) }}">

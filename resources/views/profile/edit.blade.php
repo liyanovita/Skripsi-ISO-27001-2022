@@ -20,7 +20,7 @@
                     <div class="flex items-center gap-2 mb-1">
                         <span class="text-lg font-black text-slate-800 tracking-tight">{{ $user->name }}</span>
                         @if($user->isAdmin())
-                            <span class="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-[10px] font-black uppercase tracking-wider">
+                            <span class="px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-full text-[10px] font-black uppercase tracking-wider">
                                 <i class="fa-solid fa-shield-halved text-[8px]"></i> Admin
                             </span>
                         @else

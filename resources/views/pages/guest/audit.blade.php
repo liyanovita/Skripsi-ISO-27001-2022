@@ -333,7 +333,7 @@
                     <div :id="'item-' + item.id">
                         {{-- Parent Section Header --}}
                         <template x-if="!item.description && !item.questions">
-                            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 mb-2 border border-blue-200/60 shadow-sm">
+                            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-50 to-blue-50 px-6 py-5 mb-2 border border-blue-200/60 shadow-sm">
                                 <div class="absolute right-0 top-0 bottom-0 w-32 bg-blue-400/10 blur-2xl"></div>
                                 <div class="relative flex items-center gap-4">
                                     <div class="w-12 h-12 bg-blue-600/10 border border-blue-300/50 rounded-xl flex items-center justify-center shrink-0">
@@ -569,7 +569,7 @@
                     </div>
                 </div>
                 <button @click="closeWarningModal()" 
-                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-bold hover:shadow-xl transition-all text-xs uppercase tracking-widest">{{ __('I Understand') }}</button>
+                        class="w-full bg-gradient-to-r from-blue-600 to-sky-600 text-white py-3 rounded-xl font-bold hover:shadow-xl transition-all text-xs uppercase tracking-widest">{{ __('I Understand') }}</button>
                 <p class="text-[10px] text-center text-slate-400 mt-3">
                     <i class="fa-solid fa-info-circle mr-1"></i>{{ __('This message will only show once') }}</p>
             </div>
@@ -582,7 +582,7 @@
             <div class="bg-white rounded-2xl p-6 max-w-xl w-full shadow-2xl max-h-[88vh] overflow-y-auto onboarding-modal">
                 <div class="flex items-center justify-between mb-5">
                     <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-sky-600 rounded-xl flex items-center justify-center shadow-lg">
                             <i class="fa-solid fa-rocket text-white text-lg"></i>
                         </div>
                         <div>
@@ -605,8 +605,8 @@
                         </div>
                     </div>
 
-                    <div class="flex items-start gap-3 p-3 bg-purple-50 rounded-xl border border-purple-100">
-                        <div class="w-7 h-7 bg-purple-600 text-white rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0">2</div>
+                    <div class="flex items-start gap-3 p-3 bg-sky-50 rounded-xl border border-sky-100">
+                        <div class="w-7 h-7 bg-sky-600 text-white rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0">2</div>
                         <div>
                             <h4 class="font-bold text-slate-900 text-sm mb-0.5">{{ __('Score Maturity') }}</h4>
                             <p class="text-xs text-slate-600">Rate each control from 0â€“5 based on your implementation level. Add notes for evidence.</p>
@@ -637,8 +637,8 @@
                         </div>
                     </div>
 
-                    <div class="flex items-start gap-3 p-3 bg-indigo-50 rounded-xl border border-indigo-100">
-                        <div class="w-7 h-7 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0">âŒ¨</div>
+                    <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                        <div class="w-7 h-7 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0">âŒ¨</div>
                         <div>
                             <h4 class="font-bold text-slate-900 text-sm mb-1">{{ __('Keyboard Shortcuts') }}</h4>
                             <div class="text-xs text-slate-600 space-y-1">
@@ -651,7 +651,7 @@
                 </div>
 
                 <button @click="closeOnboarding()" 
-                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-bold hover:shadow-xl transition-all text-xs uppercase tracking-widest">
+                        class="w-full bg-gradient-to-r from-blue-600 to-sky-600 text-white py-3 rounded-xl font-bold hover:shadow-xl transition-all text-xs uppercase tracking-widest">
                     <i class="fa-solid fa-check mr-2"></i>Got It, Let's Start!
                 </button>
 

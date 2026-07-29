@@ -90,8 +90,8 @@
 
                 <!-- Guidance Info Banner -->
                 @if(auth()->user()->isAdmin())
-                <div class="p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100/50">
+                <div class="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100/50">
                         <i class="fa-solid fa-circle-info text-sm"></i>
                     </div>
                     <div class="text-xs">
@@ -148,13 +148,13 @@
                         </div>
                         @if(isset($resource) && $resource->attachment_name)
                             <span class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600">
-                                <i class="fa-solid fa-paperclip text-indigo-500"></i>
+                                <i class="fa-solid fa-paperclip text-blue-500"></i>
                                 {{ $resource->attachment_name }}
                             </span>
                         @endif
                     </div>
                     <input type="file" name="attachment" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.md,.csv"
-                        class="block w-full text-xs font-bold text-slate-500 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-900 file:px-4 file:py-2.5 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:text-white hover:file:bg-indigo-600">
+                        class="block w-full text-xs font-bold text-slate-500 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-900 file:px-4 file:py-2.5 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:text-white hover:file:bg-blue-600">
                     <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">{{ __('Max 10 MB. Uploading a new attachment replaces the existing file.') }}</p>
                     @error('attachment') <p class="text-xs text-rose-500 font-bold">{{ $message }}</p> @enderror
                 </div>
@@ -164,7 +164,7 @@
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between">
                         <span>{{ __('Knowledge Base Content') }}</span>
-                        <span class="text-indigo-500 font-bold">{{ __('Word-like editor (will be exported to PDF)') }}</span>
+                        <span class="text-blue-500 font-bold">{{ __('Word-like editor (will be exported to PDF)') }}</span>
                     </label>
 
                     {{-- PDF Generation Warning Banner --}}
@@ -190,7 +190,7 @@
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Content Preview') }}</label>
-                        <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">{{ __('Live preview') }}</span>
+                        <span class="text-[10px] font-bold text-blue-500 uppercase tracking-widest">{{ __('Live preview') }}</span>
                     </div>
                     <div id="content-preview" class="prose prose-sm prose-slate max-w-none min-h-32 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700">
                         {!! old('content', $resource->content ?? '') ?: '<p class="text-slate-400 italic">' . __('Start typing to preview this resource...') . '</p>' !!}

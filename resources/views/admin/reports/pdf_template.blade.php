@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>ISO 27001:2022 Compliance Dashboard Report</title>
+    <title>ISO 27001:2022 Compliance Audit Report</title>
     <style>
         body { font-family: 'Helvetica', sans-serif; color: #333; line-height: 1.6; font-size: 11px; }
         .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #2563eb; padding-bottom: 15px; }
@@ -57,7 +57,7 @@
                 </td>
                 <td style="border: none; padding: 0 0 0 10px; vertical-align: middle; text-align: left;">
                     <div style="font-size: 20px; font-weight: bold; line-height: 1.1;">
-                        <span style="color: #0B2545;">Audit</span><span style="color: #008B9B;">Guard</span>
+                        <span style="color: #0B2545;">Audit</span><span style="color: #0284c7;">Guard</span>
                     </div>
                     <div style="font-size: 7px; font-weight: 900; color: #64748b; letter-spacing: 2px; margin-top: 2px; text-transform: uppercase;">
                         ASSESS &bull; ANALYZE &bull; ASSURE
@@ -185,7 +185,7 @@
     </table>
 
     <div class="footer">
-        AuditGuard &copy; {{ date('Y') }} | ISO 27001:2022 Compliance Dashboard Report
+        AuditGuard &copy; {{ date('Y') }} | ISO 27001:2022 Compliance Audit Report
     </div>
 </body>
 </html>

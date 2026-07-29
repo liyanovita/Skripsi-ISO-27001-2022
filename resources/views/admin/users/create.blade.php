@@ -6,20 +6,20 @@
 @section('content')
 <style>
     .form-input { transition: border-color 0.15s, box-shadow 0.15s; }
-    .form-input:focus { box-shadow: 0 0 0 3px rgba(139,92,246,0.1); border-color: #c4b5fd; outline: none; background: #fff; }
+    .form-input:focus { box-shadow: 0 0 0 3px rgba(14,165,233,0.1); border-color: #7dd3fc; outline: none; background: #fff; }
     .section-card { background: #fff; border-radius: 1.25rem; border: 1px solid #f1f5f9; box-shadow: 0 1px 4px 0 rgba(30,58,138,0.04); }
 </style>
 
 <div class="max-w-2xl">
     {{-- Back --}}
     <a href="{{ route('admin.users.index') }}"
-        class="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-violet-600 transition-colors mb-5 font-medium group">
+        class="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-blue-600 transition-colors mb-5 font-medium group">
         <i class="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> Back to Users
     </a>
 
     {{-- Page Title --}}
     <div class="flex items-center gap-3 mb-6">
-        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-violet-600/20">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-600/20">
             <i class="fa-solid fa-user-plus"></i>
         </div>
         <div>
@@ -34,7 +34,7 @@
         {{-- Identity --}}
         <div class="section-card p-6 space-y-4">
             <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <i class="fa-solid fa-id-card text-violet-400"></i> Account Identity
+                <i class="fa-solid fa-id-card text-blue-400"></i> Account Identity
             </h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -70,7 +70,7 @@
             }}">
             <div class="flex items-center justify-between">
                 <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                    <i class="fa-solid fa-lock text-violet-400"></i> Password
+                    <i class="fa-solid fa-lock text-blue-400"></i> Password
                 </h3>
                 <button type="button" @click="generate()"
                     class="text-[11px] font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1.5 bg-amber-50 px-2.5 py-1.5 rounded-lg hover:bg-amber-100 transition-colors">
@@ -105,7 +105,7 @@
         {{-- Role & Status --}}
         <div class="section-card p-6 space-y-4">
             <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <i class="fa-solid fa-shield-halved text-violet-400"></i> Role & Access
+                <i class="fa-solid fa-shield-halved text-blue-400"></i> Role & Access
             </h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -129,7 +129,7 @@
         <div class="section-card p-6 space-y-4">
             <div class="flex items-center justify-between">
                 <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                    <i class="fa-solid fa-building text-violet-400"></i> Organization
+                    <i class="fa-solid fa-building text-blue-400"></i> Organization
                     <span class="text-[9px] font-medium text-slate-300 normal-case tracking-normal">Optional</span>
                 </h3>
                 <a href="{{ route('admin.organizations.create') }}"
@@ -174,7 +174,7 @@
                 Cancel
             </a>
             <button type="submit"
-                class="px-6 py-2.5 rounded-xl bg-violet-600 text-white text-sm font-bold hover:bg-violet-700 active:scale-95 transition-all shadow-md shadow-violet-600/20 flex items-center gap-2">
+                class="px-6 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all shadow-md shadow-blue-600/20 flex items-center gap-2">
                 <i class="fa-solid fa-user-plus text-xs"></i> Create User
             </button>
         </div>

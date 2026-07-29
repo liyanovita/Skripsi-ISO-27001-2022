@@ -57,21 +57,21 @@
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ __('Total Questions') }}</span>
-                <div class="w-8 h-8 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
+                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                     <i class="fa-solid fa-circle-question text-xs"></i>
                 </div>
             </div>
-            <div class="text-3xl font-black text-violet-600 tracking-tight">{{ number_format($totalQuestions) }}</div>
+            <div class="text-3xl font-black text-blue-600 tracking-tight">{{ number_format($totalQuestions) }}</div>
             <div class="text-[10px] text-slate-400 mt-0.5">{{ __('Audit Assessment Criteria') }}</div>
         </div>
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Main Clauses</span>
-                <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                     <i class="fa-solid fa-folder-tree text-xs"></i>
                 </div>
             </div>
-            <div class="text-3xl font-black text-indigo-600 tracking-tight">{{ $clauses->count() }}</div>
+            <div class="text-3xl font-black text-blue-600 tracking-tight">{{ $clauses->count() }}</div>
             <div class="text-[10px] text-slate-400 mt-0.5">Clauses 4 – 10 Framework</div>
         </div>
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
@@ -107,8 +107,8 @@
                 <button type="button" @click="tab = 'clauses'"
                     :class="tab === 'clauses' ? 'standard-tab-active' : 'text-slate-600 hover:text-slate-900'"
                     class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-folder-tree text-indigo-500"></i> Clauses (4–10)
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <i class="fa-solid fa-folder-tree text-blue-500"></i> Clauses (4–10)
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-100">
                         {{ $clauses->count() }}
                     </span>
                 </button>

@@ -6,7 +6,7 @@
 @section('content')
 <style>
     .session-row { transition: background 0.15s ease; }
-    .session-row:hover { background: rgba(99,102,241,0.03); }
+    .session-row:hover { background: rgba(37,99,235,0.03); }
     .hero-bg {
         background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);
     }
@@ -14,7 +14,7 @@
         transition: box-shadow 0.2s ease;
     }
     .info-card:hover {
-        box-shadow: 0 6px 24px -6px rgba(99,102,241,0.12);
+        box-shadow: 0 6px 24px -6px rgba(37,99,235,0.12);
     }
 </style>
 
@@ -34,7 +34,7 @@
         {{-- Decorative blobs --}}
         <div class="absolute -right-10 -top-10 w-52 h-52 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute right-20 bottom-0 w-72 h-36 bg-blue-300/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute left-1/2 -bottom-10 w-96 h-24 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute left-1/2 -bottom-10 w-96 h-24 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div class="flex items-start gap-5">
@@ -128,7 +128,7 @@
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 info-card">
             <div class="flex items-center justify-between mb-3">
                 <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Avg Maturity</p>
-                <div class="w-8 h-8 bg-violet-50 text-violet-600 rounded-xl flex items-center justify-center">
+                <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
                     <i class="fa-solid fa-chart-line text-xs"></i>
                 </div>
             </div>
@@ -179,7 +179,7 @@
         {{-- IT Governance --}}
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4 info-card">
             <div class="flex items-center gap-3 pb-3 border-b border-slate-50">
-                <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                     <i class="fa-solid fa-sitemap text-sm"></i>
                 </div>
                 <div>
@@ -274,7 +274,7 @@
                                 @if($auditors->count() > 0)
                                     <div class="flex -space-x-2">
                                         @foreach($auditors->take(4) as $auditor)
-                                            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-black text-[9px] border-2 border-white shrink-0"
+                                            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center font-black text-[9px] border-2 border-white shrink-0"
                                                 title="{{ $auditor->name }}">
                                                 {{ strtoupper(substr($auditor->name, 0, 2)) }}
                                             </div>

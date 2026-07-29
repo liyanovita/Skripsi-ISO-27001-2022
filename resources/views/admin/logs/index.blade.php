@@ -18,7 +18,7 @@
             <p class="text-sm text-slate-500 mt-0.5 ml-9">History of changes, assessment activities, and user events across the platform.</p>
         </div>
         <a href="{{ route('admin.logs.export', request()->query()) }}"
-            class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 active:scale-95 transition-all shadow-md shadow-emerald-600/20 shrink-0">
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all shadow-md shadow-blue-600/20 shrink-0">
             <i class="fa-solid fa-file-excel text-xs"></i> Export Excel
         </a>
     </div>
@@ -48,11 +48,11 @@
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 col-span-2 lg:col-span-1">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Unique Actors</span>
-                <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                     <i class="fa-solid fa-users text-xs"></i>
                 </div>
             </div>
-            <div class="text-3xl font-black text-indigo-600 tracking-tight">{{ number_format($activeUsers) }}</div>
+            <div class="text-3xl font-black text-blue-600 tracking-tight">{{ number_format($activeUsers) }}</div>
             <div class="text-[10px] text-slate-400 mt-0.5">Users contributing updates</div>
         </div>
     </div>
@@ -181,7 +181,7 @@
 
                         {{-- Field Changed --}}
                         <td class="px-5 py-3.5">
-                            <span class="inline-flex items-center px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-xs font-bold border border-indigo-100">
+                            <span class="inline-flex items-center px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-bold border border-blue-100">
                                 {{ friendly_field_label($log->field_changed) }}
                             </span>
                         </td>

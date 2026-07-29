@@ -45,7 +45,7 @@
 
             <a href="{{ route('audit-trail.export', ['session_id' => $selectedId, 'search' => request('search')]) }}"
                id="btn-export-excel"
-               class="px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20 active:scale-95 flex items-center gap-1.5 shrink-0">
+               class="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-600/20 active:scale-95 flex items-center gap-1.5 shrink-0">
                 <i class="fa-solid fa-file-excel text-xs"></i> {{ __('Export Excel') }}
             </a>
         </div>
@@ -93,7 +93,7 @@
 
                             {{-- Field Changed --}}
                             <td class="px-5 py-3.5">
-                                <span class="inline-flex items-center px-2.5 py-0.5 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold border border-indigo-100">
+                                <span class="inline-flex items-center px-2.5 py-0.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold border border-blue-100">
                                     {{ friendly_field_label($trail->field_changed) }}
                                 </span>
                             </td>

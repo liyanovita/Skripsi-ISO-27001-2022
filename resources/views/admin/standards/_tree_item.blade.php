@@ -21,7 +21,7 @@
 
             {{-- Type Tag --}}
             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider shrink-0
-                {{ $isClause ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100' }}">
+                {{ $isClause ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100' }}">
                 <i class="fa-solid {{ $isClause ? 'fa-folder-tree' : 'fa-shield-halved' }} text-[8px]"></i>
                 {{ $item->type }}
             </span>

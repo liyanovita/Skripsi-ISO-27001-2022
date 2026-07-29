@@ -57,8 +57,8 @@
                     0 => ['title' => 'Non-existent', 'desc' => 'Control is not implemented', 'color' => 'bg-slate-100 text-slate-400 border-slate-200'],
                     1 => ['title' => 'Initial', 'desc' => 'Control is planned but not consistently implemented', 'color' => 'bg-blue-50 text-blue-400 border-blue-100'],
                     2 => ['title' => 'Limited/Repeatable', 'desc' => 'Control is partially implemented', 'color' => 'bg-blue-100 text-blue-600 border-blue-200'],
-                    3 => ['title' => 'Defined', 'desc' => 'Control is implemented according to defined procedures', 'color' => 'bg-indigo-500 text-white border-indigo-400'],
-                    4 => ['title' => 'Managed', 'desc' => 'Control is consistently implemented and its effectiveness is monitored', 'color' => 'bg-indigo-700 text-white border-indigo-600'],
+                    3 => ['title' => 'Defined', 'desc' => 'Control is implemented according to defined procedures', 'color' => 'bg-blue-500 text-white border-blue-400'],
+                    4 => ['title' => 'Managed', 'desc' => 'Control is consistently implemented and its effectiveness is monitored', 'color' => 'bg-blue-700 text-white border-blue-600'],
                     5 => ['title' => 'Optimized', 'desc' => 'Control is optimally implemented and supported by continuous improvement', 'color' => 'bg-slate-900 text-white border-slate-900'],
                 ];
             @endphp
@@ -129,8 +129,8 @@
                         0: { title: '{{ __('Non-existent') }}', color: 'bg-slate-100 text-slate-400 border-slate-200' },
                         1: { title: '{{ __('Initial') }}', color: 'bg-blue-50 text-blue-400 border-blue-100' },
                         2: { title: '{{ __('Limited/Repeatable') }}', color: 'bg-blue-100 text-blue-600 border-blue-200' },
-                        3: { title: '{{ __('Defined') }}', color: 'bg-indigo-500 text-white border-indigo-400 shadow-md' },
-                        4: { title: '{{ __('Managed') }}', color: 'bg-indigo-700 text-white border-indigo-600 shadow-md' },
+                        3: { title: '{{ __('Defined') }}', color: 'bg-blue-500 text-white border-blue-400 shadow-md' },
+                        4: { title: '{{ __('Managed') }}', color: 'bg-blue-700 text-white border-blue-600 shadow-md' },
                         5: { title: '{{ __('Optimized') }}', color: 'bg-slate-900 text-white border-slate-900 shadow-md' }
                     };
                     return info[this.rating] || info[0];
@@ -479,8 +479,8 @@
                                             0 => ['title' => 'Non-existent', 'desc' => 'Control is not implemented', 'color' => 'bg-slate-100 text-slate-400 border-slate-200'],
                                             1 => ['title' => 'Initial', 'desc' => 'Control is planned but not consistently implemented', 'color' => 'bg-blue-50 text-blue-400 border-blue-100'],
                                             2 => ['title' => 'Limited/Repeatable', 'desc' => 'Control is partially implemented', 'color' => 'bg-blue-100 text-blue-600 border-blue-200'],
-                                            3 => ['title' => 'Defined', 'desc' => 'Control is implemented according to defined procedures', 'color' => 'bg-indigo-500 text-white border-indigo-400'],
-                                            4 => ['title' => 'Managed', 'desc' => 'Control is consistently implemented and its effectiveness is monitored', 'color' => 'bg-indigo-700 text-white border-indigo-600'],
+                                            3 => ['title' => 'Defined', 'desc' => 'Control is implemented according to defined procedures', 'color' => 'bg-blue-500 text-white border-blue-400'],
+                                            4 => ['title' => 'Managed', 'desc' => 'Control is consistently implemented and its effectiveness is monitored', 'color' => 'bg-blue-700 text-white border-blue-600'],
                                             5 => ['title' => 'Optimized', 'desc' => 'Control is optimally implemented and supported by continuous improvement', 'color' => 'bg-slate-900 text-white border-slate-900'],
                                         ];
                                     @endphp

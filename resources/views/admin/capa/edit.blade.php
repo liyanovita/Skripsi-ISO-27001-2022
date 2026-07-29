@@ -15,9 +15,9 @@
     </div>
 
     {{-- Executive Header Banner Card --}}
-    <div class="p-6 sm:p-7 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl shadow-xl space-y-5 relative overflow-hidden">
+    <div class="p-6 sm:p-7 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white rounded-3xl shadow-xl space-y-5 relative overflow-hidden">
         {{-- Background Glow --}}
-        <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="relative z-10 space-y-4">
             
@@ -26,12 +26,12 @@
                 
                 {{-- Left: Icon + Code + Title + Meta --}}
                 <div class="flex items-start gap-4 flex-1">
-                    <div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-lg shrink-0 shadow-md shadow-indigo-600/30 mt-0.5">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-lg shrink-0 shadow-md shadow-blue-600/30 mt-0.5">
                         <i class="fa-solid fa-screwdriver-wrench"></i>
                     </div>
                     <div class="space-y-3 flex-1">
                         <div class="flex items-center gap-2.5 flex-wrap">
-                            <span class="px-3 py-1 rounded-xl bg-indigo-500/30 text-indigo-300 font-black text-xs border border-indigo-400/30 shadow-xs">
+                            <span class="px-3 py-1 rounded-xl bg-blue-500/30 text-blue-300 font-black text-xs border border-blue-400/30 shadow-xs">
                                 {{ $capa->standard->code }}
                             </span>
                             <h1 class="text-lg sm:text-xl font-black text-white tracking-tight leading-snug">{{ $capa->standard->title }}</h1>
@@ -40,11 +40,11 @@
                         {{-- Meta Info (Session & Assessed By) --}}
                         <div class="flex items-center gap-2.5 text-xs text-slate-300 font-medium flex-wrap">
                             <span class="inline-flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 shadow-xs">
-                                <i class="fa-solid fa-folder text-indigo-400 text-xs"></i> 
+                                <i class="fa-solid fa-folder text-blue-400 text-xs"></i> 
                                 <span>Session: <strong class="text-white font-bold">{{ $capa->session->name }}</strong></span>
                             </span>
                             <span class="inline-flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 shadow-xs">
-                                <i class="fa-solid fa-user-tie text-indigo-400 text-xs"></i> 
+                                <i class="fa-solid fa-user-tie text-blue-400 text-xs"></i> 
                                 <span>Assessed By: <strong class="text-white font-bold">{{ $capa->session->user->name }}</strong></span>
                             </span>
                         </div>
@@ -72,7 +72,7 @@
                         <i class="fa-solid fa-chart-line text-[10px]"></i>
                         {{ $cleanLevelName }}
                     </span>
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 shadow-xs">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-500/20 text-blue-200 border border-blue-500/30 shadow-xs">
                         <i class="fa-solid fa-arrows-left-right text-[10px]"></i>
                         Gap: {{ $capa->gap }}
                     </span>
@@ -124,7 +124,7 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-bold text-slate-500">Target Score:</span>
-                            <span class="text-sm font-black text-indigo-700 bg-indigo-50 px-3 py-1 rounded-xl border border-indigo-200">Score 5</span>
+                            <span class="text-sm font-black text-blue-700 bg-blue-50 px-3 py-1 rounded-xl border border-blue-200">Score 5</span>
                         </div>
                     </div>
                 </div>
@@ -141,13 +141,13 @@
                 <div class="p-4 bg-white rounded-2xl border border-slate-200 space-y-1.5 shadow-xs">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">{{ __('Initial Evidence File (Uploaded Evidence)') }}</span>
                     @if($capa->evidence_file)
-                        <div class="flex items-center justify-between gap-2 p-2.5 bg-indigo-50/60 rounded-xl border border-indigo-100">
+                        <div class="flex items-center justify-between gap-2 p-2.5 bg-blue-50/60 rounded-xl border border-blue-100">
                             <div class="flex items-center gap-2 truncate">
-                                <i class="fa-solid fa-file-arrow-down text-indigo-600 text-sm"></i>
-                                <span class="text-xs font-bold text-indigo-900 truncate">{{ basename($capa->evidence_file) }}</span>
+                                <i class="fa-solid fa-file-arrow-down text-blue-600 text-sm"></i>
+                                <span class="text-xs font-bold text-blue-900 truncate">{{ basename($capa->evidence_file) }}</span>
                             </div>
                             <a href="{{ Storage::url($capa->evidence_file) }}" target="_blank" 
-                               class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-bold shrink-0 transition-colors shadow-xs">
+                               class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold shrink-0 transition-colors shadow-xs">
                                 <i class="fa-solid fa-eye"></i> {{ __('View Evidence') }}
                             </a>
                         </div>
@@ -158,14 +158,142 @@
                     @endif
                 </div>
 
-                {{-- AI Recommendation Box (Read-Only Context) --}}
-                @if($capa->ai_recommendation)
-                <div class="p-4 bg-emerald-50/90 border border-emerald-200 rounded-2xl space-y-2 shadow-xs">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-wand-magic-sparkles text-emerald-600 text-xs"></i>
-                        <span class="text-[10px] font-black text-emerald-950 uppercase tracking-wider">{{ __('AI Recommendation') }}</span>
+                {{-- AI Control Compliance Synthesis (Dropdown Accordion) --}}
+                @if($capa->ai_recommendation || $capa->control_insight || $capa->impact_interpretation || $capa->corrective_action_plan)
+                <div class="p-4 bg-gradient-to-br from-blue-50/70 via-slate-50 to-indigo-50/30 border border-blue-200/90 rounded-2xl shadow-xs space-y-3"
+                     x-data="{ activeAccordion: 'rec' }">
+                    
+                    {{-- Header --}}
+                    <div class="flex items-center justify-between border-b border-blue-100/90 pb-3 flex-wrap gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs shadow-xs">
+                                <i class="fa-solid fa-robot"></i>
+                            </span>
+                            <div>
+                                <h4 class="text-xs font-black text-slate-900 uppercase tracking-tight">{{ __('AI Compliance Synthesis') }}</h4>
+                                <p class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">{{ __('Expert Decision Support & Mitigations') }}</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-xs font-medium text-emerald-900 leading-relaxed bg-white/80 p-3.5 rounded-xl border border-emerald-100 whitespace-pre-line text-left">{{ trim($capa->ai_recommendation) }}</div>
+
+                    {{-- Dropdown Accordion List per Control --}}
+                    <div class="space-y-2.5">
+                        {{-- Accordion 1: STRATEGIC RECOMMENDATION --}}
+                        @if($capa->ai_recommendation)
+                        <div class="rounded-xl border transition-all overflow-hidden"
+                             :class="activeAccordion === 'rec' ? 'border-blue-200 bg-blue-50/50 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
+                            <button type="button"
+                                @click="activeAccordion = activeAccordion === 'rec' ? null : 'rec'"
+                                class="w-full flex items-center justify-between gap-3 p-3.5 text-left cursor-pointer transition-colors"
+                                :class="activeAccordion === 'rec' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                         :class="activeAccordion === 'rec' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-400'">
+                                        <i class="fa-solid fa-lightbulb text-[10px]"></i>
+                                    </div>
+                                    <span class="text-[11px] font-black uppercase tracking-widest"
+                                          :class="activeAccordion === 'rec' ? 'text-blue-700' : 'text-slate-700'">
+                                        {{ __('STRATEGIC RECOMMENDATION') }}
+                                    </span>
+                                </div>
+                                <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"
+                                   :class="activeAccordion === 'rec' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
+                            </button>
+                            <div x-show="activeAccordion === 'rec'" x-collapse.duration.200ms>
+                                <div class="p-4 text-xs font-medium text-slate-700 leading-relaxed bg-blue-50/30 border-t border-blue-100/60 rounded-b-xl whitespace-pre-wrap">
+                                    {{ $capa->ai_recommendation }}
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        {{-- Accordion 2: CORRECTIVE ACTION PLAN --}}
+                        @if($capa->corrective_action_plan)
+                        <div class="rounded-xl border transition-all overflow-hidden"
+                             :class="activeAccordion === 'cap' ? 'border-blue-200 bg-blue-50/50 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
+                            <button type="button"
+                                @click="activeAccordion = activeAccordion === 'cap' ? null : 'cap'"
+                                class="w-full flex items-center justify-between gap-3 p-3.5 text-left cursor-pointer transition-colors"
+                                :class="activeAccordion === 'cap' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                         :class="activeAccordion === 'cap' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-400'">
+                                        <i class="fa-solid fa-list-check text-[10px]"></i>
+                                    </div>
+                                    <span class="text-[11px] font-black uppercase tracking-widest"
+                                          :class="activeAccordion === 'cap' ? 'text-blue-700' : 'text-slate-700'">
+                                        {{ __('CORRECTIVE ACTION PLAN') }}
+                                    </span>
+                                </div>
+                                <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"
+                                   :class="activeAccordion === 'cap' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
+                            </button>
+                            <div x-show="activeAccordion === 'cap'" x-collapse.duration.200ms>
+                                <div class="p-4 text-xs font-medium text-slate-700 leading-relaxed bg-blue-50/30 border-t border-blue-100/60 rounded-b-xl whitespace-pre-wrap">
+                                    {{ is_array($capa->corrective_action_plan) ? implode("\n", $capa->corrective_action_plan) : $capa->corrective_action_plan }}
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        {{-- Accordion 3: AI AUDIT INSIGHT (GAP) --}}
+                        @if($capa->control_insight)
+                        <div class="rounded-xl border transition-all overflow-hidden"
+                             :class="activeAccordion === 'gap' ? 'border-blue-200 bg-blue-50/50 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
+                            <button type="button"
+                                @click="activeAccordion = activeAccordion === 'gap' ? null : 'gap'"
+                                class="w-full flex items-center justify-between gap-3 p-3.5 text-left cursor-pointer transition-colors"
+                                :class="activeAccordion === 'gap' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                         :class="activeAccordion === 'gap' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-400'">
+                                        <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
+                                    </div>
+                                    <span class="text-[11px] font-black uppercase tracking-widest"
+                                          :class="activeAccordion === 'gap' ? 'text-blue-700' : 'text-slate-700'">
+                                        {{ __('AI AUDIT INSIGHT (GAP)') }}
+                                    </span>
+                                </div>
+                                <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"
+                                   :class="activeAccordion === 'gap' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
+                            </button>
+                            <div x-show="activeAccordion === 'gap'" x-collapse.duration.200ms>
+                                <div class="p-4 text-xs font-medium text-slate-700 leading-relaxed bg-blue-50/30 border-t border-blue-100/60 rounded-b-xl whitespace-pre-wrap">
+                                    {{ is_array($capa->control_insight) ? implode("\n", $capa->control_insight) : $capa->control_insight }}
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        {{-- Accordion 4: IMPACT INTERPRETATION --}}
+                        @if($capa->impact_interpretation)
+                        <div class="rounded-xl border transition-all overflow-hidden"
+                             :class="activeAccordion === 'impact' ? 'border-blue-200 bg-blue-50/50 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
+                            <button type="button"
+                                @click="activeAccordion = activeAccordion === 'impact' ? null : 'impact'"
+                                class="w-full flex items-center justify-between gap-3 p-3.5 text-left cursor-pointer transition-colors"
+                                :class="activeAccordion === 'impact' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                         :class="activeAccordion === 'impact' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-400'">
+                                        <i class="fa-solid fa-triangle-exclamation text-[10px]"></i>
+                                    </div>
+                                    <span class="text-[11px] font-black uppercase tracking-widest"
+                                          :class="activeAccordion === 'impact' ? 'text-blue-700' : 'text-slate-700'">
+                                        {{ __('IMPACT INTERPRETATION') }}
+                                    </span>
+                                </div>
+                                <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"
+                                   :class="activeAccordion === 'impact' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
+                            </button>
+                            <div x-show="activeAccordion === 'impact'" x-collapse.duration.200ms>
+                                <div class="p-4 text-xs font-medium text-slate-700 leading-relaxed bg-blue-50/30 border-t border-blue-100/60 rounded-b-xl whitespace-pre-wrap">
+                                    {{ $capa->impact_interpretation }}
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
                 </div>
                 @endif
 
@@ -186,7 +314,7 @@
                 <div class="space-y-3.5 max-h-72 overflow-y-auto pr-1 custom-scrollbar">
                     @forelse($history as $log)
                         <div class="relative pl-5 pb-3.5 last:pb-0 border-l border-slate-200/80 last:border-transparent">
-                            <span class="absolute left-0 top-1 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                            <span class="absolute left-0 top-1 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-blue-500"></span>
                             <div class="text-[11px]">
                                 <span class="font-bold text-slate-900">{{ $log->user->name ?? 'System' }}</span>
                                 <span class="text-slate-400 font-medium ml-1.5 text-[10px]">{{ $log->created_at->format('d M H:i') }}</span>
@@ -223,14 +351,14 @@
                 @method('PUT')
 
                 {{-- Header Card for Remediation Input --}}
-                <div class="bg-gradient-to-r from-indigo-500 to-blue-600 text-white p-5 rounded-3xl shadow-sm flex items-center justify-between">
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-5 rounded-3xl shadow-sm flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 rounded-2xl bg-white/20 text-white flex items-center justify-center text-sm font-bold border border-white/20">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </div>
                         <div>
                             <h2 class="text-sm font-black tracking-tight">{{ __('CAPA Remediation & Progress Update') }}</h2>
-                            <p class="text-[11px] text-indigo-100 font-medium">{{ __('Active form to submit assignment, status, likert score, and post-improvement evidence') }}</p>
+                            <p class="text-[11px] text-blue-100 font-medium">{{ __('Active form to submit assignment, status, likert score, and post-improvement evidence') }}</p>
                         </div>
                     </div>
                     <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-white border border-white/30">
@@ -241,7 +369,7 @@
                 {{-- Card 1: Remediation Assignment & Schedule --}}
                 <div class="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-7 shadow-xs space-y-5">
                     <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
-                        <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold">
+                        <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">
                             <i class="fa-solid fa-list-check"></i>
                         </div>
                         <div>
@@ -259,7 +387,7 @@
                             <div class="relative">
                                 <i class="fa-solid fa-user-gear absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
                                 <select name="treatment_pic" 
-                                        class="w-full pl-10 pr-4 py-3 bg-slate-50/70 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all cursor-pointer">
+                                        class="w-full pl-10 pr-4 py-3 bg-slate-50/70 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
                                     <option value="">-- Select Invited PIC --</option>
                                     @php
                                         $selectedPic = old('treatment_pic', $capa->treatment_pic);
@@ -289,7 +417,7 @@
                             </label>
                             <input type="date" name="treatment_due_date" 
                                    value="{{ old('treatment_due_date', $capa->treatment_due_date ? $capa->treatment_due_date->format('Y-m-d') : '') }}" 
-                                   class="w-full px-4 py-3 bg-slate-50/70 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all">
+                                   class="w-full px-4 py-3 bg-slate-50/70 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all">
                             @error('treatment_due_date') <p class="text-xs text-rose-500 mt-1 font-bold">{{ $message }}</p> @enderror
                         </div>
                     </div>
@@ -314,7 +442,7 @@
                                 {{ __('Remediation Status') }} <span class="text-rose-500">*</span>
                             </label>
                             <select name="treatment_status" required
-                                    class="w-full px-4 py-3 bg-slate-50/70 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all cursor-pointer">
+                                    class="w-full px-4 py-3 bg-slate-50/70 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
                                 <option value="open" {{ old('treatment_status', $capa->treatment_status ?: 'open') == 'open' ? 'selected' : '' }}>{{ __('Open (Not Started)') }}</option>
                                 <option value="in_progress" {{ old('treatment_status', $capa->treatment_status) == 'in_progress' ? 'selected' : '' }}>{{ __('In Progress') }}</option>
                                 <option value="completed" {{ old('treatment_status', $capa->treatment_status) == 'completed' ? 'selected' : '' }}>{{ __('Completed (Verified)') }}</option>
@@ -328,7 +456,7 @@
                                 {{ __('Progress (%)') }} <span class="text-rose-500">*</span>
                             </label>
                             <select name="treatment_progress" required
-                                    class="w-full px-4 py-3 bg-slate-50/70 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all cursor-pointer">
+                                    class="w-full px-4 py-3 bg-slate-50/70 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
                                 @for ($i = 0; $i <= 100; $i += 10)
                                     <option value="{{ $i }}" {{ old('treatment_progress', $capa->treatment_progress ?? 0) == $i ? 'selected' : '' }}>{{ $i }}%</option>
                                 @endfor
@@ -360,7 +488,7 @@
                                 <button type="button" 
                                         @click="open = !open" 
                                         @click.outside="open = false"
-                                        class="w-full px-4 py-3 bg-slate-50/70 border border-slate-200 rounded-xl text-xs font-bold text-indigo-900 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all flex items-center justify-between cursor-pointer">
+                                        class="w-full px-4 py-3 bg-slate-50/70 border border-slate-200 rounded-xl text-xs font-bold text-blue-900 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all flex items-center justify-between cursor-pointer">
                                     <span x-text="'Score ' + selected"></span>
                                     <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
                                 </button>
@@ -377,10 +505,10 @@
                                     <template x-for="(desc, lvl) in options" :key="lvl">
                                         <button type="button" 
                                                 @click="selected = parseInt(lvl); open = false"
-                                                :class="selected == parseInt(lvl) ? 'bg-indigo-50 text-indigo-900 font-black' : 'text-slate-700 font-medium hover:bg-slate-50 hover:text-slate-900'"
+                                                :class="selected == parseInt(lvl) ? 'bg-blue-50 text-blue-900 font-black' : 'text-slate-700 font-medium hover:bg-slate-50 hover:text-slate-900'"
                                                 class="w-full px-4 py-3 text-left text-xs transition-colors flex items-start justify-between gap-3 border-b border-slate-100 last:border-none">
                                             <span class="leading-relaxed" x-text="desc"></span>
-                                            <i x-show="selected == parseInt(lvl)" class="fa-solid fa-check text-indigo-600 text-xs shrink-0 mt-0.5"></i>
+                                            <i x-show="selected == parseInt(lvl)" class="fa-solid fa-check text-blue-600 text-xs shrink-0 mt-0.5"></i>
                                         </button>
                                     </template>
                                 </div>
@@ -421,10 +549,10 @@
 
                             {{-- File Attachment Input (Add Document) --}}
                             <div class="space-y-1">
-                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block"><i class="fa-solid fa-paperclip text-indigo-500 mr-1"></i> {{ __('Add Document / Evidence File') }}</span>
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block"><i class="fa-solid fa-paperclip text-blue-500 mr-1"></i> {{ __('Add Document / Evidence File') }}</span>
                                 <input type="file" name="evidence_after_file" 
                                        accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip,.rar,.xlsx,.xls" 
-                                       class="w-full text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 bg-slate-50/70 border border-slate-200 rounded-2xl p-1.5 cursor-pointer transition-all">
+                                       class="w-full text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 bg-slate-50/70 border border-slate-200 rounded-2xl p-1.5 cursor-pointer transition-all">
                                 <p class="text-[9px] text-slate-400">{{ __('Upload verification file (PDF, DOCX, Images, ZIP, Excel - Max 10MB)') }}</p>
                                 @error('evidence_after_file') <p class="text-xs text-rose-500 mt-1 font-bold">{{ $message }}</p> @enderror
                             </div>
@@ -434,7 +562,7 @@
                                 <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">{{ __('Post-Improvement Notes / Verification Details') }}</span>
                                 <textarea name="evidence_after_improvement" rows="3" 
                                           placeholder="{{ __('Enter verification notes, link to updated SOP, firewall rule logs, etc...') }}" 
-                                          class="w-full px-4 py-3 bg-slate-50/70 border border-slate-200 rounded-2xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all leading-relaxed">{{ old('evidence_after_improvement', trim(preg_replace('/\[Document\]\s*[^\s\n]+/', '', $capa->evidence_after_improvement))) }}</textarea>
+                                          class="w-full px-4 py-3 bg-slate-50/70 border border-slate-200 rounded-2xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all leading-relaxed">{{ old('evidence_after_improvement', trim(preg_replace('/\[Document\]\s*[^\s\n]+/', '', $capa->evidence_after_improvement))) }}</textarea>
                                 @error('evidence_after_improvement') <p class="text-xs text-rose-500 mt-1 font-bold">{{ $message }}</p> @enderror
                             </div>
                         </div>
@@ -448,7 +576,7 @@
                         {{ __('Cancel') }}
                     </a>
                     <button type="submit" 
-                            class="px-6 py-3 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/20 transition-all hover:scale-[1.02] active:scale-95 text-xs flex items-center gap-2">
+                            class="px-6 py-3 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20 transition-all hover:scale-[1.02] active:scale-95 text-xs flex items-center gap-2">
                         <i class="fa-solid fa-floppy-disk text-xs"></i> {{ __('Save CAPA Remediation Data') }}
                     </button>
                 </div>

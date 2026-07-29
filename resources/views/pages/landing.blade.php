@@ -26,7 +26,7 @@
         .animate-float { animation: float 6s ease-in-out infinite; }
         .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
         .hover-lift { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .gradient-text { background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .gradient-text { background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .card-hover { transition: all 0.3s ease; }
         .card-hover:hover { transform: translateY(-8px); box-shadow: 0 25px 50px rgba(0,0,0,0.15); }
         .delay-1 { animation-delay: 0.1s; opacity: 0; }
@@ -39,7 +39,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-b from-blue-50 via-white to-purple-50 text-slate-900">
+<body class="min-h-screen bg-gradient-to-b from-blue-50 via-white to-sky-50 text-slate-900">
 
     <!-- Navigation -->
     <nav class="bg-white/85 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-50 shadow-sm">
@@ -49,7 +49,7 @@
                     <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-9 h-9 rounded-lg shrink-0 shadow-md object-contain bg-white p-0.5">
                     <div>
                         <div class="font-bold text-base leading-none">
-                            <span style="color: #2563eb;">Audit</span><span style="color: #7c3aed;">Guard</span>
+                            <span style="color: #2563eb;">Audit</span><span style="color: #0284c7;">Guard</span>
                         </div>
                         <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">{{ __('ISMS INTERNAL PORTAL') }}</div>
                     </div>
@@ -77,9 +77,9 @@
                     </div>
 
                     @auth
-                        <a href="{{ route('dashboard') }}" class="px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg font-bold text-xs uppercase tracking-wider transition-all shadow-md">{{ __('Enter Dashboard') }}</a>
+                        <a href="{{ route('dashboard') }}" class="px-5 py-2 bg-gradient-to-r from-blue-600 to-sky-600 text-white rounded-lg hover:shadow-lg font-bold text-xs uppercase tracking-wider transition-all shadow-md">{{ __('Enter Dashboard') }}</a>
                     @else
-                        <a href="{{ route('login') }}" class="px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg font-bold text-xs uppercase tracking-wider transition-all shadow-md">{{ __('Portal Login') }}</a>
+                        <a href="{{ route('login') }}" class="px-5 py-2 bg-gradient-to-r from-blue-600 to-sky-600 text-white rounded-lg hover:shadow-lg font-bold text-xs uppercase tracking-wider transition-all shadow-md">{{ __('Portal Login') }}</a>
                     @endauth
                 </div>
             </div>
@@ -107,11 +107,11 @@
         <!-- CTA Buttons -->
         <div class="flex flex-wrap justify-center gap-4 mb-12 animate-fade-in-up delay-3">
             @auth
-                <a href="{{ route('dashboard') }}" class="group inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-xl font-bold text-xs uppercase tracking-widest shadow-lg transition-all transform hover:-translate-y-1">
+                <a href="{{ route('dashboard') }}" class="group inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-blue-600 to-sky-600 text-white rounded-xl hover:shadow-xl font-bold text-xs uppercase tracking-widest shadow-lg transition-all transform hover:-translate-y-1">
                     {{ __('Go to Workspace') }} <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                 </a>
             @else
-                <a href="{{ route('login') }}" class="group inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-xl font-bold text-xs uppercase tracking-widest shadow-lg transition-all transform hover:-translate-y-1">
+                <a href="{{ route('login') }}" class="group inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-blue-600 to-sky-600 text-white rounded-xl hover:shadow-xl font-bold text-xs uppercase tracking-widest shadow-lg transition-all transform hover:-translate-y-1">
                     {{ __('Portal Login') }} <i class="fa-solid fa-right-to-bracket group-hover:translate-x-1 transition-transform"></i>
                 </a>
             @endauth
@@ -120,14 +120,14 @@
         <!-- Trust badges -->
         <div class="flex flex-wrap items-center justify-center gap-6 text-xs font-bold uppercase tracking-wider text-slate-400 mb-12 animate-fade-in-up delay-4">
             <div class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-blue-500"></i> {{ __('93 Security Controls Covered') }}</div>
-            <div class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-purple-500"></i> {{ __('AI-Powered Corrective Plans') }}</div>
+            <div class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-sky-500"></i> {{ __('AI-Powered Corrective Plans') }}</div>
             <div class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-teal-600"></i> {{ __('Internal Audit & Reporting') }}</div>
         </div>
 
         <!-- Dashboard Mockup (below text) -->
         <div class="relative mx-auto max-w-4xl animate-fade-in-up delay-4">
             <div class="absolute -top-10 left-1/4 w-64 h-64 bg-blue-300 rounded-full opacity-10 blur-3xl pointer-events-none"></div>
-            <div class="absolute -bottom-10 right-1/4 w-64 h-64 bg-purple-300 rounded-full opacity-10 blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-10 right-1/4 w-64 h-64 bg-sky-300 rounded-full opacity-10 blur-3xl pointer-events-none"></div>
 
             <div class="relative z-10 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden card-hover">
                 <!-- Browser Bar -->
@@ -161,7 +161,7 @@
                         </div>
                         <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 text-left">
                             <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{{ __('Assessed Controls') }}</div>
-                            <div class="text-2xl font-black text-purple-600">67/93</div>
+                            <div class="text-2xl font-black text-sky-600">67/93</div>
                         </div>
                         <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 text-left">
                             <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{{ __('Remaining Gaps') }}</div>
@@ -176,8 +176,8 @@
                                 <div class="h-1.5 bg-slate-100 rounded-full"><div class="h-1.5 bg-blue-500 rounded-full" style="width:85%"></div></div>
                             </div>
                             <div>
-                                <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-1"><span>{{ __('People Controls') }}</span><span class="font-black text-purple-600">70%</span></div>
-                                <div class="h-1.5 bg-slate-100 rounded-full"><div class="h-1.5 bg-purple-500 rounded-full" style="width:70%"></div></div>
+                                <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-1"><span>{{ __('People Controls') }}</span><span class="font-black text-sky-600">70%</span></div>
+                                <div class="h-1.5 bg-slate-100 rounded-full"><div class="h-1.5 bg-sky-500 rounded-full" style="width:70%"></div></div>
                             </div>
                             <div>
                                 <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-1"><span>{{ __('Physical Controls') }}</span><span class="font-black text-emerald-600">60%</span></div>
@@ -194,7 +194,7 @@
 
             <!-- Floating badges -->
             <div class="absolute -bottom-4 -left-6 bg-white rounded-xl shadow-xl px-4 py-2.5 border border-slate-100 z-20 card-hover hidden md:flex items-center gap-2">
-                <div class="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center">
+                <div class="w-8 h-8 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center">
                     <i class="fa-solid fa-robot text-sm"></i>
                 </div>
                 <div class="text-left leading-tight">
@@ -220,7 +220,7 @@
                 <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{{ __('Standard Controls') }}</div>
             </div>
             <div class="bg-white rounded-2xl p-4 shadow-md border border-slate-100 text-center hover-lift card-hover">
-                <div class="text-3xl font-black text-purple-600 mb-0.5">4</div>
+                <div class="text-3xl font-black text-sky-600 mb-0.5">4</div>
                 <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{{ __('Audit Domains') }}</div>
             </div>
             <div class="bg-white rounded-2xl p-4 shadow-md border border-slate-100 text-center hover-lift card-hover">
@@ -255,26 +255,26 @@
                         <span class="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-lg text-[9px] font-bold uppercase tracking-wider">{{ __('4 Domains') }}</span>
                     </div>
                 </div>
-                <div class="group bg-gradient-to-br from-purple-50 to-white rounded-2xl p-5 border border-purple-100 hover:shadow-xl hover:border-purple-200 transition-all card-hover text-left">
-                    <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mb-3 group-hover:bg-purple-600 group-hover:text-white transition-all">
+                <div class="group bg-gradient-to-br from-sky-50 to-white rounded-2xl p-5 border border-sky-100 hover:shadow-xl hover:border-sky-200 transition-all card-hover text-left">
+                    <div class="w-12 h-12 bg-sky-100 text-sky-600 rounded-2xl flex items-center justify-center mb-3 group-hover:bg-sky-600 group-hover:text-white transition-all">
                         <i class="fa-solid fa-robot text-xl"></i>
                     </div>
                     <h3 class="text-lg font-black text-slate-900 mb-1.5">{{ __('AI Gap & CAPA Analysis') }}</h3>
                     <p class="text-xs text-slate-500 leading-relaxed mb-3 font-medium">{{ __('Generate strategic remediation recommendations and Corrective Action Plans (CAPA) customized to your organization\'s findings.') }}</p>
                     <div class="flex flex-wrap gap-2">
-                        <span class="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-lg text-[9px] font-bold uppercase tracking-wider">{{ __('Gap Detection') }}</span>
-                        <span class="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-lg text-[9px] font-bold uppercase tracking-wider">{{ __('CAPA Generator') }}</span>
+                        <span class="px-2.5 py-1 bg-sky-100 text-sky-700 rounded-lg text-[9px] font-bold uppercase tracking-wider">{{ __('Gap Detection') }}</span>
+                        <span class="px-2.5 py-1 bg-sky-100 text-sky-700 rounded-lg text-[9px] font-bold uppercase tracking-wider">{{ __('CAPA Generator') }}</span>
                     </div>
                 </div>
-                <div class="group bg-gradient-to-br from-green-50 to-white rounded-2xl p-5 border border-green-100 hover:shadow-xl hover:border-green-200 transition-all card-hover text-left">
-                    <div class="w-12 h-12 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center mb-3 group-hover:bg-green-600 group-hover:text-white transition-all">
+                <div class="group bg-gradient-to-br from-sky-50 to-white rounded-2xl p-5 border border-sky-100 hover:shadow-xl hover:border-sky-200 transition-all card-hover text-left">
+                    <div class="w-12 h-12 bg-sky-100 text-sky-600 rounded-2xl flex items-center justify-center mb-3 group-hover:bg-sky-600 group-hover:text-white transition-all">
                         <i class="fa-solid fa-file-pdf text-xl"></i>
                     </div>
                     <h3 class="text-lg font-black text-slate-900 mb-1.5">{{ __('Audit-Ready Exports') }}</h3>
                     <p class="text-xs text-slate-500 leading-relaxed mb-3 font-medium">{{ __('Export Statement of Applicability (SoA) and gap assessment reports in PDF or Excel. Perfectly prepared for official ISO certification audits.') }}</p>
                     <div class="flex flex-wrap gap-2">
-                        <span class="px-2.5 py-1 bg-green-100 text-green-700 rounded-lg text-[9px] font-bold uppercase tracking-wider">{{ __('PDF / Excel Reports') }}</span>
-                        <span class="px-2.5 py-1 bg-green-100 text-green-700 rounded-lg text-[9px] font-bold uppercase tracking-wider">{{ __('SoA Exporter') }}</span>
+                        <span class="px-2.5 py-1 bg-sky-100 text-sky-700 rounded-lg text-[9px] font-bold uppercase tracking-wider">{{ __('PDF / Excel Reports') }}</span>
+                        <span class="px-2.5 py-1 bg-sky-100 text-sky-700 rounded-lg text-[9px] font-bold uppercase tracking-wider">{{ __('SoA Exporter') }}</span>
                     </div>
                 </div>
                 <div class="group bg-gradient-to-br from-orange-50 to-white rounded-2xl p-5 border border-orange-100 hover:shadow-xl hover:border-orange-200 transition-all card-hover text-left">
@@ -308,12 +308,12 @@
                     <p class="text-xs text-slate-500 leading-relaxed font-medium">{{ __('Auditees evaluate individual control implementations against the ISO standard, logging evidence and justifications.') }}</p>
                 </div>
                 <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 text-center hover-lift card-hover">
-                    <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-black mb-4 mx-auto shadow-lg">2</div>
+                    <div class="w-14 h-14 bg-gradient-to-br from-sky-500 to-sky-600 rounded-full flex items-center justify-center text-white text-xl font-black mb-4 mx-auto shadow-lg">2</div>
                     <h3 class="text-lg font-black text-slate-900 mb-1.5 uppercase tracking-tight">{{ __('Analyze Gaps') }}</h3>
                     <p class="text-xs text-slate-500 leading-relaxed font-medium">{{ __('Lead auditors review findings alongside AI recommendations to highlight system gaps and security exposure.') }}</p>
                 </div>
                 <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 text-center hover-lift card-hover">
-                    <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white text-xl font-black mb-4 mx-auto shadow-lg">3</div>
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-600 to-sky-500 rounded-full flex items-center justify-center text-white text-xl font-black mb-4 mx-auto shadow-lg">3</div>
                     <h3 class="text-lg font-black text-slate-900 mb-1.5 uppercase tracking-tight">{{ __('Track CAPA Plans') }}</h3>
                     <p class="text-xs text-slate-500 leading-relaxed font-medium">{{ __('Assign PICs, set due dates, and monitor corrective actions directly within the Compliance Center until completion.') }}</p>
                 </div>
@@ -369,7 +369,7 @@
     </section>
 
     <!-- Scroll to Top Button -->
-    <button id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 z-50 hidden flex items-center justify-center">
+    <button id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-br from-blue-600 to-sky-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 z-50 hidden flex items-center justify-center">
         <i class="fa-solid fa-chevron-up"></i>
     </button>
 
@@ -407,11 +407,11 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-left">
                 <div>
                     <div class="flex items-center gap-2 mb-3">
-                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg overflow-hidden border border-slate-800">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-sky-600 rounded-lg overflow-hidden border border-slate-800">
                             <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-full h-full object-contain bg-white p-0.5">
                         </div>
                         <span class="font-bold text-lg text-white">
-                            <span>Audit</span><span style="color: #a78bfa;">Guard</span>
+                            <span>Audit</span><span style="color: #38bdf8;">Guard</span>
                         </span>
                     </div>
                     <p class="text-xs leading-relaxed font-medium">{{ __('AI-powered audit decision support system for ISO 27001:2022 compliance & information security governance.') }}</p>

@@ -356,7 +356,7 @@
                 {{-- Breadcrumb & Title --}}
                 <div class="flex flex-col min-w-0 justify-center">
                     <nav class="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-slate-400">
-                        <a href="{{ route('admin.dashboard') }}" class="text-slate-300 hover:text-indigo-500 transition-colors">
+                        <a href="{{ route('admin.dashboard') }}" class="text-slate-300 hover:text-blue-500 transition-colors">
                             <i class="fa-solid fa-house text-[8px]"></i>
                         </a>
                         <i class="fa-solid fa-chevron-right text-[6px] text-slate-300"></i>
@@ -385,17 +385,17 @@
                     {{-- Language Switcher --}}
                     <div class="relative" x-data="{ langOpen: false }">
                         <button @click="langOpen = !langOpen" 
-                            class="flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-all border border-transparent hover:border-slate-200">
+                            class="flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-600 hover:bg-slate-50 rounded-lg transition-all border border-transparent hover:border-slate-200">
                             <i class="fa-solid fa-globe text-xs"></i> 
                             {{ app()->getLocale() == 'id' ? 'ID' : 'EN' }}
                         </button>
                         <div x-show="langOpen" @click.away="langOpen = false" x-cloak 
                             class="absolute right-0 mt-2 w-28 bg-white border border-slate-200 rounded-xl shadow-xl py-1.5 z-50">
                             <a href="{{ route('lang.switch', 'en') }}" 
-                                class="flex items-center gap-2.5 px-3 py-2 text-xs font-bold hover:bg-slate-50 rounded-lg mx-1 transition-all {{ app()->getLocale() == 'en' ? 'text-indigo-600' : 'text-slate-600' }}">
+                                class="flex items-center gap-2.5 px-3 py-2 text-xs font-bold hover:bg-slate-50 rounded-lg mx-1 transition-all {{ app()->getLocale() == 'en' ? 'text-blue-600' : 'text-slate-600' }}">
                                 <img src="https://flagcdn.com/w20/us.png" srcset="https://flagcdn.com/w40/us.png 2x" width="16" alt="US" class="rounded-sm shadow-sm"> {{ __('English') }}</a>
                             <a href="{{ route('lang.switch', 'id') }}" 
-                                class="flex items-center gap-2.5 px-3 py-2 text-xs font-bold hover:bg-slate-50 rounded-lg mx-1 transition-all {{ app()->getLocale() == 'id' ? 'text-indigo-600' : 'text-slate-600' }}">
+                                class="flex items-center gap-2.5 px-3 py-2 text-xs font-bold hover:bg-slate-50 rounded-lg mx-1 transition-all {{ app()->getLocale() == 'id' ? 'text-blue-600' : 'text-slate-600' }}">
                                 <img src="https://flagcdn.com/w20/id.png" srcset="https://flagcdn.com/w40/id.png 2x" width="16" alt="ID" class="rounded-sm shadow-sm"> {{ __('Indonesia') }}</a>
                         </div>
                     </div>
@@ -436,7 +436,7 @@
                     @endphp
                     <div class="relative" x-data="{ notifOpen: false }">
                         <button @click="notifOpen = !notifOpen" 
-                            class="relative w-8 h-8 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-all border border-transparent hover:border-slate-200">
+                            class="relative w-8 h-8 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-slate-50 rounded-lg transition-all border border-transparent hover:border-slate-200">
                             <i class="fa-solid fa-bell text-sm"></i>
                             @if($totalNotifs > 0)
                                 <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-rose-500 border-2 border-white rounded-full flex items-center justify-center text-[7px] font-black text-white">
@@ -468,7 +468,7 @@
                             <div class="max-h-80 overflow-y-auto custom-scrollbar p-2">
                                 {{-- Database Notifications --}}
                                 @if($dbNotifications->count() > 0)
-                                    <div class="px-3 py-1 mt-1 mb-1 text-[8px] font-black text-indigo-500 uppercase tracking-widest">{{ __('Notifications') }}</div>
+                                    <div class="px-3 py-1 mt-1 mb-1 text-[8px] font-black text-blue-500 uppercase tracking-widest">{{ __('Notifications') }}</div>
                                     @foreach($dbNotifications as $notif)
                                         @php $notifType = $notif->data['type'] ?? 'general'; @endphp
                                         <div class="flex items-start gap-2.5 p-2.5 hover:bg-slate-50 rounded-xl transition-colors group relative">
@@ -497,13 +497,13 @@
                                                 @else
                                                     <p class="text-[10px] font-bold text-slate-900 leading-tight">{{ $notif->data['message'] ?? '' }}</p>
                                                 @endif
-                                                <p class="text-[8px] font-bold text-indigo-500 uppercase tracking-widest mt-1">{{ $notif->created_at->diffForHumans() }}</p>
+                                                <p class="text-[8px] font-bold text-blue-500 uppercase tracking-widest mt-1">{{ $notif->created_at->diffForHumans() }}</p>
                                             </div>
                                             
                                             {{-- Inline Mark as Read --}}
                                             <form method="POST" action="{{ route('admin.notifications.read', $notif->id) }}" class="shrink-0 self-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                 @csrf
-                                                <button type="submit" title="{{ __('Mark as read') }}" class="w-6 h-6 rounded-md bg-slate-100 hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 flex items-center justify-center transition-colors">
+                                                <button type="submit" title="{{ __('Mark as read') }}" class="w-6 h-6 rounded-md bg-slate-100 hover:bg-blue-50 text-slate-400 hover:text-blue-600 flex items-center justify-center transition-colors">
                                                     <i class="fa-solid fa-check text-[10px]"></i>
                                                 </button>
                                             </form>
@@ -584,7 +584,7 @@
                             
                             <div class="p-1.5 border-t border-slate-100 bg-slate-50 flex gap-1">
                                 <a href="{{ route('admin.notifications.index') }}" 
-                                    class="block w-1/2 py-2 text-center text-[9px] font-black text-indigo-600 hover:bg-indigo-50 rounded-lg border border-indigo-100 transition-all uppercase tracking-widest">
+                                    class="block w-1/2 py-2 text-center text-[9px] font-black text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-100 transition-all uppercase tracking-widest">
                                     {{ __('Notification Center') }}
                                 </a>
                                 <a href="{{ route('workspace.index') }}" 
@@ -601,7 +601,7 @@
                     <div class="relative" x-data="{ open: false }">
                         <button @click="open = !open" 
                             class="flex items-center gap-2 pl-3 border-l border-slate-200 hover:opacity-80 transition-all outline-none">
-                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-[10px] font-black shadow-sm">
+                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white text-[10px] font-black shadow-sm">
                                 {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                             </div>
                             <div class="hidden md:block text-left leading-none">
@@ -619,7 +619,7 @@
                                 <p class="text-[9px] text-slate-400 font-medium truncate">{{ auth()->user()->email }}</p>
                             </div>
                             <a href="{{ route('admin.profile.edit') }}" 
-                                class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-all">
+                                class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-all">
                                 <i class="fa-solid fa-user-gear text-slate-400 text-xs"></i> 
                                 Profile Settings
                             </a>
@@ -669,7 +669,7 @@
                             placeholder="{{ __('Search sessions, controls, resources...') }}"
                             class="flex-1 text-sm font-medium text-slate-700 placeholder:text-slate-400 outline-none bg-transparent">
                         <div x-show="quickSearchLoading" class="shrink-0">
-                            <svg class="animate-spin w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24">
+                            <svg class="animate-spin w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                             </svg>
@@ -680,7 +680,7 @@
                     <div x-show="quickSearchResults.length > 0" class="max-h-72 overflow-y-auto custom-scrollbar py-2">
                         <template x-for="(result, idx) in quickSearchResults" :key="idx">
                             <a :href="result.url" @click="closeQuickSearch()" @mouseenter="quickSearchActive = idx"
-                                :class="quickSearchActive === idx ? 'bg-indigo-50' : 'hover:bg-slate-50'"
+                                :class="quickSearchActive === idx ? 'bg-blue-50' : 'hover:bg-slate-50'"
                                 class="flex items-center gap-3 px-4 py-2.5 transition-colors cursor-pointer">
                                 <div :class="{
                                     'bg-blue-100 text-blue-600': result.type === 'session',
@@ -717,8 +717,8 @@
                         <div class="grid grid-cols-2 gap-1">
                             @foreach([
                                 ['label' => 'Audit Sessions',      'icon' => 'fa-list-check',        'url' => route('sessions.index'),        'color' => 'blue'],
-                                ['label' => 'Compliance Center',   'icon' => 'fa-diagram-project',   'url' => route('workspace.index'),       'color' => 'indigo'],
-                                ['label' => 'Assessment Result',   'icon' => 'fa-chart-line',        'url' => route('reports.strategic'),     'color' => 'violet'],
+                                ['label' => 'Compliance Center',   'icon' => 'fa-diagram-project',   'url' => route('workspace.index'),       'color' => 'blue'],
+                                ['label' => 'Assessment Result',   'icon' => 'fa-chart-line',        'url' => route('reports.strategic'),     'color' => 'cyan'],
                                 ['label' => 'Knowledge Base',      'icon' => 'fa-book-open',         'url' => route('knowledge-base.index'),  'color' => 'teal'],
                                 ['label' => 'Audit Trail',         'icon' => 'fa-clock-rotate-left', 'url' => route('audit-trail.index'),     'color' => 'amber'],
                             ] as $shortcut)
@@ -756,7 +756,7 @@
                                 title: '{{ __("Success") }}',
                                 text: msg,
                                 width: '22rem',
-                                confirmButtonColor: '#4f46e5',
+                                confirmButtonColor: '#2563eb',
                                 customClass: {
                                     popup: 'rounded-2xl p-4',
                                     title: 'text-sm font-bold text-slate-800 mt-2',
@@ -816,7 +816,7 @@
                 timer: 3000,
                 timerProgressBar: true,
                 width: '22rem',
-                confirmButtonColor: '#4f46e5',
+                confirmButtonColor: '#2563eb',
                 customClass: {
                     popup: 'rounded-2xl p-4',
                     title: 'text-sm font-bold text-slate-800 mt-2',

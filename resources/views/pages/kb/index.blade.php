@@ -9,7 +9,7 @@
         'title' => $r->title,
         'category' => $r->category,
         'category_label' => $r->category === 'sop' ? 'SOP' : __(ucfirst($r->category)),
-        'category_class' => $r->category === 'guides' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : ($r->category === 'templates' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : ($r->category === 'sop' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-blue-50 text-blue-700 border-blue-100')),
+        'category_class' => $r->category === 'guides' ? 'bg-blue-50 text-blue-700 border-blue-100' : ($r->category === 'templates' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : ($r->category === 'sop' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-blue-50 text-blue-700 border-blue-100')),
         'type' => $r->format ? strtoupper($r->format) : 'PDF',
         'desc' => collect(preg_split('/(?<=[.?!])\s+(?=[A-Za-z])/', $r->description ?? ''))->take(1)->implode(' '),
         'content' => $r->content,
@@ -31,7 +31,7 @@
     {{-- Page Header --}}
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
         <div class="flex items-center gap-3.5">
-            <div class="w-11 h-11 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
+            <div class="w-11 h-11 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-600/20">
                 <i class="fa-solid fa-book-open text-lg"></i>
             </div>
             <div>
@@ -53,7 +53,7 @@
                 </label>
             </form>
             <a href="{{ route('knowledge-base.create') }}" id="btn-create-article"
-                class="px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-600/20 active:scale-95 flex items-center gap-1.5">
+                class="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-600/20 active:scale-95 flex items-center gap-1.5">
                 <i class="fa-solid fa-plus text-[10px]"></i> {{ __('Add Resource') }}
             </a>
         </div>
@@ -65,7 +65,7 @@
         <form action="{{ route('knowledge-base.index') }}" method="GET" class="space-y-4" x-data x-on:change="$el.requestSubmit()">
             <div class="flex flex-col lg:flex-row gap-3">
                 <div class="flex-1 relative group">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors text-sm"></i>
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors text-sm"></i>
                     <input 
                         type="text" 
                         name="q"
@@ -73,7 +73,7 @@
                         value="{{ $search ?? '' }}"
                         x-on:input.debounce.500ms="$el.closest('form').requestSubmit()"
                         placeholder="{{ __('Search knowledge assets, templates, or compliance guides...') }}"
-                        class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 {{ !empty($search) ? 'pr-10' : 'pr-4' }} py-2.5 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all"
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 {{ !empty($search) ? 'pr-10' : 'pr-4' }} py-2.5 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all"
                     >
                     @if(!empty($search))
                         <a href="{{ route('knowledge-base.index', array_merge(request()->except(['q', 'page']))) }}" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
@@ -83,7 +83,7 @@
                 </div>
 
                 <div class="relative min-w-48">
-                    <select name="category" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-indigo-600 transition-all cursor-pointer">
+                    <select name="category" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-blue-600 transition-all cursor-pointer">
                         <option value="all" {{ ($selectedCategory ?? 'all') === 'all' ? 'selected' : '' }}>{{ __('All Categories') }}</option>
                         @foreach($categoryCounts as $category => $count)
                             <option value="{{ $category }}" {{ ($selectedCategory ?? 'all') === $category ? 'selected' : '' }}>{{ $category === 'sop' ? 'SOP' : __(ucfirst($category)) }} ({{ $count }})</option>
@@ -92,7 +92,7 @@
                 </div>
 
                 <div class="relative min-w-48">
-                    <select name="sort" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-indigo-600 transition-all cursor-pointer">
+                    <select name="sort" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-blue-600 transition-all cursor-pointer">
                         <option value="latest" {{ ($selectedSort ?? 'latest') === 'latest' ? 'selected' : '' }}>{{ __('Latest Updated') }}</option>
                         <option value="title" {{ ($selectedSort ?? 'latest') === 'title' ? 'selected' : '' }}>{{ __('Title A-Z') }}</option>
                         <option value="most_downloaded" {{ ($selectedSort ?? 'latest') === 'most_downloaded' ? 'selected' : '' }}>{{ __('Most Downloaded') }}</option>
@@ -101,12 +101,12 @@
             </div>
 
             @if(($search ?? '') !== '' || ($selectedCategory ?? 'all') !== 'all' || ($selectedSort ?? 'latest') !== 'latest')
-                <div class="flex items-center justify-between gap-3 rounded-xl border border-indigo-100 bg-indigo-50/60 px-4 py-2 text-[11px] font-bold text-indigo-700">
+                <div class="flex items-center justify-between gap-3 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-2 text-[11px] font-bold text-blue-700">
                     <span>{{ __('Showing') }} {{ $filteredCount }} {{ __('of') }} {{ $totalCount }} {{ __('resources') }}</span>
                     @if(($search ?? '') !== '')
                         <span>{{ __('Search') }}: "{{ $search }}"</span>
                     @endif
-                    <a href="{{ route('knowledge-base.index') }}" class="text-indigo-600 underline hover:text-indigo-800 font-bold">Clear Filters</a>
+                    <a href="{{ route('knowledge-base.index') }}" class="text-blue-600 underline hover:text-blue-800 font-bold">Clear Filters</a>
                 </div>
             @endif
         </form>
@@ -123,7 +123,7 @@
                         <span class="px-2 py-0.5 bg-slate-900 text-white rounded text-[10px] font-mono font-bold uppercase shrink-0" x-text="res.type"></span>
                     </div>
 
-                    <h3 class="text-sm font-black text-slate-800 tracking-tight group-hover:text-indigo-600 transition-colors leading-snug mb-1.5" x-text="res.title"></h3>
+                    <h3 class="text-sm font-black text-slate-800 tracking-tight group-hover:text-blue-600 transition-colors leading-snug mb-1.5" x-text="res.title"></h3>
                     <p class="text-xs text-slate-500 font-medium leading-relaxed line-clamp-2" x-text="res.desc"></p>
 
                     <template x-if="res.has_attachment">
@@ -144,7 +144,7 @@
 
                     <div class="flex items-center gap-1">
                         <template x-if="res.is_system">
-                            <a :href="res.download_url" data-turbo="false" @click.stop class="w-7 h-7 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-colors" title="{{ __('Download PDF') }}">
+                            <a :href="res.download_url" data-turbo="false" @click.stop class="w-7 h-7 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors" title="{{ __('Download PDF') }}">
                                 <i class="fa-solid fa-download text-xs"></i>
                             </a>
                         </template>

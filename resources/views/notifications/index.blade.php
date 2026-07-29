@@ -6,16 +6,16 @@
 <div class="max-w-5xl mx-auto space-y-5 pb-8">
     {{-- Header --}}
     <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden">
-        <div class="absolute -right-16 -top-16 w-40 h-40 bg-indigo-600/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -right-16 -top-16 w-40 h-40 bg-blue-600/5 rounded-full blur-3xl pointer-events-none"></div>
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-600/20">
                     <i class="fa-solid fa-bell text-base"></i>
                 </div>
                 <div class="leading-none">
                     <div class="flex items-center gap-2 mb-0.5">
-                        <div class="w-1.5 h-1.5 bg-indigo-600 rounded-full"></div>
-                        <span class="text-[9px] font-bold text-indigo-600 uppercase tracking-widest">{{ __('Alerts & Info') }}</span>
+                        <div class="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
+                        <span class="text-[9px] font-bold text-blue-600 uppercase tracking-widest">{{ __('Alerts & Info') }}</span>
                     </div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tighter">{{ __('Notification Center') }}</h2>
                     <p class="text-slate-400 font-bold uppercase tracking-widest text-[8px] mt-0.5">{{ __('Stay updated with audit assignments and CAPA follow-up reminders.') }}</p>
@@ -26,7 +26,7 @@
             @if(auth()->user()->unreadNotifications->count() > 0)
             <form method="POST" action="{{ route('notifications.read-all') }}" class="shrink-0">
                 @csrf
-                <button type="submit" class="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 text-indigo-600 font-black text-[10px] uppercase tracking-wider rounded-xl transition-all active:scale-95">
+                <button type="submit" class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-100 text-blue-600 font-black text-[10px] uppercase tracking-wider rounded-xl transition-all active:scale-95">
                     <i class="fa-solid fa-check-double text-xs"></i>
                     <span>{{ __('Mark All as Read') }}</span>
                 </button>
@@ -41,11 +41,11 @@
         <div class="px-5 py-3 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
             <div class="flex items-center gap-1.5">
                 <a href="{{ route('notifications.index') }}" 
-                   class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all {{ !$filter ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700' }}">
+                   class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all {{ !$filter ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700' }}">
                     {{ __('All') }}
                 </a>
                 <a href="{{ route('notifications.index', ['filter' => 'unread']) }}" 
-                   class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all {{ $filter === 'unread' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700' }}">
+                   class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all {{ $filter === 'unread' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700' }}">
                     {{ __('Unread') }}
                     @if(auth()->user()->unreadNotifications->count() > 0)
                         <span class="ml-1.5 px-1.5 py-0.5 bg-rose-500 text-white text-[8px] font-black rounded-md leading-none">
@@ -54,7 +54,7 @@
                     @endif
                 </a>
                 <a href="{{ route('notifications.index', ['filter' => 'read']) }}" 
-                   class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all {{ $filter === 'read' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700' }}">
+                   class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all {{ $filter === 'read' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700' }}">
                     {{ __('Read') }}
                 </a>
             </div>
@@ -116,12 +116,12 @@
                             </span>
 
                             @if($type === 'audit_session' && !empty($notif->data['session_id']))
-                                <a href="{{ route('workspace.index', ['session_id' => $notif->data['session_id']]) }}" class="text-indigo-600 hover:text-indigo-700 font-bold flex items-center gap-1">
+                                <a href="{{ route('workspace.index', ['session_id' => $notif->data['session_id']]) }}" class="text-blue-600 hover:text-blue-700 font-bold flex items-center gap-1">
                                     <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
                                     {{ __('Open Assessment') }}
                                 </a>
                             @elseif($type === 'corrective_action' && !empty($notif->data['session_id']))
-                                <a href="{{ route('workspace.index', ['session_id' => $notif->data['session_id'], 'focus' => $notif->data['result_id'] ?? null]) }}" class="text-indigo-600 hover:text-indigo-700 font-bold flex items-center gap-1">
+                                <a href="{{ route('workspace.index', ['session_id' => $notif->data['session_id'], 'focus' => $notif->data['result_id'] ?? null]) }}" class="text-blue-600 hover:text-blue-700 font-bold flex items-center gap-1">
                                     <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
                                     {{ __('View Action Item') }}
                                 </a>
@@ -134,14 +134,14 @@
                         @if($isUnread)
                             <form method="POST" action="{{ route('notifications.read', $notif->id) }}">
                                 @csrf
-                                <button type="submit" title="{{ __('Mark as read') }}" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-indigo-600 flex items-center justify-center transition-colors">
+                                <button type="submit" title="{{ __('Mark as read') }}" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-blue-600 flex items-center justify-center transition-colors">
                                     <i class="fa-solid fa-envelope-open text-xs"></i>
                                 </button>
                             </form>
                         @else
                             <form method="POST" action="{{ route('notifications.unread', $notif->id) }}">
                                 @csrf
-                                <button type="submit" title="{{ __('Mark as unread') }}" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-indigo-600 flex items-center justify-center transition-colors">
+                                <button type="submit" title="{{ __('Mark as unread') }}" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-blue-600 flex items-center justify-center transition-colors">
                                     <i class="fa-solid fa-envelope text-xs"></i>
                                 </button>
                             </form>

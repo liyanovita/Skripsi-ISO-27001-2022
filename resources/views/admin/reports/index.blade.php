@@ -57,11 +57,6 @@
                class="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md shadow-rose-600/20 transition-all hover:scale-[1.02] active:scale-95 shrink-0">
                 <i class="fa-solid fa-file-pdf text-xs"></i> {{ __('PDF Report') }}
             </a>
-
-            <a href="{{ route('admin.reports.export_csv') }}" 
-               class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition-all hover:scale-[1.02] active:scale-95 shrink-0">
-                <i class="fa-solid fa-file-excel text-xs"></i> {{ __('Export Excel') }}
-            </a>
         </div>
     </div>
 
@@ -74,7 +69,7 @@
     <div class="print-container space-y-6">
 
         {{-- Executive Audit Summary & Key Insights Banner --}}
-        <div class="p-6 bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 border border-blue-100 rounded-3xl shadow-xs space-y-4">
+        <div class="p-6 bg-gradient-to-r from-blue-50/90 via-blue-50/70 to-slate-50 border border-blue-100 rounded-3xl shadow-xs space-y-4">
             <div class="flex items-center justify-between border-b border-blue-100 pb-3 flex-wrap gap-2">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-sm font-bold shadow-sm">
@@ -100,11 +95,11 @@
                     <div class="text-3xl font-black text-blue-600">
                         {{ $executiveSummary['overall_compliance_percentage'] }}%
                     </div>
-                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
                         {{ $executiveSummary['level_name'] }}
                     </span>
                     <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden shadow-inner mt-2">
-                        <div class="bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 h-full rounded-full transition-all duration-700" style="width: {{ $executiveSummary['overall_compliance_percentage'] }}%"></div>
+                        <div class="bg-gradient-to-r from-blue-500 via-blue-500 to-emerald-500 h-full rounded-full transition-all duration-700" style="width: {{ $executiveSummary['overall_compliance_percentage'] }}%"></div>
                     </div>
                     <p class="text-[10px] text-slate-400 font-semibold pt-1">Average Rating: <strong class="text-slate-800">{{ $executiveSummary['average_score'] }} / 5.00</strong></p>
                 </div>
@@ -117,7 +112,7 @@
                     <div class="space-y-1.5 flex-1">
                         <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">{{ __('Executive Audit Conclusion') }}</h3>
                         <p class="text-xs text-slate-700 font-medium leading-relaxed">
-                            Overall ISO 27001:2022 compliance stands at <strong class="text-blue-700 font-bold">{{ $executiveSummary['overall_compliance_percentage'] }}%</strong> (overall average score <strong class="text-blue-700 font-bold">{{ $executiveSummary['average_score'] }} / 5.00</strong>) with <strong class="text-amber-700 font-bold">{{ $executiveSummary['total_gaps'] }} identified control gaps</strong>. Primary remediation focus is required for <strong class="text-indigo-900 font-bold">{{ $executiveSummary['weakest_domain'] }}</strong>.
+                            Overall ISO 27001:2022 compliance stands at <strong class="text-blue-700 font-bold">{{ $executiveSummary['overall_compliance_percentage'] }}%</strong> (overall average score <strong class="text-blue-700 font-bold">{{ $executiveSummary['average_score'] }} / 5.00</strong>) with <strong class="text-amber-700 font-bold">{{ $executiveSummary['total_gaps'] }} identified control gaps</strong>. Primary remediation focus is required for <strong class="text-blue-900 font-bold">{{ $executiveSummary['weakest_domain'] }}</strong>.
                         </p>
                     </div>
                 </div>
@@ -137,12 +132,12 @@
             </div>
 
             <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100/80 flex items-center justify-center text-base shrink-0 font-bold">
+                <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 border border-blue-100/80 flex items-center justify-center text-base shrink-0 font-bold">
                     <i class="fa-solid fa-chart-line"></i>
                 </div>
                 <div class="min-w-0">
                     <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">{{ __('Average Rating') }}</div>
-                    <div class="text-2xl font-black text-indigo-600 mt-0.5">{{ number_format($averageScore, 2) }} <span class="text-xs text-slate-400 font-normal">/ 5.00</span></div>
+                    <div class="text-2xl font-black text-blue-600 mt-0.5">{{ number_format($averageScore, 2) }} <span class="text-xs text-slate-400 font-normal">/ 5.00</span></div>
                 </div>
             </div>
 
@@ -215,14 +210,14 @@
         {{-- SECTION 2: ISO Standard & Security Domain Performance (Unified Bar Chart) --}}
         <div class="space-y-3">
             <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400">
-                <i class="fa-solid fa-list-check text-indigo-600"></i> Section 2: ISO 27001:2022 Domains Performance (Clauses 4-10 & Annex A.5-A.8)
+                <i class="fa-solid fa-list-check text-blue-600"></i> Section 2: ISO 27001:2022 Domains Performance (Clauses 4-10 & Annex A.5-A.8)
             </div>
 
             <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs print-chart-box flex flex-col justify-between min-h-[380px]">
                 <div>
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                         <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-chart-bar text-indigo-600"></i> {{ __('ISO 27001:2022 Security & Management Domains Breakdown') }}
+                            <i class="fa-solid fa-chart-bar text-blue-600"></i> {{ __('ISO 27001:2022 Security & Management Domains Breakdown') }}
                         </h3>
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Maturity Rating (0 - 5.00)</span>
                     </div>
@@ -231,11 +226,11 @@
                     </div>
                 </div>
                 {{-- Domain Summary Takeaway --}}
-                <div class="mt-4 p-3.5 bg-indigo-50/70 border border-indigo-100/80 rounded-2xl text-xs text-slate-700 flex items-start gap-2.5">
-                    <i class="fa-solid fa-lightbulb text-indigo-600 mt-0.5 shrink-0 text-sm"></i>
+                <div class="mt-4 p-3.5 bg-blue-50/70 border border-blue-100/80 rounded-2xl text-xs text-slate-700 flex items-start gap-2.5">
+                    <i class="fa-solid fa-lightbulb text-blue-600 mt-0.5 shrink-0 text-sm"></i>
                     <div>
-                        <strong class="font-bold text-indigo-950 block text-[10px] uppercase tracking-wider mb-0.5">{{ __('Domain Performance Insight') }}:</strong>
-                        <span>Performance evaluation across all 11 ISO 27001:2022 domains maintains an overall average score of <strong class="text-blue-700 font-bold">{{ $executiveSummary['average_score'] }} / 5.00</strong>, with priority remediation focused on <strong class="text-indigo-900 font-bold">{{ $executiveSummary['weakest_domain'] }}</strong>.</span>
+                        <strong class="font-bold text-blue-950 block text-[10px] uppercase tracking-wider mb-0.5">{{ __('Domain Performance Insight') }}:</strong>
+                        <span>Performance evaluation across all 11 ISO 27001:2022 domains maintains an overall average score of <strong class="text-blue-700 font-bold">{{ $executiveSummary['average_score'] }} / 5.00</strong>, with priority remediation focused on <strong class="text-blue-900 font-bold">{{ $executiveSummary['weakest_domain'] }}</strong>.</span>
                     </div>
                 </div>
             </div>
@@ -310,7 +305,7 @@
                                             </td>
                                             <td class="px-3 py-2.5 font-bold text-slate-800 leading-snug max-w-[200px] truncate" title="{{ $ctrl->title }}">{{ $ctrl->title }}</td>
                                             <td class="px-3 py-2.5 text-center">
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-100">
                                                     {{ number_format($ctrl->avg_gap) }}
                                                 </span>
                                             </td>
@@ -426,7 +421,7 @@
                 datasets: [{
                     label: 'Maturity Rating (0-5)',
                     data: domainData.map(d => d.avg_rating),
-                    backgroundColor: domainData.map(d => d.code.startsWith('Clause') ? '#3b82f6' : '#6366f1'),
+                    backgroundColor: domainData.map(d => d.code.startsWith('Clause') ? '#3b82f6' : '#3b82f6'),
                     borderRadius: 8,
                 }]
             },

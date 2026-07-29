@@ -63,7 +63,7 @@
         [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50 flex items-center justify-center p-4">
 
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
         <div class="absolute top-20 left-20 w-64 h-64 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full opacity-20 blur-3xl floating"></div>
@@ -152,7 +152,7 @@
                 <button type="submit"
                     :disabled="loading"
                     :class="loading ? 'opacity-75 cursor-not-allowed' : 'enhanced-button'"
-                    class="w-full bg-gradient-to-r from-blue-600 via-teal-600 to-cyan-600 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-[0.98] flex items-center justify-center gap-2 relative overflow-hidden group">
+                    class="w-full bg-gradient-to-r from-blue-600 via-teal-600 to-blue-600 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-[0.98] flex items-center justify-center gap-2 relative overflow-hidden group">
                     <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-teal-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
                     <span x-show="!loading">
                         <i class="fa-solid fa-check"></i>

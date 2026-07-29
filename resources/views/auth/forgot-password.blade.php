@@ -63,13 +63,13 @@
         [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex items-center justify-center p-4 relative overflow-hidden">
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-blue-50 to-sky-100 flex items-center justify-center p-4 relative overflow-hidden">
 
     <!-- Enhanced Background Decoration -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
         <div class="absolute top-20 left-20 w-64 h-64 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full opacity-20 blur-3xl floating"></div>
-        <div class="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-20 blur-3xl floating" style="animation-delay: -3s;"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-to-r from-indigo-400 to-blue-400 rounded-full opacity-10 blur-2xl floating" style="animation-delay: -1.5s;"></div>
+        <div class="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-sky-400 to-pink-400 rounded-full opacity-20 blur-3xl floating" style="animation-delay: -3s;"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-to-r from-blue-400 to-blue-400 rounded-full opacity-10 blur-2xl floating" style="animation-delay: -1.5s;"></div>
     </div>
 
     <div class="w-full max-w-md relative z-10">
@@ -85,7 +85,7 @@
         </div>
 
         <div class="glass-card rounded-2xl p-6 md:p-8 relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full -mr-16 -mt-16 blur-xl"></div>
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-sky-500/10 rounded-full -mr-16 -mt-16 blur-xl"></div>
             
             {{-- Header --}}
             <div class="text-center mb-6">
@@ -160,7 +160,7 @@
 
                 <button type="submit" 
                     :disabled="loading"
-                    class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-[0.98] flex items-center justify-center gap-2 enhanced-button">
+                    class="w-full bg-gradient-to-r from-blue-600 to-sky-600 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-[0.98] flex items-center justify-center gap-2 enhanced-button">
                     <span x-show="!loading" class="flex items-center gap-2">
                         <i class="fa-solid fa-paper-plane"></i>
                         {{ __('Send Reset Link') }}

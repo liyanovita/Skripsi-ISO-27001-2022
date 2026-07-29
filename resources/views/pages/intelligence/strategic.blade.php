@@ -17,7 +17,7 @@
     <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
                     <i class="fa-solid fa-microchip text-lg"></i>
                 </div>
                 <div class="leading-none">
@@ -139,19 +139,19 @@
                 <div>
                     <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Overall Maturity') }}</p>
                     <div class="flex items-baseline gap-2 mt-1">
-                        <h3 class="text-2xl font-black text-indigo-600 tracking-tight">{{ number_format($latestScore, 2) }}/5</h3>
-                        <span class="px-2 py-0.5 rounded border border-indigo-100 bg-indigo-50 text-indigo-700 text-[8px] font-black uppercase tracking-wider">
+                        <h3 class="text-2xl font-black text-blue-600 tracking-tight">{{ number_format($latestScore, 2) }}/5</h3>
+                        <span class="px-2 py-0.5 rounded border border-blue-100 bg-blue-50 text-blue-700 text-[8px] font-black uppercase tracking-wider">
                             {{ __($maturityLabel) }}
                         </span>
                     </div>
                 </div>
-                <div class="w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
                     <i class="fa-solid fa-gauge-high"></i>
                 </div>
             </div>
             <div>
                 <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-indigo-500 rounded-full" style="width: {{ min(($latestScore / 5) * 100, 100) }}%"></div>
+                    <div class="h-full bg-blue-500 rounded-full" style="width: {{ min(($latestScore / 5) * 100, 100) }}%"></div>
                 </div>
             </div>
         </div>
@@ -219,7 +219,7 @@
 
     {{-- AI Summary (full width) --}}
     <div class="bg-slate-900 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-transparent"></div>
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-sky-600/20 to-transparent"></div>
         <div class="relative z-10">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 leading-none">
                 <h2 class="text-xs font-black text-white tracking-tight uppercase flex items-center gap-2">
@@ -335,7 +335,7 @@
 
                         .summary-section { margin-bottom: 1.25rem; }
                         .summary-section:last-child { margin-bottom: 0; }
-                        .summary-section-title { font-weight: 800; text-transform: uppercase; font-size: 10px; tracking: 0.05em; color: #818cf8; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.5rem; }
+                        .summary-section-title { font-weight: 800; text-transform: uppercase; font-size: 10px; tracking: 0.05em; color: #60a5fa; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.5rem; }
                         .summary-section-body { color: #cbd5e1; font-size: 11px; line-height: 1.6; }
                         .summary-recs-list { list-style-type: decimal; padding-left: 1.25rem; color: #cbd5e1; font-size: 11px; line-height: 1.6; }
                         .summary-recs-list li { margin-bottom: 0.35rem; }
@@ -349,8 +349,8 @@
         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300">
             <div class="mb-4">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                    <i class="fa-solid fa-gauge-high text-indigo-600"></i>{{ __('Session Maturity Radar') }}</h3>
-                <p class="text-[9px] font-bold text-indigo-650 mt-1 leading-snug">
+                    <i class="fa-solid fa-gauge-high text-blue-600"></i>{{ __('Session Maturity Radar') }}</h3>
+                <p class="text-[9px] font-bold text-blue-700 mt-1 leading-snug">
                     @php
                         $bestDomain = null;
                         $bestScore = -1;
@@ -372,7 +372,7 @@
                     @endphp
                     @if($bestDomain && $bestScore > 0)
                         @if($bestScore == $worstScore)
-                            {!! __('All ISO pillars have balanced maturity with an average score of <strong class="text-indigo-750">:score/5.0</strong>.', ['score' => number_format($bestScore, 1)]) !!}
+                            {!! __('All ISO pillars have balanced maturity with an average score of <strong class="text-blue-800">:score/5.0</strong>.', ['score' => number_format($bestScore, 1)]) !!}
                         @else
                             {!! __('The best performance is achieved in the <strong class="text-emerald-600">:best</strong> (:best_score/5) pillar, while the <strong class="text-rose-600">:worst</strong> (:worst_score/5) pillar is still the lowest and requires priority attention.', [
                                 'best' => __($bestDomain),
@@ -434,7 +434,7 @@
                     $cntUnassessed= $csApplicable->where('status', '!=', 'completed')->count();
                     $cntExcluded  = $csResults->where('is_applicable', false)->count();
                 @endphp
-                <p class="text-[9px] font-bold text-indigo-600 mt-1 leading-snug">
+                <p class="text-[9px] font-bold text-blue-600 mt-1 leading-snug">
                     @if($cbScore >= 80)
                         {{ __('Based on the assessment, the organization\'s information security controls are well-established and mostly compliant.') }}
                     @elseif($cbScore >= 40)
@@ -499,7 +499,7 @@
             <div class="mb-4">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
                     <i class="fa-solid fa-chart-column text-blue-600"></i>{{ __('Domain Progress Analysis') }}</h3>
-                <p class="text-[9px] font-bold text-indigo-650 mt-1 leading-snug">
+                <p class="text-[9px] font-bold text-blue-700 mt-1 leading-snug">
                     @php
                         $improvedDomains = [];
                         $declinedDomains = [];
@@ -579,7 +579,7 @@
         {{-- Checklist Header & Search Toolbar --}}
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-bold border border-indigo-100">
+                <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-bold border border-blue-100">
                     <i class="fa-solid fa-list-check"></i>
                 </div>
                 <div>
@@ -750,12 +750,12 @@
                                         </tr>
 
                                         {{-- Expandable Detail Drawer Row --}}
-                                        <tr x-show="expanded" x-transition class="bg-slate-50/90 border-t border-b border-indigo-100/80">
+                                        <tr x-show="expanded" x-transition class="bg-slate-50/90 border-t border-b border-blue-100/80">
                                             <td colspan="5" class="px-6 py-4">
                                                 <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
                                                     <div class="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
                                                         <div class="flex items-center gap-2">
-                                                            <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-xs border border-indigo-100 flex items-center gap-1.5">
+                                                            <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 font-bold text-xs border border-blue-100 flex items-center gap-1.5">
                                                                 <i class="fa-solid fa-circle-info"></i> {{ $result->standard->code }} {{ __('Control Assessment Inspection Detail') }}
                                                             </span>
                                                         </div>
@@ -773,7 +773,7 @@
                                                                 </span>
 
                                                                 {{-- Gap Value --}}
-                                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold border bg-indigo-50 text-indigo-700 border-indigo-200">
+                                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold border bg-blue-50 text-blue-700 border-blue-200">
                                                                     <i class="fa-solid fa-arrows-left-right text-[9px]"></i> Gap: <strong>{{ $result->gap }}</strong>
                                                                 </span>
 
@@ -832,13 +832,141 @@
                                                         </div>
                                                     </div>
 
-                                                    {{-- AI Recommendation --}}
-                                                    @if($result->ai_recommendation)
-                                                    <div class="p-3.5 bg-emerald-50/80 border border-emerald-100 rounded-xl text-xs text-emerald-900 leading-relaxed flex items-start gap-2.5">
-                                                        <i class="fa-solid fa-wand-magic-sparkles text-emerald-600 mt-0.5 shrink-0"></i>
-                                                        <div>
-                                                            <strong class="font-bold block text-emerald-950 text-[11px] mb-0.5">{{ __('AI Recommendation') }}:</strong>
-                                                            <span class="font-medium text-emerald-900 whitespace-pre-wrap leading-relaxed">{{ $result->ai_recommendation }}</span>
+                                                    {{-- Complete AI Compliance Synthesis Dropdown Accordion --}}
+                                                    @if($result->ai_recommendation || $result->control_insight || $result->impact_interpretation || $result->corrective_action_plan)
+                                                    @php
+                                                        $recText = $result->ai_recommendation ?: '';
+                                                        $planData = $result->corrective_action_plan;
+                                                        $planText = is_array($planData) ? implode("\n", array_filter(array_map(fn($i) => is_array($i) ? implode(' ', $i) : trim((string)$i), $planData))) : ($planData ?: '');
+                                                        $insightData = $result->control_insight;
+                                                        $insightText = is_array($insightData) ? implode("\n", array_filter(array_map(fn($i) => is_array($i) ? implode(' ', $i) : trim((string)$i), $insightData))) : ($insightData ?: '');
+                                                        $impactText = $result->impact_interpretation ?: '';
+                                                    @endphp
+                                                    <div class="p-4 bg-gradient-to-br from-blue-50/70 via-slate-50 to-indigo-50/30 border border-blue-200/90 rounded-2xl shadow-xs space-y-3"
+                                                         x-data="{ activeAccordion: 'rec' }">
+                                                        
+                                                        {{-- Header --}}
+                                                        <div class="flex items-center justify-between border-b border-blue-100/90 pb-3 flex-wrap gap-2">
+                                                            <div class="flex items-center gap-2.5">
+                                                                <span class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs shadow-xs">
+                                                                    <i class="fa-solid fa-robot"></i>
+                                                                </span>
+                                                                <div>
+                                                                    <h4 class="text-xs font-black text-slate-900 uppercase tracking-tight">{{ __('AI Compliance Synthesis') }}</h4>
+                                                                    <p class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">{{ __('Expert Decision Support & Mitigations') }}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {{-- Dropdown Accordion List per Control --}}
+                                                        <div class="space-y-2.5">
+                                                            {{-- Accordion 1: STRATEGIC RECOMMENDATION --}}
+                                                            @if($recText)
+                                                            <div class="rounded-xl border transition-all overflow-hidden"
+                                                                 :class="activeAccordion === 'rec' ? 'border-blue-200 bg-blue-50/50 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
+                                                                <button type="button"
+                                                                    @click="activeAccordion = activeAccordion === 'rec' ? null : 'rec'"
+                                                                    class="w-full flex items-center justify-between gap-3 p-3 text-left cursor-pointer transition-colors"
+                                                                    :class="activeAccordion === 'rec' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                                                                    <div class="flex items-center gap-2.5">
+                                                                        <div class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                                                             :class="activeAccordion === 'rec' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-400'">
+                                                                            <i class="fa-solid fa-lightbulb text-[9px]"></i>
+                                                                        </div>
+                                                                        <span class="text-[10px] font-black uppercase tracking-widest"
+                                                                              :class="activeAccordion === 'rec' ? 'text-blue-700' : 'text-slate-700'">
+                                                                            {{ __('STRATEGIC RECOMMENDATION') }}
+                                                                        </span>
+                                                                    </div>
+                                                                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200"
+                                                                       :class="activeAccordion === 'rec' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
+                                                                </button>
+                                                                <div x-show="activeAccordion === 'rec'" x-collapse.duration.200ms>
+                                                                    <div class="p-3.5 text-xs font-medium text-slate-700 leading-relaxed bg-blue-50/30 border-t border-blue-100/60 rounded-b-xl whitespace-pre-wrap">{{ $recText }}</div>
+                                                                </div>
+                                                            </div>
+                                                            @endif
+
+                                                            {{-- Accordion 2: CORRECTIVE ACTION PLAN --}}
+                                                            @if($planText)
+                                                            <div class="rounded-xl border transition-all overflow-hidden"
+                                                                 :class="activeAccordion === 'cap' ? 'border-blue-200 bg-blue-50/50 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
+                                                                <button type="button"
+                                                                    @click="activeAccordion = activeAccordion === 'cap' ? null : 'cap'"
+                                                                    class="w-full flex items-center justify-between gap-3 p-3 text-left cursor-pointer transition-colors"
+                                                                    :class="activeAccordion === 'cap' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                                                                    <div class="flex items-center gap-2.5">
+                                                                        <div class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                                                             :class="activeAccordion === 'cap' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-400'">
+                                                                            <i class="fa-solid fa-list-check text-[9px]"></i>
+                                                                        </div>
+                                                                        <span class="text-[10px] font-black uppercase tracking-widest"
+                                                                              :class="activeAccordion === 'cap' ? 'text-blue-700' : 'text-slate-700'">
+                                                                            {{ __('CORRECTIVE ACTION PLAN') }}
+                                                                        </span>
+                                                                    </div>
+                                                                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200"
+                                                                       :class="activeAccordion === 'cap' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
+                                                                </button>
+                                                                <div x-show="activeAccordion === 'cap'" x-collapse.duration.200ms>
+                                                                    <div class="p-3.5 text-xs font-medium text-slate-700 leading-relaxed bg-blue-50/30 border-t border-blue-100/60 rounded-b-xl whitespace-pre-wrap">{{ $planText }}</div>
+                                                                </div>
+                                                            </div>
+                                                            @endif
+
+                                                            {{-- Accordion 3: AI AUDIT INSIGHT (GAP) --}}
+                                                            @if($insightText)
+                                                            <div class="rounded-xl border transition-all overflow-hidden"
+                                                                 :class="activeAccordion === 'gap' ? 'border-blue-200 bg-blue-50/50 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
+                                                                <button type="button"
+                                                                    @click="activeAccordion = activeAccordion === 'gap' ? null : 'gap'"
+                                                                    class="w-full flex items-center justify-between gap-3 p-3 text-left cursor-pointer transition-colors"
+                                                                    :class="activeAccordion === 'gap' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                                                                    <div class="flex items-center gap-2.5">
+                                                                        <div class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                                                             :class="activeAccordion === 'gap' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-400'">
+                                                                            <i class="fa-solid fa-magnifying-glass text-[9px]"></i>
+                                                                        </div>
+                                                                        <span class="text-[10px] font-black uppercase tracking-widest"
+                                                                              :class="activeAccordion === 'gap' ? 'text-blue-700' : 'text-slate-700'">
+                                                                            {{ __('AI AUDIT INSIGHT (GAP)') }}
+                                                                        </span>
+                                                                    </div>
+                                                                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200"
+                                                                       :class="activeAccordion === 'gap' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
+                                                                </button>
+                                                                <div x-show="activeAccordion === 'gap'" x-collapse.duration.200ms>
+                                                                    <div class="p-3.5 text-xs font-medium text-slate-700 leading-relaxed bg-blue-50/30 border-t border-blue-100/60 rounded-b-xl whitespace-pre-wrap">{{ $insightText }}</div>
+                                                                </div>
+                                                            </div>
+                                                            @endif
+
+                                                            {{-- Accordion 4: IMPACT INTERPRETATION --}}
+                                                            @if($impactText)
+                                                            <div class="rounded-xl border transition-all overflow-hidden"
+                                                                 :class="activeAccordion === 'impact' ? 'border-blue-200 bg-blue-50/50 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
+                                                                <button type="button"
+                                                                    @click="activeAccordion = activeAccordion === 'impact' ? null : 'impact'"
+                                                                    class="w-full flex items-center justify-between gap-3 p-3 text-left cursor-pointer transition-colors"
+                                                                    :class="activeAccordion === 'impact' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                                                                    <div class="flex items-center gap-2.5">
+                                                                        <div class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                                                             :class="activeAccordion === 'impact' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-400'">
+                                                                            <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
+                                                                        </div>
+                                                                        <span class="text-[10px] font-black uppercase tracking-widest"
+                                                                              :class="activeAccordion === 'impact' ? 'text-blue-700' : 'text-slate-700'">
+                                                                            {{ __('IMPACT INTERPRETATION') }}
+                                                                        </span>
+                                                                    </div>
+                                                                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200"
+                                                                       :class="activeAccordion === 'impact' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
+                                                                </button>
+                                                                <div x-show="activeAccordion === 'impact'" x-collapse.duration.200ms>
+                                                                    <div class="p-3.5 text-xs font-medium text-slate-700 leading-relaxed bg-blue-50/30 border-t border-blue-100/60 rounded-b-xl whitespace-pre-wrap">{{ $impactText }}</div>
+                                                                </div>
+                                                            </div>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                     @endif
@@ -917,7 +1045,7 @@ const registerStrategicAnalytics = () => {
             // If server indicates it is processing, start polling immediately
             if (isProcessing) {
                 this.isGenerating = true;
-                this.summaryHtml = `<div class="text-center py-4 opacity-70"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-indigo-500"></i><p>{{ __('Analyzing and synthesizing session data...') }}</p></div>`;
+                this.summaryHtml = `<div class="text-center py-4 opacity-70"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-blue-500"></i><p>{{ __('Analyzing and synthesizing session data...') }}</p></div>`;
                 this.startPolling();
                 return;
             }
@@ -932,7 +1060,7 @@ const registerStrategicAnalytics = () => {
 
                 if (statusData.data.status === 'processing') {
                     this.isGenerating = true;
-                    this.summaryHtml = `<div class="text-center py-4 opacity-70"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-indigo-500"></i><p>{{ __('Analyzing and synthesizing session data...') }}</p></div>`;
+                    this.summaryHtml = `<div class="text-center py-4 opacity-70"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-blue-500"></i><p>{{ __('Analyzing and synthesizing session data...') }}</p></div>`;
                     this.startPolling();
                 } else if (statusData.data.status === 'completed') {
                     const html = statusData.data.summary_html || statusData.data.summary;
@@ -1000,7 +1128,7 @@ const registerStrategicAnalytics = () => {
             }
 
             this.isGenerating = true;
-            this.summaryHtml = `<div class="text-center py-4 opacity-70"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-indigo-500"></i><p>{{ __('Analyzing and synthesizing session data...') }}</p></div>`;
+            this.summaryHtml = `<div class="text-center py-4 opacity-70"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-blue-500"></i><p>{{ __('Analyzing and synthesizing session data...') }}</p></div>`;
             try {
                 const response = await fetch(`/reports/ai-summary/${this.selectedSession}`, {
                     method: 'GET',
@@ -1088,9 +1216,9 @@ window.getMaturityConfig = function() {
             datasets: [{
                 label: '{{ __('Maturity') }}',
                 data: rows.map(row => row.value),
-                borderColor: '#4f46e5',
-                backgroundColor: 'rgba(79, 70, 229, 0.12)',
-                pointBackgroundColor: '#4f46e5',
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(29, 78, 216, 0.12)',
+                pointBackgroundColor: '#2563eb',
                 pointBorderColor: '#ffffff',
                 pointBorderWidth: 2,
                 pointRadius: 4,

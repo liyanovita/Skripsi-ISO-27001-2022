@@ -128,7 +128,7 @@
                 class="w-full flex items-center justify-between gap-4 px-6 py-4 text-left transition-colors"
                 :class="openId === {{ $result->id }} ? 'bg-slate-50 border-b border-slate-100' : 'hover:bg-slate-50/50'">
                 <div class="flex items-center gap-3 min-w-0">
-                    <span class="shrink-0 px-2 py-0.5 {{ in_array($result->standard->type, ['clause','clausa']) ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-indigo-50 text-indigo-600 border-indigo-100' }} text-[9px] font-black rounded border uppercase tracking-widest">
+                    <span class="shrink-0 px-2 py-0.5 {{ in_array($result->standard->type, ['clause','clausa']) ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-blue-50 text-blue-600 border-blue-100' }} text-[9px] font-black rounded border uppercase tracking-widest">
                         {{ $result->standard->code }}
                     </span>
                     <span class="text-sm font-bold text-slate-800 truncate">{{ __($result->standard->title) }}</span>
@@ -161,7 +161,7 @@
                     {{-- Control Metadata --}}
                     <div class="lg:w-1/3 space-y-6">
                         <div>
-                            <span class="px-2.5 py-1 {{ in_array($result->standard->type, ['clause', 'clausa']) ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-indigo-50 text-indigo-600 border-indigo-100' }} text-xs font-bold rounded-lg uppercase border tracking-widest">
+                            <span class="px-2.5 py-1 {{ in_array($result->standard->type, ['clause', 'clausa']) ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-blue-50 text-blue-600 border-blue-100' }} text-xs font-bold rounded-lg uppercase border tracking-widest">
                                 {{ $result->standard->type }} {{ $result->standard->code }}
                             </span>
                             <div class="flex items-center gap-2 mt-4 flex-wrap">
@@ -369,7 +369,7 @@
                                     $aiSections[] = [
                                         'key'   => 'gap',
                                         'icon'  => 'fa-magnifying-glass-chart',
-                                        'color' => 'violet',
+                                        'color' => 'cyan',
                                         'label' => __('AI Audit Insight (Gap Analysis)'),
                                         'desc'  => __('Identified gaps against ISO 27001:2022 requirements'),
                                         'body'  => $insightText,
@@ -394,7 +394,7 @@
                                 $aiSections[] = [
                                     'key'   => 'strategic',
                                     'icon'  => 'fa-lightbulb',
-                                    'color' => 'indigo',
+                                    'color' => 'blue',
                                     'label' => __('Strategic Recommendation'),
                                     'desc'  => __('AI-generated compliance improvement strategy'),
                                     'body'  => $result->ai_recommendation,
@@ -417,31 +417,31 @@
                                 }
 
                                 $colorMap = [
-                                    'indigo'  => ['bg' => 'bg-indigo-600',  'light' => 'bg-indigo-50',  'border' => 'border-indigo-100', 'text' => 'text-indigo-600',  'ring' => 'ring-indigo-600/10'],
+                                    'blue'    => ['bg' => 'bg-blue-600',  'light' => 'bg-blue-50',  'border' => 'border-blue-100', 'text' => 'text-blue-600',  'ring' => 'ring-blue-600/10'],
                                     'emerald' => ['bg' => 'bg-emerald-600', 'light' => 'bg-emerald-50', 'border' => 'border-emerald-100','text' => 'text-emerald-600', 'ring' => 'ring-emerald-600/10'],
-                                    'violet'  => ['bg' => 'bg-violet-600',  'light' => 'bg-violet-50',  'border' => 'border-violet-100', 'text' => 'text-violet-600',  'ring' => 'ring-violet-600/10'],
+                                    'cyan'    => ['bg' => 'bg-blue-600',  'light' => 'bg-blue-50',  'border' => 'border-blue-100', 'text' => 'text-blue-600',  'ring' => 'ring-blue-600/10'],
                                     'rose'    => ['bg' => 'bg-rose-600',    'light' => 'bg-rose-50',    'border' => 'border-rose-100',   'text' => 'text-rose-600',    'ring' => 'ring-rose-600/10'],
                                 ];
                                 
                                 $firstSectionKey = !empty($aiSections) ? $aiSections[0]['key'] : 'gap';
                             @endphp
  
-                             <div class="mt-6 rounded-3xl border border-indigo-100 shadow-sm overflow-hidden"
+                             <div class="mt-6 rounded-3xl border border-blue-100 shadow-sm overflow-hidden"
                                   x-data="{ activeAi_{{ $result->id }}: '{{ $firstSectionKey }}' }">
 
                                 {{-- Card Header --}}
-                                <div class="flex items-center justify-between gap-3 px-5 py-4 bg-gradient-to-r from-indigo-600 to-violet-600">
+                                <div class="flex items-center justify-between gap-3 px-5 py-4 bg-gradient-to-r from-blue-600 to-blue-600">
                                     <div class="flex items-center gap-2.5">
                                         <div class="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center text-white backdrop-blur-sm">
                                             <i class="fa-solid fa-robot text-xs"></i>
                                         </div>
                                         <div class="leading-none">
                                             <h4 class="text-xs font-black text-white tracking-tight uppercase">{{ __('AI Compliance Synthesis') }}</h4>
-                                            <p class="text-[10px] text-indigo-200 font-bold uppercase tracking-widest mt-0.5">{{ __('AI Expert Recommendation') }}</p>
+                                            <p class="text-[10px] text-blue-200 font-bold uppercase tracking-widest mt-0.5">{{ __('AI Expert Recommendation') }}</p>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <span class="text-[8px] font-black text-indigo-200 uppercase tracking-widest">{{ count($aiSections) }} {{ __('sections') }}</span>
+                                        <span class="text-[8px] font-black text-blue-200 uppercase tracking-widest">{{ count($aiSections) }} {{ __('sections') }}</span>
                                         @if(!empty($result->risk_priority))
                                         <span class="px-2.5 py-1 bg-white/15 text-white border border-white/20 text-[8px] font-black rounded-lg uppercase tracking-wider leading-none backdrop-blur-sm">
                                             {{ $result->risk_priority }}
@@ -451,7 +451,7 @@
                                 </div>
 
                                 {{-- Accordion Panels --}}
-                                <div class="divide-y divide-indigo-50 bg-gradient-to-br from-indigo-50/60 to-purple-50/60">
+                                <div class="divide-y divide-blue-50 bg-gradient-to-br from-blue-50/60 to-sky-50/60">
                                     @foreach($aiSections as $section)
                                     @php $c = $colorMap[$section['color']]; @endphp
                                     <div x-data="{ get isOpen() { return activeAi_{{ $result->id }} === '{{ $section['key'] }}' } }">
@@ -513,7 +513,7 @@
                             </div>{{-- /AI accordion wrapper --}}
 
                             @elseif($result->status === 'completed' && $result->maturity_rating < 5 && empty($result->ai_recommendation))
-                            <div class="mt-6 bg-gradient-to-br from-indigo-50/30 to-purple-50/30 rounded-3xl border border-indigo-100/50 p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-4 py-8 relative overflow-hidden" 
+                            <div class="mt-6 bg-gradient-to-br from-blue-50/30 to-sky-50/30 rounded-3xl border border-blue-100/50 p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-4 py-8 relative overflow-hidden" 
                                  x-data="{
                                     poll() {
                                         let interval = setInterval(async () => {
@@ -555,9 +555,9 @@
                                     }
                                  }" 
                                  x-init="poll()">
-                                 <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 animate-pulse"></div>
+                                 <div class="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-sky-500/5 animate-pulse"></div>
 
-                                 <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20 animate-bounce relative z-10">
+                                 <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-600/20 animate-bounce relative z-10">
                                      <i class="fa-solid fa-wand-magic-sparkles text-xl"></i>
                                  </div>
 
@@ -566,7 +566,7 @@
                                      <p class="text-xs text-slate-500 font-medium">{{ __('AI is currently analyzing your evidence and drafting strategic recommendations...') }}</p>
                                  </div>
 
-                                 <div class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-[8px] font-black uppercase tracking-widest text-indigo-700 animate-pulse relative z-10">
+                                 <div class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-full text-[8px] font-black uppercase tracking-widest text-blue-700 animate-pulse relative z-10">
                                      <i class="fa-solid fa-spinner animate-spin"></i>{{ __('Processing Real-Time Synthesis') }}</div>
                             </div>
                             @endif
@@ -714,7 +714,7 @@
         <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
             {{-- Progress Info --}}
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg transition-all" :class="allCompleted ? 'bg-emerald-600 shadow-emerald-600/20' : 'bg-slate-400 shadow-slate-400/10'">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg transition-all" :class="allCompleted ? 'bg-emerald-600 shadow-blue-600/20' : 'bg-slate-400 shadow-slate-400/10'">
                     <i class="fa-solid text-xl transition-all" :class="allCompleted ? 'fa-flag-checkered' : 'fa-clipboard-list'"></i>
                 </div>
                 <div>
@@ -756,7 +756,7 @@
                 <form x-show="allCompleted" x-cloak x-transition x-ref="finalizeForm" id="finalize-form" action="{{ route('sessions.finalize', $session->id) }}" method="POST">
                     @csrf
                     <button type="button" x-on:click="showFinalizeModal = true" aria-label="Finalize Audit" title="{{ __('Finalize Audit') }}" 
-                        class="px-8 py-3.5 bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/20 transition-all flex items-center gap-2 active:scale-95 shadow-md">
+                        class="px-8 py-3.5 bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 hover:shadow-lg hover:shadow-blue-600/20 transition-all flex items-center gap-2 active:scale-95 shadow-md">
                         <i class="fa-solid fa-circle-check"></i>
                         {{ __('Finalize Audit') }}
                     </button>

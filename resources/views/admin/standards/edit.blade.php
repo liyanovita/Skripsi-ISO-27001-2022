@@ -42,7 +42,7 @@
             </div>
         </div>
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider shrink-0
-            {{ in_array($standard->type, ['clause', 'clausa']) ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100' }}">
+            {{ in_array($standard->type, ['clause', 'clausa']) ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100' }}">
             <i class="fa-solid {{ in_array($standard->type, ['clause', 'clausa']) ? 'fa-folder-tree' : 'fa-shield-halved' }} text-[10px]"></i>
             {{ $standard->type }}
         </span>

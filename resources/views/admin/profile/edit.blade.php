@@ -17,14 +17,14 @@
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="flex items-center gap-4">
                 {{-- Avatar --}}
-                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center text-2xl font-black shadow-lg shadow-blue-600/20 shrink-0">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-white flex items-center justify-center text-2xl font-black shadow-lg shadow-blue-600/20 shrink-0">
                     {{ strtoupper(substr($admin->name, 0, 2)) }}
                 </div>
                 
                 <div>
                     <div class="flex items-center gap-2 mb-1">
                         <span class="text-lg font-black text-slate-800 tracking-tight">{{ $admin->name }}</span>
-                        <span class="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-[10px] font-black uppercase tracking-wider">
+                        <span class="px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-full text-[10px] font-black uppercase tracking-wider">
                             <i class="fa-solid fa-shield-halved text-[8px]"></i> Administrator
                         </span>
                     </div>
@@ -35,7 +35,7 @@
             <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-100 text-xs shrink-0 space-y-1">
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">System Role</span>
                 <div class="font-bold text-slate-800 flex items-center gap-1.5">
-                    <i class="fa-solid fa-user-shield text-indigo-600 text-xs"></i>
+                    <i class="fa-solid fa-user-shield text-blue-600 text-xs"></i>
                     Administrator
                 </div>
                 <div class="text-[10px] text-slate-400 font-medium">Joined {{ $admin->created_at->format('M d, Y') }}</div>

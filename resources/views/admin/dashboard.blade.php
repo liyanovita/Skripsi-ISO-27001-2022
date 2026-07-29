@@ -6,18 +6,18 @@
 @section('content')
 <div class="space-y-8 pb-8">
     {{-- Header Banner / Command Center Banner --}}
-    <div class="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-950 p-6 sm:p-8 rounded-3xl text-white shadow-2xl relative overflow-hidden border border-blue-800/40">
-        <div class="absolute -right-10 -top-10 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
+    <div class="bg-gradient-to-r from-slate-900 via-blue-900 to-blue-950 p-6 sm:p-8 rounded-3xl text-white shadow-2xl relative overflow-hidden border border-blue-800/40">
+        <div class="absolute -right-10 -top-10 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
         <div class="absolute right-32 bottom-0 w-64 h-64 bg-blue-500/15 rounded-full blur-3xl pointer-events-none"></div>
         
         <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div class="max-w-2xl">
                 <div class="flex items-center gap-2 mb-2">
                     <span class="relative flex h-2.5 w-2.5">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-400"></span>
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-400"></span>
                     </span>
-                    <span class="text-[10px] font-black text-cyan-300 uppercase tracking-widest">{{ __('ISO 27001:2022 Command Center · System Active') }}</span>
+                    <span class="text-[10px] font-black text-blue-300 uppercase tracking-widest">{{ __('ISO 27001:2022 Command Center · System Active') }}</span>
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-2">
                     {{ __('Welcome back') }}, <span class="text-blue-300">Admin</span>!
@@ -30,13 +30,13 @@
             {{-- Quick Action Hub in Banner --}}
             <div class="flex flex-wrap items-center gap-2.5 shrink-0 pt-2 lg:pt-0">
                 <a href="{{ route('admin.sessions.create') }}" 
-                   class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-lg shadow-blue-600/30 active:scale-95 border border-cyan-400/20">
+                   class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-500 hover:to-blue-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-lg shadow-blue-600/30 active:scale-95 border border-blue-400/20">
                     <i class="fa-solid fa-plus text-xs"></i>
                     <span>{{ __('New Session') }}</span>
                 </a>
                 <a href="{{ route('admin.users.create') }}" 
                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all backdrop-blur-md border border-white/15 hover:border-white/30 active:scale-95">
-                    <i class="fa-solid fa-user-plus text-xs text-cyan-300"></i>
+                    <i class="fa-solid fa-user-plus text-xs text-blue-300"></i>
                     <span>{{ __('Add User') }}</span>
                 </a>
                 <a href="{{ route('admin.organizations.create') }}" 
@@ -74,10 +74,10 @@
 
         {{-- Card 2: Audit Sessions --}}
         <a href="{{ route('admin.sessions.index') }}" class="block bg-white rounded-2xl border border-slate-200/80 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
-            <div class="absolute -right-4 -top-4 w-20 h-20 bg-indigo-500/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
+            <div class="absolute -right-4 -top-4 w-20 h-20 bg-blue-500/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
             <div class="flex items-center justify-between mb-3 relative z-10">
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ __('Audit Sessions') }}</h3>
-                <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shadow-xs border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shadow-xs border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                     <i class="fa-solid fa-clipboard-list text-sm"></i>
                 </div>
             </div>
@@ -110,10 +110,10 @@
 
         {{-- Card 4: Avg Maturity (Links to Compliance Reports) --}}
         <a href="{{ route('admin.reports.index') }}" class="block bg-white rounded-2xl border border-slate-200/80 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
-            <div class="absolute -right-4 -top-4 w-20 h-20 bg-purple-500/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
+            <div class="absolute -right-4 -top-4 w-20 h-20 bg-sky-500/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
             <div class="flex items-center justify-between mb-3 relative z-10">
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ __('Avg Maturity') }}</h3>
-                <div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shadow-xs border border-purple-100 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                <div class="w-10 h-10 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center shadow-xs border border-sky-100 group-hover:bg-sky-600 group-hover:text-white transition-colors">
                     <i class="fa-solid fa-chart-pie text-sm"></i>
                 </div>
             </div>
@@ -122,7 +122,7 @@
             </div>
             <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] relative z-10">
                 <span class="font-medium text-slate-500">{{ __('Compliance Reports') }}</span>
-                <span class="px-2 py-0.5 bg-purple-50 text-purple-700 group-hover:bg-purple-100 rounded font-black uppercase tracking-widest border border-purple-100 transition-colors">
+                <span class="px-2 py-0.5 bg-sky-50 text-sky-700 group-hover:bg-sky-100 rounded font-black uppercase tracking-widest border border-sky-100 transition-colors">
                     @if($averageScore >= 4.5) Level 5 @elseif($averageScore >= 3.5) Level 4 @elseif($averageScore >= 2.5) Level 3 @elseif($averageScore >= 1.5) Level 2 @elseif($averageScore >= 0.5) Level 1 @else Level 0 @endif
                 </span>
             </div>
@@ -130,10 +130,10 @@
 
         {{-- Card 5: ISO Standards --}}
         <a href="{{ route('admin.standards.index') }}" class="block bg-white rounded-2xl border border-slate-200/80 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
-            <div class="absolute -right-4 -top-4 w-20 h-20 bg-cyan-500/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
+            <div class="absolute -right-4 -top-4 w-20 h-20 bg-blue-500/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
             <div class="flex items-center justify-between mb-2 relative z-10">
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ __('ISO Standards') }}</h3>
-                <div class="w-10 h-10 bg-cyan-50 text-cyan-600 rounded-xl flex items-center justify-center shadow-xs border border-cyan-100 group-hover:bg-cyan-600 group-hover:text-white transition-colors">
+                <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shadow-xs border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                     <i class="fa-solid fa-shield-halved text-sm"></i>
                 </div>
             </div>
@@ -144,13 +144,13 @@
                 <span class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded text-[9px] font-bold uppercase tracking-wider">
                     {{ $mainClausesCount }} Klausul ISMS
                 </span>
-                <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded text-[9px] font-bold uppercase tracking-wider">
+                <span class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded text-[9px] font-bold uppercase tracking-wider">
                     {{ $annexControlsCount }} Annex A
                 </span>
             </div>
             <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] relative z-10">
                 <span class="font-medium text-slate-500">{{ __('Controls Catalog') }}</span>
-                <span class="text-cyan-600 font-bold"><i class="fa-solid fa-gear text-[9px]"></i></span>
+                <span class="text-blue-600 font-bold"><i class="fa-solid fa-gear text-[9px]"></i></span>
             </div>
         </a>
     </div>
@@ -254,7 +254,7 @@
         {{-- Maturity Level Distribution --}}
         <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs flex flex-col">
             <h3 class="text-sm font-black text-slate-900 tracking-tight mb-1 flex items-center gap-2">
-                <i class="fa-solid fa-signal text-purple-600"></i> {{ __('ISO 27001:2022 Maturity Breakdown') }}
+                <i class="fa-solid fa-signal text-sky-600"></i> {{ __('ISO 27001:2022 Maturity Breakdown') }}
             </h3>
             <p class="text-[11px] text-slate-400 font-medium mb-4">{{ __('Distribution across maturity ratings (Level 1-5)') }}</p>
             <div class="relative h-56 w-full flex-1">
@@ -283,7 +283,7 @@
         {{-- Governance Indicators Summary --}}
         <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs">
             <h3 class="text-sm font-black text-slate-900 tracking-tight mb-1 flex items-center gap-2">
-                <i class="fa-solid fa-cubes text-indigo-600"></i> {{ __('Governance Indicators') }}
+                <i class="fa-solid fa-cubes text-blue-600"></i> {{ __('Governance Indicators') }}
             </h3>
             <p class="text-[11px] text-slate-400 font-medium mb-4">{{ __('Key system metrics summary') }}</p>
             
@@ -291,9 +291,9 @@
                 @php
                     $indicators = [
                         ['label' => __('Total User Accounts'), 'value' => $totalUsers, 'icon' => 'fa-users', 'color' => 'text-blue-600', 'bg' => 'bg-blue-50'],
-                        ['label' => __('Audit Sessions'), 'value' => $totalSessions, 'icon' => 'fa-clipboard-list', 'color' => 'text-indigo-600', 'bg' => 'bg-indigo-50'],
+                        ['label' => __('Audit Sessions'), 'value' => $totalSessions, 'icon' => 'fa-clipboard-list', 'color' => 'text-blue-600', 'bg' => 'bg-blue-50'],
                         ['label' => __('Registered Organizations'), 'value' => $totalOrganizations, 'icon' => 'fa-building', 'color' => 'text-teal-600', 'bg' => 'bg-teal-50'],
-                        ['label' => __('Knowledge Base Articles'), 'value' => $totalArticles, 'icon' => 'fa-book-open', 'color' => 'text-purple-600', 'bg' => 'bg-purple-50'],
+                        ['label' => __('Knowledge Base Articles'), 'value' => $totalArticles, 'icon' => 'fa-book-open', 'color' => 'text-sky-600', 'bg' => 'bg-sky-50'],
                         ['label' => __('Pending Improvement Tasks'), 'value' => $pendingCapa, 'icon' => 'fa-clock', 'color' => 'text-amber-600', 'bg' => 'bg-amber-50'],
                         ['label' => __('Overdue Improvement Tasks'), 'value' => $overdueCapa, 'icon' => 'fa-triangle-exclamation', 'color' => 'text-rose-600', 'bg' => 'bg-rose-50'],
                     ];
@@ -332,7 +332,7 @@
                 @forelse($recentUsers as $user)
                 <a href="{{ route('admin.users.show', $user) }}" class="p-4 hover:bg-slate-50/80 flex items-center justify-between transition-colors block group">
                     <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-600 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
                             {{ strtoupper(substr($user->name, 0, 2)) }}
                         </div>
                         <div class="min-w-0">
@@ -547,7 +547,7 @@ function initAdminDashboardCharts() {
             labels: @json(array_keys($sectorDistribution)),
             datasets: [{
                 data: @json(array_values($sectorDistribution)),
-                backgroundColor: ['#2563eb', '#6366f1', '#0d9488', '#e11d48', '#d97706', '#0284c7'],
+                backgroundColor: ['#2563eb', '#3b82f6', '#0d9488', '#e11d48', '#d97706', '#0284c7'],
                 borderWidth: 3,
                 borderColor: '#ffffff',
                 hoverOffset: 6,

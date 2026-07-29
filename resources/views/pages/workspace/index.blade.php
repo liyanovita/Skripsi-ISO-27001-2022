@@ -257,7 +257,7 @@
     {{-- Header --}}
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-4 rounded-lg border border-slate-100 shadow-sm">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-600/20">
                 <i class="fa-solid fa-table-cells-large text-lg"></i>
             </div>
             <div class="leading-none">
@@ -270,7 +270,7 @@
         <div class="flex items-center gap-3">
             <form action="{{ route('workspace.index') }}" method="GET" id="workspaceFilter" class="flex items-center gap-3">
                 <select name="session_id" onchange="document.getElementById('workspaceFilter').requestSubmit()"
-                    class="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 outline-none focus:ring-4 focus:ring-indigo-600/5 transition-all min-w-[260px] cursor-pointer shadow-sm">
+                    class="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-600/5 transition-all min-w-[260px] cursor-pointer shadow-sm">
                     @if($sessions->isEmpty())
                         <option value="">{{ __('No sessions available') }}</option>
                     @endif
@@ -449,7 +449,7 @@
                     <i class="fa-solid fa-filter text-[7px] mr-1"></i>{{ __('Gaps Only') }}
                 </button>
                 <button @click="filterOption = 'applicable'"
-                    :class="filterOption === 'applicable' ? 'bg-emerald-600 text-white shadow shadow-emerald-600/20' : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'"
+                    :class="filterOption === 'applicable' ? 'bg-emerald-600 text-white shadow shadow-blue-600/20' : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'"
                     class="px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">
                     {{ __('Applicable') }}
                 </button>
@@ -468,7 +468,7 @@
                     :class="riskFilter === '{{ $val }}' 
                         ? ('{{ $val }}' === 'high' ? 'bg-rose-600 text-white shadow shadow-rose-600/20' 
                           : '{{ $val }}' === 'medium' ? 'bg-amber-500 text-white shadow shadow-amber-500/20' 
-                          : '{{ $val }}' === 'low' ? 'bg-emerald-600 text-white shadow shadow-emerald-600/20' 
+                          : '{{ $val }}' === 'low' ? 'bg-emerald-600 text-white shadow shadow-blue-600/20' 
                           : 'bg-slate-900 text-white shadow') 
                         : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'"
                     class="px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">
@@ -480,19 +480,19 @@
             <div class="relative w-full xl:w-auto">
                 <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]"></i>
                 <input type="text" x-model="searchQuery" placeholder="{{ __('Search control or title...') }}"
-                    class="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all w-full xl:w-64 placeholder:text-slate-400">
+                    class="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/30 transition-all w-full xl:w-64 placeholder:text-slate-400">
             </div>
         </div>
         <div class="xl:ml-auto self-start xl:self-center">
             <span class="text-[8px] font-bold uppercase tracking-widest flex items-center gap-1"
                 :class="{
-                    'text-indigo-600': saveState === 'saving',
+                    'text-blue-600': saveState === 'saving',
                     'text-emerald-600': saveState === 'saved' || saveState === 'ready',
                     'text-rose-600': saveState === 'error'
                 }">
                 <span class="w-2 h-2 rounded-full inline-block"
                     :class="{
-                        'bg-indigo-500 animate-pulse': saveState === 'saving',
+                        'bg-blue-500 animate-pulse': saveState === 'saving',
                         'bg-emerald-400': saveState === 'saved' || saveState === 'ready',
                         'bg-rose-500': saveState === 'error'
                     }"></span>
@@ -582,7 +582,7 @@
                         <td class="px-4 py-4">
                             <div class="flex flex-col">
                                 <div class="flex items-center gap-2">
-                                    <span class="px-2.5 py-0.5 bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-black rounded-lg uppercase tracking-wider shrink-0">
+                                    <span class="px-2.5 py-0.5 bg-blue-50 border border-blue-100 text-blue-700 text-[10px] font-black rounded-lg uppercase tracking-wider shrink-0">
                                         {{ $result->standard->code }}
                                     </span>
                                     <span class="text-xs font-black text-slate-900 tracking-tight leading-snug">
@@ -636,29 +636,50 @@
                             </div>
                         </td>
                         <td class="px-4 py-4 text-center">
-                            <button @click="openManageModal({
-                                    id: {{ $result->id }},
-                                    code: @js($result->standard->code),
-                                    title: @js(__($result->standard->title)),
-                                    complianceStatus: @js($complianceStatus),
-                                    riskLevel: @js($riskLevelLabel),
-                                    maturity: @js($result->maturity_rating),
-                                    gap: @js(5 - ($result->maturity_rating ?? 0)),
-                                    justification: @js($result->soa_justification ?? ''),
-                                    auditEvidence: @js($result->evidence ?? ''),
-                                    auditNotes: @js($result->notes ?? ''),
-                                    aiPlan: @js($aiPlanText),
-                                    aiInsight: @js($aiInsightText),
-                                    pic: @js($result->treatment_pic ?? ''),
-                                    dueDate: @js($dueDate),
-                                    status: @js($status),
-                                    notes: @js($result->notes ?? ''),
-                                    files: @js($mappedFiles)
-                                })"
-                                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer">
-                                <i class="fa-solid fa-file-pen text-[10px]"></i>
-                                <span>{{ __('Remediate') }}</span>
-                            </button>
+                            <div class="inline-flex items-center justify-center gap-1.5 flex-wrap">
+                                @if($result->ai_recommendation || $result->control_insight || $result->impact_interpretation || $result->corrective_action_plan)
+                                    <button type="button"
+                                        @click="openAiDetails({
+                                            code: @js($result->standard->code),
+                                            title: @js(__($result->standard->title)),
+                                            rec: @js($result->ai_recommendation ?? ''),
+                                            plan: @js($aiPlanText),
+                                            insight: @js($result->control_insight ?? ''),
+                                            priority: @js($result->calculated_risk_priority ?? ''),
+                                            validation: @js($result->evidence_validation ?? ''),
+                                            impact: @js($result->impact_interpretation ?? '')
+                                        })"
+                                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 rounded-xl text-[10px] font-black uppercase tracking-wider border border-blue-200 transition-all shadow-2xs active:scale-95 cursor-pointer">
+                                        <i class="fa-solid fa-robot text-[10px]"></i>
+                                        <span>{{ __('Detail AI') }}</span>
+                                    </button>
+                                @endif
+                                <button @click="openManageModal({
+                                        id: {{ $result->id }},
+                                        code: @js($result->standard->code),
+                                        title: @js(__($result->standard->title)),
+                                        complianceStatus: @js($complianceStatus),
+                                        riskLevel: @js($riskLevelLabel),
+                                        maturity: @js($result->maturity_rating),
+                                        gap: @js(5 - ($result->maturity_rating ?? 0)),
+                                        justification: @js($result->soa_justification ?? ''),
+                                        auditEvidence: @js($result->evidence ?? ''),
+                                        auditNotes: @js($result->notes ?? ''),
+                                        aiPlan: @js($aiPlanText),
+                                        aiInsight: @js($aiInsightText),
+                                        rec: @js($result->ai_recommendation ?? ''),
+                                        impact: @js($result->impact_interpretation ?? ''),
+                                        pic: @js($result->treatment_pic ?? ''),
+                                        dueDate: @js($dueDate),
+                                        status: @js($status),
+                                        notes: @js($result->notes ?? ''),
+                                        files: @js($mappedFiles)
+                                    })"
+                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer">
+                                    <i class="fa-solid fa-file-pen text-[10px]"></i>
+                                    <span>{{ __('Remediate') }}</span>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     @empty
@@ -680,7 +701,7 @@
 
     {{-- AI Detail Modal (shared, lives in root Alpine scope) --}}
     <div x-show="showAiModal"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6"
         x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="opacity-0 scale-95"
         x-transition:enter-end="opacity-100 scale-100"
@@ -689,145 +710,152 @@
         x-transition:leave-end="opacity-0 scale-95"
         x-cloak>
         <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-md" @click="showAiModal = false"></div>
-        <div class="relative bg-white rounded-lg border border-slate-100 w-full max-w-4xl p-6 md:p-8 shadow-2xl space-y-6 z-10 max-h-[90vh] overflow-y-auto"
+        <div class="relative bg-white rounded-3xl border border-slate-100 w-full max-w-3xl p-6 md:p-8 shadow-2xl space-y-6 z-10 max-h-[90vh] overflow-y-auto"
             @click.away="showAiModal = false">
-            <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
-                        <i class="fa-solid fa-robot text-lg"></i>
+            
+            {{-- Header --}}
+            <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-5">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-600/20 shrink-0">
+                        <i class="fa-solid fa-robot text-xl"></i>
                     </div>
                     <div>
-                        <div class="flex items-center gap-2">
-                            <span class="px-2.5 py-1 bg-indigo-50 border border-indigo-100 text-indigo-700 text-[9px] font-black rounded-lg uppercase tracking-wider leading-none" x-text="activeAiDetails.code"></span>
-                            <span class="text-[8px] text-indigo-500 font-bold uppercase tracking-widest leading-none">{{ __('AI Compliance Synthesis') }}</span>
+                        <div class="flex items-center gap-2.5">
+                            <span class="px-2.5 py-0.5 bg-blue-50 border border-blue-100/90 text-blue-700 text-[11px] font-extrabold rounded-lg uppercase tracking-wider leading-none" x-text="activeAiDetails.code"></span>
+                            <span class="text-[10px] text-blue-500 font-extrabold uppercase tracking-widest leading-none">{{ __('AI COMPLIANCE SYNTHESIS') }}</span>
                         </div>
-                        <h3 class="text-sm font-black text-slate-900 tracking-tight mt-1 leading-snug" x-text="activeAiDetails.title"></h3>
+                        <h3 class="text-xl font-bold text-slate-900 tracking-tight leading-snug mt-1" x-text="activeAiDetails.title"></h3>
                     </div>
                 </div>
-                <button @click="showAiModal = false" class="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-all flex items-center justify-center">
-                    <i class="fa-solid fa-xmark text-sm"></i>
+                <button @click="showAiModal = false" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-all flex items-center justify-center shrink-0 cursor-pointer">
+                    <i class="fa-solid fa-xmark text-base"></i>
                 </button>
             </div>
-            {{-- AI Analysis Accordion --}}
-            <div class="space-y-2" x-data="{ openSection: 'rec' }">
+
+            {{-- AI Analysis Accordion List --}}
+            <div class="space-y-3.5" x-data="{ openSection: 'rec' }">
 
                 {{-- Section 1: Strategic Recommendation --}}
-                <div class="rounded-xl border border-slate-100 overflow-hidden">
+                <div class="rounded-2xl border transition-all overflow-hidden"
+                     :class="openSection === 'rec' ? 'border-blue-200/90 bg-blue-50/40 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
                     <button type="button"
                         @click="openSection = openSection === 'rec' ? null : 'rec'"
-                        class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
-                        :class="openSection === 'rec' ? 'bg-indigo-50 border-b border-indigo-100' : 'bg-white'">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors"
-                                 :class="openSection === 'rec' ? 'bg-indigo-600' : 'bg-slate-100'">
-                                <i class="fa-solid fa-lightbulb text-[9px]"
-                                   :class="openSection === 'rec' ? 'text-white' : 'text-slate-400'"></i>
+                        class="w-full flex items-center justify-between gap-3 p-4 text-left cursor-pointer transition-colors"
+                        :class="openSection === 'rec' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                 :class="openSection === 'rec' ? 'bg-blue-600 text-white shadow-xs shadow-blue-600/20' : 'bg-slate-100 text-slate-400'">
+                                <i class="fa-solid fa-lightbulb text-xs"></i>
                             </div>
-                            <span class="text-[10px] font-black uppercase tracking-widest"
-                                  :class="openSection === 'rec' ? 'text-indigo-700' : 'text-slate-600'">
-                                {{ __('Strategic Recommendation') }}
+                            <span class="text-xs font-black uppercase tracking-widest"
+                                  :class="openSection === 'rec' ? 'text-blue-700' : 'text-slate-600'">
+                                {{ __('STRATEGIC RECOMMENDATION') }}
                             </span>
                         </div>
-                        <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200"
-                           :class="openSection === 'rec' ? 'rotate-180 text-indigo-400' : ''"></i>
+                        <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
+                           :class="openSection === 'rec' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
                     </button>
                     <div x-show="openSection === 'rec'" x-collapse.duration.250ms>
-                        <div class="px-4 py-3 bg-white">
-                            <p class="text-xs text-slate-700 font-medium leading-relaxed" x-html="formatMarkdown(activeAiDetails.rec)"></p>
+                        <div class="p-5 text-xs font-medium text-slate-600 leading-relaxed bg-blue-50/40 border-t border-blue-100/60 rounded-b-2xl">
+                            <p class="whitespace-pre-line" x-html="formatMarkdown(activeAiDetails.rec)"></p>
                         </div>
                     </div>
                 </div>
 
                 {{-- Section 2: Corrective Action Plan --}}
-                <div class="rounded-xl border border-slate-100 overflow-hidden">
+                <div class="rounded-2xl border transition-all overflow-hidden"
+                     :class="openSection === 'cap' ? 'border-blue-200/90 bg-blue-50/40 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
                     <button type="button"
                         @click="openSection = openSection === 'cap' ? null : 'cap'"
-                        class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
-                        :class="openSection === 'cap' ? 'bg-emerald-50 border-b border-emerald-100' : 'bg-white'">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors"
-                                 :class="openSection === 'cap' ? 'bg-emerald-600' : 'bg-slate-100'">
-                                <i class="fa-solid fa-list-check text-[9px]"
-                                   :class="openSection === 'cap' ? 'text-white' : 'text-slate-400'"></i>
+                        class="w-full flex items-center justify-between gap-3 p-4 text-left cursor-pointer transition-colors"
+                        :class="openSection === 'cap' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                 :class="openSection === 'cap' ? 'bg-blue-600 text-white shadow-xs shadow-blue-600/20' : 'bg-slate-100 text-slate-400'">
+                                <i class="fa-solid fa-list-check text-xs"></i>
                             </div>
-                            <span class="text-[10px] font-black uppercase tracking-widest"
-                                  :class="openSection === 'cap' ? 'text-emerald-700' : 'text-slate-600'">
-                                {{ __('Corrective Action Plan') }}
+                            <span class="text-xs font-black uppercase tracking-widest"
+                                  :class="openSection === 'cap' ? 'text-blue-700' : 'text-slate-600'">
+                                {{ __('CORRECTIVE ACTION PLAN') }}
                             </span>
                         </div>
-                        <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200"
-                           :class="openSection === 'cap' ? 'rotate-180 text-emerald-400' : ''"></i>
+                        <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
+                           :class="openSection === 'cap' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
                     </button>
                     <div x-show="openSection === 'cap'" x-collapse.duration.250ms>
-                        <div class="px-4 py-3 bg-white">
-                            <p class="text-xs text-slate-700 font-medium leading-relaxed whitespace-pre-line"
-                               x-html="formatMarkdown(activeAiDetails.plan) || '{{ __('No specific action plan drafted.') }}'"></p>
+                        <div class="p-5 text-xs font-medium text-slate-600 leading-relaxed bg-blue-50/40 border-t border-blue-100/60 rounded-b-2xl">
+                            <p class="whitespace-pre-line" x-html="formatMarkdown(activeAiDetails.plan) || '{{ __('No specific action plan drafted.') }}'"></p>
                         </div>
                     </div>
                 </div>
 
-                {{-- Section 3: AI Audit Insight --}}
-                <div class="rounded-xl border border-slate-100 overflow-hidden">
+                {{-- Section 3: AI Audit Insight (Gap) --}}
+                <div class="rounded-2xl border transition-all overflow-hidden"
+                     :class="openSection === 'gap' ? 'border-blue-200/90 bg-blue-50/40 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
                     <button type="button"
                         @click="openSection = openSection === 'gap' ? null : 'gap'"
-                        class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
-                        :class="openSection === 'gap' ? 'bg-violet-50 border-b border-violet-100' : 'bg-white'">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors"
-                                 :class="openSection === 'gap' ? 'bg-violet-600' : 'bg-slate-100'">
-                                <i class="fa-solid fa-magnifying-glass-chart text-[9px]"
-                                   :class="openSection === 'gap' ? 'text-white' : 'text-slate-400'"></i>
+                        class="w-full flex items-center justify-between gap-3 p-4 text-left cursor-pointer transition-colors"
+                        :class="openSection === 'gap' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                 :class="openSection === 'gap' ? 'bg-blue-600 text-white shadow-xs shadow-blue-600/20' : 'bg-slate-100 text-slate-400'">
+                                <i class="fa-solid fa-magnifying-glass text-xs"></i>
                             </div>
-                            <span class="text-[10px] font-black uppercase tracking-widest"
-                                  :class="openSection === 'gap' ? 'text-violet-700' : 'text-slate-600'">
-                                {{ __('AI Audit Insight (Gap)') }}
+                            <span class="text-xs font-black uppercase tracking-widest"
+                                  :class="openSection === 'gap' ? 'text-blue-700' : 'text-slate-600'">
+                                {{ __('AI AUDIT INSIGHT (GAP)') }}
                             </span>
                         </div>
-                        <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200"
-                           :class="openSection === 'gap' ? 'rotate-180 text-violet-400' : ''"></i>
+                        <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
+                           :class="openSection === 'gap' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
                     </button>
                     <div x-show="openSection === 'gap'" x-collapse.duration.250ms>
-                        <div class="px-4 py-3 bg-white">
-                            <p class="text-xs text-slate-700 font-medium leading-relaxed"
-                               x-html="formatMarkdown(activeAiDetails.insight) || '{{ __('Control shows solid operational alignment.') }}'"></p>
+                        <div class="p-5 text-xs font-medium text-slate-600 leading-relaxed bg-blue-50/40 border-t border-blue-100/60 rounded-b-2xl">
+                            <p class="whitespace-pre-line" x-html="formatMarkdown(activeAiDetails.insight) || '{{ __('Control shows solid operational alignment.') }}'"></p>
                         </div>
                     </div>
                 </div>
 
                 {{-- Section 4: Impact Interpretation --}}
-                <div class="rounded-xl border border-slate-100 overflow-hidden" x-cloak>
+                <div class="rounded-2xl border transition-all overflow-hidden"
+                     :class="openSection === 'impact' ? 'border-blue-200/90 bg-blue-50/40 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
                     <button type="button"
                         @click="openSection = openSection === 'impact' ? null : 'impact'"
-                        class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
-                        :class="openSection === 'impact' ? 'bg-rose-50 border-b border-rose-100' : 'bg-white'">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors"
-                                 :class="openSection === 'impact' ? 'bg-rose-600' : 'bg-slate-100'">
-                                <i class="fa-solid fa-triangle-exclamation text-[9px]"
-                                   :class="openSection === 'impact' ? 'text-white' : 'text-slate-400'"></i>
+                        class="w-full flex items-center justify-between gap-3 p-4 text-left cursor-pointer transition-colors"
+                        :class="openSection === 'impact' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                 :class="openSection === 'impact' ? 'bg-blue-600 text-white shadow-xs shadow-blue-600/20' : 'bg-slate-100 text-slate-400'">
+                                <i class="fa-solid fa-triangle-exclamation text-xs"></i>
                             </div>
-                            <span class="text-[10px] font-black uppercase tracking-widest"
-                                  :class="openSection === 'impact' ? 'text-rose-700' : 'text-slate-600'">
-                                {{ __('Impact Interpretation') }}
+                            <span class="text-xs font-black uppercase tracking-widest"
+                                  :class="openSection === 'impact' ? 'text-blue-700' : 'text-slate-600'">
+                                {{ __('IMPACT INTERPRETATION') }}
                             </span>
                         </div>
-                        <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200"
-                           :class="openSection === 'impact' ? 'rotate-180 text-rose-400' : ''"></i>
+                        <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
+                           :class="openSection === 'impact' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
                     </button>
                     <div x-show="openSection === 'impact'" x-collapse.duration.250ms>
-                        <div class="px-4 py-3 bg-rose-50/30">
-                            <p class="text-xs text-slate-700 font-medium leading-relaxed" x-html="formatMarkdown(activeAiDetails.impact) || '{{ __('No impact interpretation available. Please click Regenerate AI to update this analysis.') }}'"></p>
+                        <div class="p-5 text-xs font-medium text-slate-600 leading-relaxed bg-blue-50/40 border-t border-blue-100/60 rounded-b-2xl">
+                            <p class="whitespace-pre-line" x-html="formatMarkdown(activeAiDetails.impact) || '{{ __('No impact interpretation available.') }}'"></p>
                         </div>
                     </div>
                 </div>
 
             </div>
             {{-- Footer Badges --}}
-            <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div class="flex items-center gap-2" x-show="activeAiDetails.priority">
-                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">{{ __('Risk Tier:') }}</span>
-                    <span class="px-2.5 py-1 bg-rose-50 text-rose-600 border border-rose-100 text-[8px] font-black rounded-lg uppercase tracking-wider leading-none" x-text="activeAiDetails.priority"></span>
+            <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3" x-show="activeAiDetails.priority">
+                <div class="flex items-center gap-2">
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ __('Risk Tier:') }}</span>
+                    <span class="px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-100 text-[9px] font-black rounded-lg uppercase tracking-wider leading-none" x-text="activeAiDetails.priority"></span>
                 </div>
+                <button type="button" @click="showAiModal = false" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer">
+                    {{ __('Close') }}
+                </button>
+            </div>
+        </div>
+    </div>
             </div>
         </div>
     </div>
@@ -849,13 +877,13 @@
             {{-- Modal Header --}}
             <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-indigo-50 text-indigo-700 rounded-lg flex items-center justify-center shadow-md">
+                    <div class="w-10 h-10 bg-blue-50 text-blue-700 rounded-lg flex items-center justify-center shadow-md">
                         <i class="fa-solid fa-file-shield text-lg"></i>
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <span class="px-2.5 py-1 bg-indigo-50 border border-indigo-100 text-indigo-700 text-[9px] font-black rounded-lg uppercase tracking-wider leading-none" x-text="activeEvidenceDetails.code"></span>
-                            <span class="text-[8px] text-indigo-500 font-bold uppercase tracking-widest leading-none">{{ __('Assessor Notes & Evidence') }}</span>
+                            <span class="px-2.5 py-1 bg-blue-50 border border-blue-100 text-blue-700 text-[9px] font-black rounded-lg uppercase tracking-wider leading-none" x-text="activeEvidenceDetails.code"></span>
+                            <span class="text-[8px] text-blue-500 font-bold uppercase tracking-widest leading-none">{{ __('Assessor Notes & Evidence') }}</span>
                         </div>
                         <h3 class="text-sm font-black text-slate-900 tracking-tight mt-1 leading-snug" x-text="activeEvidenceDetails.title"></h3>
                     </div>
@@ -883,12 +911,12 @@
                         <template x-for="(file, index) in activeEvidenceDetails.files" :key="index">
                             <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200/60 rounded-xl hover:bg-slate-100/50 transition-all">
                                 <div class="flex items-center gap-2.5 min-w-0">
-                                    <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                    <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                                         <i class="fa-solid fa-file-lines text-sm"></i>
                                     </div>
-                                    <a :href="file.url" target="_blank" class="text-xs font-bold text-slate-700 truncate max-w-md hover:text-indigo-600 hover:underline" x-text="file.name"></a>
+                                    <a :href="file.url" target="_blank" class="text-xs font-bold text-slate-700 truncate max-w-md hover:text-blue-600 hover:underline" x-text="file.name"></a>
                                 </div>
-                                <a :href="file.url" target="_blank" class="px-3.5 py-1.5 bg-indigo-550 hover:bg-indigo-600 text-white rounded-lg text-[9px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1.5 hover:scale-102 transition-all">
+                                <a :href="file.url" target="_blank" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-600 text-white rounded-lg text-[9px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1.5 hover:scale-102 transition-all">
                                     {{ __('View File') }}
                                     <i class="fa-solid fa-up-right-from-square text-[9px]"></i>
                                 </a>
@@ -976,7 +1004,7 @@
                 <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-                            <i class="fa-solid fa-clipboard-check text-indigo-500"></i>{{ __('Initial Audit Context (Read-Only)') }}
+                            <i class="fa-solid fa-clipboard-check text-blue-500"></i>{{ __('Initial Audit Context (Read-Only)') }}
                         </span>
                         <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{{ __('Original Evaluation Data') }}</span>
                     </div>
@@ -1023,21 +1051,148 @@
                         </div>
                     </template>
 
-                    {{-- AI Plan / Recommendations --}}
-                    <template x-if="activeManageDetails.aiPlan || activeManageDetails.aiInsight">
-                        <div class="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3 space-y-2">
-                            <div class="flex items-center gap-2">
-                                <div class="w-5 h-5 bg-indigo-600 rounded-md flex items-center justify-center text-white text-[9px]">
-                                    <i class="fa-solid fa-robot"></i>
+                    {{-- AI Control Compliance Synthesis (Dropdown Accordion) --}}
+                    <template x-if="activeManageDetails.rec || activeManageDetails.aiInsight || activeManageDetails.aiPlan || activeManageDetails.impact">
+                        <div class="p-4 bg-gradient-to-br from-blue-50/70 via-slate-50 to-indigo-50/30 border border-blue-200/90 rounded-2xl shadow-xs space-y-3"
+                             x-data="{ activeAccordion: 'rec' }">
+                            
+                            {{-- Header --}}
+                            <div class="flex items-center justify-between border-b border-blue-100/90 pb-3 flex-wrap gap-2">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs shadow-xs">
+                                        <i class="fa-solid fa-robot"></i>
+                                    </span>
+                                    <div>
+                                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-tight">{{ __('AI Compliance Synthesis') }}</h4>
+                                        <p class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">{{ __('Expert Decision Support & Mitigations') }}</p>
+                                    </div>
                                 </div>
-                                <span class="text-[9px] font-black text-indigo-700 uppercase tracking-wider">{{ __('AI Corrective Action Recommendation') }}</span>
+                                <button type="button"
+                                    @click="openAiDetails({
+                                        code: activeManageDetails.code,
+                                        title: activeManageDetails.title,
+                                        rec: activeManageDetails.rec || activeManageDetails.aiInsight,
+                                        plan: activeManageDetails.aiPlan,
+                                        insight: activeManageDetails.aiInsight,
+                                        priority: activeManageDetails.riskLevel,
+                                        validation: '',
+                                        impact: activeManageDetails.impact
+                                    })"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 text-white font-bold text-[10px] hover:bg-blue-700 transition-all shadow-sm shadow-blue-600/20 active:scale-95 cursor-pointer">
+                                    <i class="fa-solid fa-expand text-[9px]"></i> {{ __('Open Full Modal') }}
+                                </button>
                             </div>
-                            <template x-if="activeManageDetails.aiInsight">
-                                <p class="text-xs font-medium text-indigo-900 leading-relaxed" x-text="activeManageDetails.aiInsight"></p>
-                            </template>
-                            <template x-if="activeManageDetails.aiPlan">
-                                <p class="text-xs font-mono text-indigo-950 leading-relaxed whitespace-pre-line" x-text="activeManageDetails.aiPlan"></p>
-                            </template>
+
+                            {{-- Dropdown Accordion List per Control --}}
+                            <div class="space-y-2.5">
+                                {{-- Accordion 1: STRATEGIC RECOMMENDATION --}}
+                                <template x-if="activeManageDetails.rec || activeManageDetails.aiInsight">
+                                    <div class="rounded-xl border transition-all overflow-hidden"
+                                         :class="activeAccordion === 'rec' ? 'border-blue-200 bg-blue-50/50 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
+                                        <button type="button"
+                                            @click="activeAccordion = activeAccordion === 'rec' ? null : 'rec'"
+                                            class="w-full flex items-center justify-between gap-3 p-3.5 text-left cursor-pointer transition-colors"
+                                            :class="activeAccordion === 'rec' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                                     :class="activeAccordion === 'rec' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-400'">
+                                                    <i class="fa-solid fa-lightbulb text-[10px]"></i>
+                                                </div>
+                                                <span class="text-[11px] font-black uppercase tracking-widest"
+                                                      :class="activeAccordion === 'rec' ? 'text-blue-700' : 'text-slate-700'">
+                                                    {{ __('STRATEGIC RECOMMENDATION') }}
+                                                </span>
+                                            </div>
+                                            <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"
+                                               :class="activeAccordion === 'rec' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
+                                        </button>
+                                        <div x-show="activeAccordion === 'rec'" x-collapse.duration.200ms>
+                                            <div class="p-4 text-xs font-medium text-slate-700 leading-relaxed bg-blue-50/30 border-t border-blue-100/60 rounded-b-xl whitespace-pre-wrap" x-text="activeManageDetails.rec || activeManageDetails.aiInsight"></div>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                {{-- Accordion 2: CORRECTIVE ACTION PLAN --}}
+                                <template x-if="activeManageDetails.aiPlan">
+                                    <div class="rounded-xl border transition-all overflow-hidden"
+                                         :class="activeAccordion === 'cap' ? 'border-blue-200 bg-blue-50/50 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
+                                        <button type="button"
+                                            @click="activeAccordion = activeAccordion === 'cap' ? null : 'cap'"
+                                            class="w-full flex items-center justify-between gap-3 p-3.5 text-left cursor-pointer transition-colors"
+                                            :class="activeAccordion === 'cap' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                                     :class="activeAccordion === 'cap' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-400'">
+                                                    <i class="fa-solid fa-list-check text-[10px]"></i>
+                                                </div>
+                                                <span class="text-[11px] font-black uppercase tracking-widest"
+                                                      :class="activeAccordion === 'cap' ? 'text-blue-700' : 'text-slate-700'">
+                                                    {{ __('CORRECTIVE ACTION PLAN') }}
+                                                </span>
+                                            </div>
+                                            <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"
+                                               :class="activeAccordion === 'cap' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
+                                        </button>
+                                        <div x-show="activeAccordion === 'cap'" x-collapse.duration.200ms>
+                                            <div class="p-4 text-xs font-medium text-slate-700 leading-relaxed bg-blue-50/30 border-t border-blue-100/60 rounded-b-xl whitespace-pre-wrap" x-text="activeManageDetails.aiPlan"></div>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                {{-- Accordion 3: AI AUDIT INSIGHT (GAP) --}}
+                                <template x-if="activeManageDetails.aiInsight">
+                                    <div class="rounded-xl border transition-all overflow-hidden"
+                                         :class="activeAccordion === 'gap' ? 'border-blue-200 bg-blue-50/50 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
+                                        <button type="button"
+                                            @click="activeAccordion = activeAccordion === 'gap' ? null : 'gap'"
+                                            class="w-full flex items-center justify-between gap-3 p-3.5 text-left cursor-pointer transition-colors"
+                                            :class="activeAccordion === 'gap' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                                     :class="activeAccordion === 'gap' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-400'">
+                                                    <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
+                                                </div>
+                                                <span class="text-[11px] font-black uppercase tracking-widest"
+                                                      :class="activeAccordion === 'gap' ? 'text-blue-700' : 'text-slate-700'">
+                                                    {{ __('AI AUDIT INSIGHT (GAP)') }}
+                                                </span>
+                                            </div>
+                                            <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"
+                                               :class="activeAccordion === 'gap' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
+                                        </button>
+                                        <div x-show="activeAccordion === 'gap'" x-collapse.duration.200ms>
+                                            <div class="p-4 text-xs font-medium text-slate-700 leading-relaxed bg-blue-50/30 border-t border-blue-100/60 rounded-b-xl whitespace-pre-wrap" x-text="activeManageDetails.aiInsight"></div>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                {{-- Accordion 4: IMPACT INTERPRETATION --}}
+                                <template x-if="activeManageDetails.impact">
+                                    <div class="rounded-xl border transition-all overflow-hidden"
+                                         :class="activeAccordion === 'impact' ? 'border-blue-200 bg-blue-50/50 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
+                                        <button type="button"
+                                            @click="activeAccordion = activeAccordion === 'impact' ? null : 'impact'"
+                                            class="w-full flex items-center justify-between gap-3 p-3.5 text-left cursor-pointer transition-colors"
+                                            :class="activeAccordion === 'impact' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                                     :class="activeAccordion === 'impact' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-400'">
+                                                    <i class="fa-solid fa-triangle-exclamation text-[10px]"></i>
+                                                </div>
+                                                <span class="text-[11px] font-black uppercase tracking-widest"
+                                                      :class="activeAccordion === 'impact' ? 'text-blue-700' : 'text-slate-700'">
+                                                    {{ __('IMPACT INTERPRETATION') }}
+                                                </span>
+                                            </div>
+                                            <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"
+                                               :class="activeAccordion === 'impact' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
+                                        </button>
+                                        <div x-show="activeAccordion === 'impact'" x-collapse.duration.200ms>
+                                            <div class="p-4 text-xs font-medium text-slate-700 leading-relaxed bg-blue-50/30 border-t border-blue-100/60 rounded-b-xl whitespace-pre-wrap" x-text="activeManageDetails.impact"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                     </template>
                 </div>

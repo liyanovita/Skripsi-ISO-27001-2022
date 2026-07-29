@@ -11,7 +11,7 @@
 <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 <style>
     .form-input { transition: border-color 0.15s, box-shadow 0.15s; }
-    .form-input:focus { box-shadow: 0 0 0 3px rgba(99,102,241,0.12); border-color: #818cf8; outline: none; background: #fff; }
+    .form-input:focus { box-shadow: 0 0 0 3px rgba(37,99,235,0.12); border-color: #60a5fa; outline: none; background: #fff; }
     .section-card { background: #fff; border-radius: 1.25rem; border: 1px solid #f1f5f9; box-shadow: 0 1px 4px 0 rgba(30,58,138,0.04); }
     .ql-toolbar.ql-snow {
         background: #f8fafc;
@@ -34,7 +34,7 @@
 
     {{-- Back Link --}}
     <a href="{{ route('admin.knowledge.index') }}"
-        class="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-indigo-600 transition-colors mb-5 font-medium group">
+        class="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-blue-600 transition-colors mb-5 font-medium group">
         <i class="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> Back to Knowledge Base
     </a>
 
@@ -61,7 +61,7 @@
         {{-- Basic Information --}}
         <div class="section-card p-6 space-y-5">
             <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <i class="fa-solid fa-file-signature text-indigo-500"></i> Document Metadata
+                <i class="fa-solid fa-file-signature text-blue-500"></i> Document Metadata
             </h3>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -101,7 +101,7 @@
         {{-- File Attachment Card --}}
         <div class="section-card p-6 space-y-4">
             <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <i class="fa-solid fa-paperclip text-indigo-500"></i> File Attachment
+                <i class="fa-solid fa-paperclip text-blue-500"></i> File Attachment
             </h3>
 
             @if($knowledgeBase->attachment_path)
@@ -121,13 +121,13 @@
                 </div>
             @endif
 
-            <label for="file-upload" class="flex justify-center px-6 pt-5 pb-6 border-2 border-slate-200 border-dashed rounded-2xl bg-slate-50/60 hover:bg-indigo-50/30 hover:border-indigo-300 transition-all cursor-pointer group">
+            <label for="file-upload" class="flex justify-center px-6 pt-5 pb-6 border-2 border-slate-200 border-dashed rounded-2xl bg-slate-50/60 hover:bg-blue-50/30 hover:border-blue-300 transition-all cursor-pointer group">
                 <div class="space-y-2 text-center">
-                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
                         <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
                     </div>
                     <div class="text-xs text-slate-600">
-                        <span class="font-bold text-indigo-600">{{ $knowledgeBase->attachment_path ? 'Replace existing file' : 'Click to upload a file' }}</span> or drag and drop
+                        <span class="font-bold text-blue-600">{{ $knowledgeBase->attachment_path ? 'Replace existing file' : 'Click to upload a file' }}</span> or drag and drop
                         <input id="file-upload" name="attachment" type="file" class="sr-only" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png,.csv,.txt,.md">
                     </div>
                     <p class="text-[10px] text-slate-400 font-medium">Supports PDF, DOCX, XLSX, JPG, PNG, CSV, MD up to 10MB</p>
@@ -144,9 +144,9 @@
         <div class="section-card p-6 space-y-4">
             <div class="flex items-center justify-between">
                 <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                    <i class="fa-solid fa-pen-nib text-indigo-500"></i> Article Content & Policy Text
+                    <i class="fa-solid fa-pen-nib text-blue-500"></i> Article Content & Policy Text
                 </h3>
-                <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">Rich Text & PDF Compiled</span>
+                <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100">Rich Text & PDF Compiled</span>
             </div>
 
             <textarea name="content" id="content-input" class="hidden">{!! old('content', $knowledgeBase->content) !!}</textarea>
@@ -161,7 +161,7 @@
         <div class="section-card p-6 space-y-3">
             <div class="flex items-center justify-between">
                 <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                    <i class="fa-solid fa-eye text-indigo-500"></i> Live Content Preview
+                    <i class="fa-solid fa-eye text-blue-500"></i> Live Content Preview
                 </h3>
                 <span class="text-[10px] font-bold text-slate-400">Real-time Rendering</span>
             </div>

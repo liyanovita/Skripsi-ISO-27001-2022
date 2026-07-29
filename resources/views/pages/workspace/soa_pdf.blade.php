@@ -45,7 +45,7 @@
                     </td>
                     <td style="border: none; padding: 0 0 0 10px; vertical-align: middle; text-align: left;">
                         <div style="font-size: 18px; font-weight: bold; line-height: 1.1;">
-                            <span style="color: #0B2545;">Audit</span><span style="color: #008B9B;">Guard</span>
+                            <span style="color: #0B2545;">Audit</span><span style="color: #0284c7;">Guard</span>
                         </div>
                         <div style="font-size: 7px; font-weight: 900; color: #64748b; letter-spacing: 2px; margin-top: 2px; text-transform: uppercase;">
                             ASSESS &bull; ANALYZE &bull; ASSURE

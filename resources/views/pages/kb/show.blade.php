@@ -7,13 +7,13 @@
     {{-- Top Action Navigation Toolbar (Compact and Sleek) --}}
     <div class="flex items-center justify-between">
         <a href="{{ route('knowledge-base.index') }}" 
-           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-600 border border-slate-200/80 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95">
+           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-600 hover:text-blue-600 border border-slate-200/80 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95">
             <i class="fa-solid fa-arrow-left text-[9px]"></i> {{ __('Back') }}
         </a>
         <div class="flex items-center gap-2">
             @if(auth()->user()->isAdmin() && !$resource->is_system)
                 <a href="{{ route('knowledge-base.edit', $resource->id) }}" 
-                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200/80 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm">
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200/80 text-slate-600 hover:text-blue-600 hover:bg-blue-50/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm">
                     <i class="fa-solid fa-pen-to-square"></i> {{ __('Edit Article') }}
                 </a>
                 <form id="delete-form-{{ $resource->id }}" action="{{ route('knowledge-base.destroy', $resource->id) }}" method="POST" class="inline"
@@ -57,11 +57,11 @@
         {{-- Hero Header Area (More Compact Padding) --}}
         <div class="p-6 md:p-8 pb-4 border-b border-slate-100 bg-slate-50/50 relative overflow-hidden">
             {{-- Decorative Gradient Corner Accent --}}
-            <div class="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-indigo-500/5 to-transparent rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-blue-500/5 to-transparent rounded-full blur-2xl pointer-events-none"></div>
 
             @php
                 $categoryColors = match($resource->category) {
-                    'guides' => 'bg-indigo-50/80 text-indigo-700 border-indigo-100',
+                    'guides' => 'bg-blue-50/80 text-blue-700 border-blue-100',
                     'templates' => 'bg-emerald-50/80 text-emerald-700 border-emerald-100',
                     'sop' => 'bg-amber-50/80 text-amber-700 border-amber-100',
                     default => 'bg-rose-50/80 text-rose-700 border-rose-100',
@@ -128,14 +128,14 @@
         {{-- Premium Article Content Area (More Compact Padding) --}}
         <div class="px-6 md:px-8 py-6 bg-white">
             @if(trim(strip_tags($contentHtml)) !== '')
-                <div class="prose prose-slate prose-indigo max-w-none text-slate-700 leading-relaxed
+                <div class="prose prose-slate prose-blue max-w-none text-slate-700 leading-relaxed
                             prose-headings:font-black prose-headings:text-slate-900 prose-headings:tracking-tight
                             prose-h2:text-xl prose-h2:border-b prose-h2:border-slate-100 prose-h2:pb-2 prose-h2:mt-6 prose-h2:mb-4
                             prose-h3:text-base prose-h3:mt-4 prose-h3:mb-2
                             prose-p:text-slate-600 prose-p:leading-relaxed prose-p:mb-4
                             prose-li:text-slate-600 prose-li:my-0.5
                             prose-strong:text-slate-950 prose-strong:font-extrabold
-                            prose-blockquote:border-l-4 prose-blockquote:border-indigo-500 prose-blockquote:bg-slate-50 prose-blockquote:px-4 prose-blockquote:py-2 prose-blockquote:rounded-r-xl prose-blockquote:text-slate-600 prose-blockquote:not-italic">
+                            prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:bg-slate-50 prose-blockquote:px-4 prose-blockquote:py-2 prose-blockquote:rounded-r-xl prose-blockquote:text-slate-600 prose-blockquote:not-italic">
                     {!! $contentHtml !!}
                 </div>
 
@@ -143,7 +143,7 @@
                     <div class="mt-8 pt-8 border-t border-slate-100 space-y-4">
                         <div class="flex items-center justify-between">
                             <h3 class="text-slate-900 font-bold text-sm tracking-tight flex items-center gap-2">
-                                <i class="fa-solid fa-paperclip text-indigo-600"></i>
+                                <i class="fa-solid fa-paperclip text-blue-600"></i>
                                 {{ app()->getLocale() == 'id' ? 'Lampiran Dokumen' : 'Document Attachment' }}
                             </h3>
                             <a href="{{ route('knowledge-base.attachment', $resource->id) }}?download=1" data-turbo="false"
@@ -167,7 +167,7 @@
                     <div class="space-y-4">
                         <div class="flex items-center justify-between">
                             <h3 class="text-slate-900 font-bold text-sm tracking-tight flex items-center gap-2">
-                                <i class="fa-solid fa-file-pdf text-indigo-600"></i>
+                                <i class="fa-solid fa-file-pdf text-blue-600"></i>
                                 {{ $resource->attachment_name }}
                             </h3>
                             <a href="{{ route('knowledge-base.attachment', $resource->id) }}?download=1" data-turbo="false"
@@ -187,7 +187,7 @@
                     </div>
                 @elseif(filled($resource->attachment_path))
                     <div class="py-8 text-center bg-slate-50 rounded-2xl border border-slate-100 p-6 max-w-2xl mx-auto">
-                        <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-indigo-100/50">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-blue-100/50">
                             <i class="fa-solid fa-file-arrow-down text-lg"></i>
                         </div>
                         <h3 class="text-slate-950 font-bold text-sm tracking-tight">
@@ -208,7 +208,7 @@
                     </div>
                 @else
                     <div class="py-8 text-center bg-slate-50 rounded-2xl border border-slate-100 p-6 max-w-2xl mx-auto">
-                        <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-indigo-100/50">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-blue-100/50">
                             <i class="fa-solid fa-paperclip text-lg"></i>
                         </div>
                         <h3 class="text-slate-950 font-bold text-sm tracking-tight">
@@ -229,7 +229,7 @@
             <div class="px-6 md:px-8 py-6 bg-slate-50 border-t border-slate-100">
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-indigo-500 text-white rounded-xl flex items-center justify-center text-lg shadow-lg shadow-indigo-500/20 shrink-0">
+                        <div class="w-10 h-10 bg-blue-500 text-white rounded-xl flex items-center justify-center text-lg shadow-lg shadow-blue-500/20 shrink-0">
                             <i class="{{ $iconClass }}"></i>
                         </div>
                         <div>
@@ -249,7 +249,7 @@
                             </a>
                         @endif
                         <a href="{{ route('knowledge-base.download', $resource->id) }}" data-turbo="false"
-                           class="px-4 py-2 bg-slate-900 text-white hover:bg-indigo-600 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-1.5">
+                           class="px-4 py-2 bg-slate-900 text-white hover:bg-blue-600 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-cloud-arrow-down"></i>
                             {{ __('Download PDF') }}
                         </a>

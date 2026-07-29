@@ -143,7 +143,7 @@
                                             </span>
                                         @endif
                                         @if($session->user_id !== auth()->id())
-                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-600 border border-indigo-200">
+                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-200">
                                                 <i class="fa-solid fa-user-plus text-[8px]"></i> {{ __('Invited') }}
                                             </span>
                                         @endif
@@ -252,7 +252,7 @@
                                             <i class="fa-solid fa-pen text-xs"></i>
                                         </button>
 
-                                        <button @click.prevent="cloneSessionId = '{{ $session->id }}'; showCloneModal = true" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-indigo-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Duplicate Cycle') }}">
+                                        <button @click.prevent="cloneSessionId = '{{ $session->id }}'; showCloneModal = true" class="w-9 h-9 flex items-center justify-center bg-white text-slate-400 hover:text-blue-600 border border-slate-200 rounded-lg transition-all" title="{{ __('Duplicate Cycle') }}">
                                             <i class="fa-solid fa-copy text-xs"></i>
                                         </button>
 
@@ -381,7 +381,7 @@
         
         <div x-show="showEditModal" x-transition.scale.95 class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-7 relative z-10 border border-slate-100">
             <div class="flex items-center gap-4 mb-6">
-                <div class="w-11 h-11 bg-emerald-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-emerald-600/20">
+                <div class="w-11 h-11 bg-emerald-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20">
                     <i class="fa-solid fa-pen text-lg"></i>
                 </div>
                 <div>
@@ -401,7 +401,7 @@
                 
                 <div class="flex gap-3 pt-1">
                     <button type="button" @click="showEditModal = false" class="flex-1 px-5 py-2.5 text-sm font-bold text-slate-500 bg-slate-100 rounded-xl hover:bg-slate-200 transition-all">{{ __('Cancel') }}</button>
-                    <button type="submit" class="flex-1 px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20">{{ __('Save Changes') }}</button>
+                    <button type="submit" class="flex-1 px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-blue-600/20">{{ __('Save Changes') }}</button>
                 </div>
             </form>
         </div>
@@ -456,7 +456,7 @@
             <form :action="'{{ url('sessions') }}/' + restoreSessionId + '/restore'" method="POST" class="mt-6 flex gap-3">
                 @csrf
                 <button type="button" @click="showRestoreModal = false" class="flex-1 px-5 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold uppercase tracking-wider hover:bg-slate-200 transition-all text-xs">{{ __('Cancel') }}</button>
-                <button type="submit" class="flex-1 px-5 py-3 rounded-xl bg-green-600 text-white font-bold uppercase tracking-wider hover:bg-green-700 transition-all text-xs shadow-md shadow-green-600/20">{{ __('Restore') }}</button>
+                <button type="submit" class="flex-1 px-5 py-3 rounded-xl bg-green-600 text-white font-bold uppercase tracking-wider hover:bg-green-700 transition-all text-xs shadow-md shadow-blue-600/20">{{ __('Restore') }}</button>
             </form>
         </div>
     </div>

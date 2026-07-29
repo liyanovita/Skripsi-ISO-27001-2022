@@ -34,7 +34,7 @@
 
     {{-- Page Title --}}
     <div class="flex items-center gap-3 mb-6">
-        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-600/20">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-600/20">
             <i class="fa-solid fa-building"></i>
         </div>
         <div>
@@ -138,7 +138,7 @@
         {{-- ISMS Context --}}
         <div class="section-card p-6 space-y-5">
             <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <i class="fa-solid fa-shield-halved text-indigo-400"></i> ISMS Context <span class="text-[9px] font-medium text-slate-300 normal-case tracking-normal">ISO 27001:2022</span>
+                <i class="fa-solid fa-shield-halved text-blue-400"></i> ISMS Context <span class="text-[9px] font-medium text-slate-300 normal-case tracking-normal">ISO 27001:2022</span>
             </h3>
 
             <div class="field-group">

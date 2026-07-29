@@ -10,7 +10,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
-                <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs shrink-0">
+                <span class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs shrink-0">
                     <i class="fa-solid fa-book-open"></i>
                 </span>
                 Knowledge Base
@@ -18,7 +18,7 @@
             <p class="text-sm text-slate-500 mt-0.5 ml-9">Manage guidance articles, ISO 27001:2022 policy templates, SOPs, and compliance evidence.</p>
         </div>
         <a href="{{ route('admin.knowledge.create') }}"
-            class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 active:scale-95 transition-all shadow-md shadow-indigo-600/20 shrink-0">
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all shadow-md shadow-blue-600/20 shrink-0">
             <i class="fa-solid fa-plus text-xs"></i> Add Document
         </a>
     </div>
@@ -28,7 +28,7 @@
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Articles</span>
-                <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                     <i class="fa-solid fa-book-open text-xs"></i>
                 </div>
             </div>
@@ -78,7 +78,7 @@
                     <input type="text" name="search" value="{{ request('search') }}"
                         x-on:input.debounce.400ms="$el.closest('form').requestSubmit()"
                         placeholder="Search title, description or content…"
-                        class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 transition-all bg-white">
+                        class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-400 transition-all bg-white">
                 </div>
                 <div class="flex items-center gap-2 shrink-0 w-full sm:w-auto">
                     <select name="category" x-on:change="$el.closest('form').requestSubmit()"
@@ -116,21 +116,21 @@
                     @forelse($knowledgeBases as $kb)
                     @php
                         $catStyle = match($kb->category) {
-                            'guides' => 'bg-indigo-50 text-indigo-700 border-indigo-100',
+                            'guides' => 'bg-blue-50 text-blue-700 border-blue-100',
                             'templates' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
                             'sop' => 'bg-amber-50 text-amber-700 border-amber-100',
                             'evidence' => 'bg-blue-50 text-blue-700 border-blue-100',
                             default => 'bg-slate-100 text-slate-600 border-slate-200',
                         };
                     @endphp
-                    <tr class="hover:bg-indigo-50/20 transition-colors">
+                    <tr class="hover:bg-blue-50/20 transition-colors">
                         <td class="px-5 py-3.5">
                             <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-black text-sm shrink-0">
+                                <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-black text-sm shrink-0">
                                     <i class="{{ $kb->icon ?? 'fa-solid fa-file-lines' }}"></i>
                                 </div>
                                 <div class="min-w-0">
-                                    <a href="{{ route('admin.knowledge.show', $kb) }}" class="font-bold text-slate-900 hover:text-indigo-600 transition-colors block truncate max-w-sm">
+                                    <a href="{{ route('admin.knowledge.show', $kb) }}" class="font-bold text-slate-900 hover:text-blue-600 transition-colors block truncate max-w-sm">
                                         {{ $kb->title }}
                                     </a>
                                     <div class="text-[11px] text-slate-400 truncate max-w-sm mt-0.5" title="{{ $kb->description }}">

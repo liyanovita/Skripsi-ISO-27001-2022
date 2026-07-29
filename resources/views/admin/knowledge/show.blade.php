@@ -10,7 +10,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <a href="{{ route('admin.knowledge.index') }}"
-                class="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-indigo-600 transition-colors font-medium group">
+                class="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-blue-600 transition-colors font-medium group">
                 <i class="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> Back to Knowledge Base
             </a>
         </div>
@@ -62,7 +62,7 @@
                     <div class="flex items-center gap-2 mb-2">
                         @php
                             $catStyle = match($resource->category) {
-                                'guides' => 'bg-indigo-50 text-indigo-700 border-indigo-100',
+                                'guides' => 'bg-blue-50 text-blue-700 border-blue-100',
                                 'templates' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
                                 'sop' => 'bg-amber-50 text-amber-700 border-amber-100',
                                 'evidence' => 'bg-blue-50 text-blue-700 border-blue-100',
@@ -98,7 +98,7 @@
                                     prose-p:text-slate-600 prose-p:leading-relaxed prose-p:mb-4
                                     prose-li:text-slate-600 prose-li:my-0.5
                                     prose-strong:text-slate-800 prose-strong:font-bold
-                                    prose-blockquote:border-l-4 prose-blockquote:border-indigo-400 prose-blockquote:bg-indigo-50/50 prose-blockquote:px-4 prose-blockquote:py-2 prose-blockquote:rounded-r-xl prose-blockquote:text-indigo-900 prose-blockquote:not-italic">
+                                    prose-blockquote:border-l-4 prose-blockquote:border-blue-400 prose-blockquote:bg-blue-50/50 prose-blockquote:px-4 prose-blockquote:py-2 prose-blockquote:rounded-r-xl prose-blockquote:text-blue-900 prose-blockquote:not-italic">
                             {!! $contentHtml !!}
                         </div>
                     @else
@@ -115,10 +115,10 @@
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden space-y-0">
                     <div class="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50/80 to-white flex items-center justify-between">
                         <h3 class="text-slate-800 font-bold text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-paperclip text-indigo-500"></i> Attachment Preview
+                            <i class="fa-solid fa-paperclip text-blue-500"></i> Attachment Preview
                         </h3>
                         <a href="{{ route('knowledge-base.attachment', $resource->id) }}?download=1" data-turbo="false"
-                           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20 active:scale-95">
+                           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-600/20 active:scale-95">
                             <i class="fa-solid fa-download text-[10px]"></i> Download File
                         </a>
                     </div>
@@ -133,7 +133,7 @@
                             </div>
                         @else
                             <div class="py-10 text-center bg-white rounded-2xl border border-slate-100 p-6 max-w-md mx-auto shadow-sm">
-                                <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3 text-lg font-bold">
+                                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3 text-lg font-bold">
                                     <i class="fa-solid fa-file-arrow-down"></i>
                                 </div>
                                 <h4 class="text-slate-800 font-bold text-sm truncate max-w-xs mx-auto" title="{{ $resource->attachment_name }}">
@@ -147,7 +147,7 @@
                                 </p>
                                 <div class="mt-4">
                                     <a href="{{ route('knowledge-base.attachment', $resource->id) }}?download=1" data-turbo="false"
-                                       class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-indigo-600/20 active:scale-95">
+                                       class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-600/20 active:scale-95">
                                         <i class="fa-solid fa-cloud-arrow-down"></i> Download File
                                     </a>
                                 </div>
@@ -163,7 +163,7 @@
             <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                 <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/80">
                     <h3 class="text-slate-800 font-bold text-sm flex items-center gap-2">
-                        <i class="fa-solid fa-circle-info text-indigo-500"></i> Document Properties
+                        <i class="fa-solid fa-circle-info text-blue-500"></i> Document Properties
                     </h3>
                 </div>
 
@@ -187,7 +187,7 @@
 
                     <div class="pt-3 border-t border-slate-50">
                         <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Total Downloads</span>
-                        <span class="font-black text-indigo-600 text-sm">{{ number_format($resource->downloads_count) }}</span>
+                        <span class="font-black text-blue-600 text-sm">{{ number_format($resource->downloads_count) }}</span>
                     </div>
 
                     <div class="pt-3 border-t border-slate-50">

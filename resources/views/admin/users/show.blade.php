@@ -6,16 +6,16 @@
 @section('content')
 <style>
     .info-card { transition: box-shadow 0.2s ease; }
-    .info-card:hover { box-shadow: 0 6px 24px -6px rgba(99,102,241,0.1); }
+    .info-card:hover { box-shadow: 0 6px 24px -6px rgba(37,99,235,0.1); }
     .session-card { transition: background 0.15s ease; }
-    .session-card:hover { background: rgba(99,102,241,0.02); }
+    .session-card:hover { background: rgba(37,99,235,0.02); }
 </style>
 
 <div class="space-y-6 pb-8">
 
     {{-- Breadcrumb --}}
     <div class="flex items-center gap-2 text-sm text-slate-500">
-        <a href="{{ route('admin.users.index') }}" class="hover:text-violet-600 transition-colors font-medium flex items-center gap-1">
+        <a href="{{ route('admin.users.index') }}" class="hover:text-blue-600 transition-colors font-medium flex items-center gap-1">
             <i class="fa-solid fa-users text-xs"></i> Users
         </a>
         <i class="fa-solid fa-chevron-right text-[9px] text-slate-300"></i>
@@ -30,9 +30,9 @@
             {{-- Profile Card --}}
             <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden info-card">
                 {{-- Banner --}}
-                <div class="h-20 bg-gradient-to-br from-violet-600 to-indigo-700 relative">
+                <div class="h-20 bg-gradient-to-br from-blue-600 to-blue-700 relative">
                     <div class="absolute -bottom-8 left-1/2 -translate-x-1/2">
-                        <div class="w-16 h-16 rounded-2xl {{ $user->isAdmin() ? 'bg-gradient-to-br from-violet-500 to-indigo-600' : 'bg-gradient-to-br from-blue-500 to-cyan-600' }} text-white flex items-center justify-center font-black text-xl border-4 border-white shadow-lg">
+                        <div class="w-16 h-16 rounded-2xl {{ $user->isAdmin() ? 'bg-gradient-to-br from-blue-500 to-blue-600' : 'bg-gradient-to-br from-blue-500 to-blue-600' }} text-white flex items-center justify-center font-black text-xl border-4 border-white shadow-lg">
                             {{ strtoupper(substr($user->name, 0, 2)) }}
                         </div>
                     </div>
@@ -51,7 +51,7 @@
 
                     <div class="flex items-center justify-center gap-2 mt-3">
                         @if($user->isAdmin())
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-violet-100 text-violet-700 rounded-full text-[10px] font-black uppercase tracking-widest">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-black uppercase tracking-widest">
                                 <i class="fa-solid fa-shield-halved text-[8px]"></i> Admin
                             </span>
                         @else
@@ -102,7 +102,7 @@
                 {{-- Actions --}}
                 <div class="px-5 pb-5 space-y-2">
                     <a href="{{ route('admin.users.edit', $user) }}"
-                        class="w-full px-4 py-2.5 bg-violet-600 text-white rounded-xl text-sm font-bold hover:bg-violet-700 active:scale-95 transition-all text-center flex items-center justify-center gap-2 shadow-md shadow-violet-600/20">
+                        class="w-full px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all text-center flex items-center justify-center gap-2 shadow-md shadow-blue-600/20">
                         <i class="fa-solid fa-pen text-xs"></i> Edit Profile
                     </a>
                     @if($user->id !== auth()->id())
@@ -138,12 +138,12 @@
             {{-- Activity Stats --}}
             <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 info-card">
                 <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-chart-simple text-violet-400"></i> Activity Stats
+                    <i class="fa-solid fa-chart-simple text-blue-400"></i> Activity Stats
                 </h3>
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="text-center p-4 bg-violet-50 rounded-2xl">
-                        <div class="text-2xl font-black text-violet-600">{{ $user->assessment_sessions_count }}</div>
-                        <div class="text-[9px] font-black text-violet-400 uppercase tracking-widest mt-1">Sessions</div>
+                    <div class="text-center p-4 bg-blue-50 rounded-2xl">
+                        <div class="text-2xl font-black text-blue-600">{{ $user->assessment_sessions_count }}</div>
+                        <div class="text-[9px] font-black text-blue-400 uppercase tracking-widest mt-1">Sessions</div>
                     </div>
                     <div class="text-center p-4 bg-slate-50 rounded-2xl">
                         <div class="text-2xl font-black text-slate-600">{{ $user->audit_trails_count }}</div>

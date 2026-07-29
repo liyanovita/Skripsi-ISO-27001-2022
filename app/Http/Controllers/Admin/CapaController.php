@@ -27,7 +27,7 @@ class CapaController extends Controller
             });
         }
 
-        // Compute summary counts
+        // Compute summary counts: totalCapa = 91 (applicable gaps requiring remediation)
         $totalCapa = (clone $baseQuery)->count();
         $openCount = (clone $baseQuery)->where(function($q) {
             $q->where('treatment_status', 'open')

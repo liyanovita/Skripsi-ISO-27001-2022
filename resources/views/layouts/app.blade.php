@@ -114,7 +114,7 @@
                                 showCancelButton: true,
                                 confirmButtonText: '{{ __("Complete Now") }}',
                                 cancelButtonText: '{{ __("Later") }}',
-                                confirmButtonColor: '#4f46e5',
+                                confirmButtonColor: '#2563eb',
                                 cancelButtonColor: '#94a3b8',
                                 width: '22rem',
                                 customClass: {
@@ -410,12 +410,12 @@
             <div class="px-3 py-3 border-t border-white/10">
                 <a href="{{ route('admin.dashboard') }}" 
                    title="{{ __('Admin Panel') }}"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group bg-purple-600/40 border border-purple-500/50 text-purple-200 hover:bg-purple-600/60">
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group bg-sky-600/40 border border-sky-500/50 text-sky-200 hover:bg-sky-600/60">
                     <div class="w-6 flex justify-center shrink-0">
-                        <i class="fa-solid fa-shield-halved text-base text-purple-300"></i>
+                        <i class="fa-solid fa-shield-halved text-base text-sky-300"></i>
                     </div>
                     <span x-show="sidebarOpen" class="text-sm font-bold tracking-tight sidebar-text flex-1">Admin Panel</span>
-                    <span x-show="sidebarOpen" class="ml-auto px-1.5 py-0.5 bg-purple-500/30 text-purple-300 rounded text-[8px] font-black leading-none">ADMIN</span>
+                    <span x-show="sidebarOpen" class="ml-auto px-1.5 py-0.5 bg-sky-500/30 text-sky-300 rounded text-[8px] font-black leading-none">ADMIN</span>
                     <span x-show="!sidebarOpen" class="sidebar-tooltip">Admin Panel</span>
                 </a>
             </div>
@@ -446,7 +446,7 @@
                             else $crumbs = [['label' => 'Page', 'url' => null]];
                         @endphp
                         <nav class="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest">
-                            <a href="{{ route('dashboard') }}" class="text-slate-300 hover:text-indigo-500 transition-colors">
+                            <a href="{{ route('dashboard') }}" class="text-slate-300 hover:text-blue-500 transition-colors">
                                 <i class="fa-solid fa-house text-[9px]"></i>
                             </a>
                             @foreach($crumbs as $i => $crumb)
@@ -478,17 +478,17 @@
                     {{-- Language Switcher --}}
                     <div class="relative" x-data="{ langOpen: false }">
                         <button @click="langOpen = !langOpen" 
-                            class="flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-all border border-transparent hover:border-slate-200">
+                            class="flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-600 hover:bg-slate-50 rounded-lg transition-all border border-transparent hover:border-slate-200">
                             <i class="fa-solid fa-globe text-xs"></i> 
                             {{ app()->getLocale() == 'id' ? 'ID' : 'EN' }}
                         </button>
                         <div x-show="langOpen" @click.away="langOpen = false" x-cloak 
                             class="absolute right-0 mt-2 w-28 bg-white border border-slate-200 rounded-xl shadow-xl py-1.5 z-50">
                             <a href="{{ route('lang.switch', 'en') }}" 
-                                class="flex items-center gap-2.5 px-3 py-2 text-xs font-bold hover:bg-slate-50 rounded-lg mx-1 transition-all {{ app()->getLocale() == 'en' ? 'text-indigo-600' : 'text-slate-600' }}">
+                                class="flex items-center gap-2.5 px-3 py-2 text-xs font-bold hover:bg-slate-50 rounded-lg mx-1 transition-all {{ app()->getLocale() == 'en' ? 'text-blue-600' : 'text-slate-600' }}">
                                 <img src="https://flagcdn.com/w20/us.png" srcset="https://flagcdn.com/w40/us.png 2x" width="16" alt="US" class="rounded-sm shadow-sm"> {{ __('English') }}</a>
                             <a href="{{ route('lang.switch', 'id') }}" 
-                                class="flex items-center gap-2.5 px-3 py-2 text-xs font-bold hover:bg-slate-50 rounded-lg mx-1 transition-all {{ app()->getLocale() == 'id' ? 'text-indigo-600' : 'text-slate-600' }}">
+                                class="flex items-center gap-2.5 px-3 py-2 text-xs font-bold hover:bg-slate-50 rounded-lg mx-1 transition-all {{ app()->getLocale() == 'id' ? 'text-blue-600' : 'text-slate-600' }}">
                                 <img src="https://flagcdn.com/w20/id.png" srcset="https://flagcdn.com/w40/id.png 2x" width="16" alt="ID" class="rounded-sm shadow-sm"> {{ __('Indonesia') }}</a>
                         </div>
                     </div>
@@ -529,7 +529,7 @@
                     @endphp
                     <div class="relative" x-data="{ notifOpen: false }">
                         <button @click="notifOpen = !notifOpen" 
-                            class="relative w-8 h-8 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-all border border-transparent hover:border-slate-200">
+                            class="relative w-8 h-8 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-slate-50 rounded-lg transition-all border border-transparent hover:border-slate-200">
                             <i class="fa-solid fa-bell text-sm"></i>
                             @if($totalNotifs > 0)
                                 <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-rose-500 border-2 border-white rounded-full flex items-center justify-center text-[7px] font-black text-white">
@@ -561,7 +561,7 @@
                             <div class="max-h-80 overflow-y-auto custom-scrollbar p-2">
                                 {{-- Database Notifications --}}
                                 @if($dbNotifications->count() > 0)
-                                    <div class="px-3 py-1 mt-1 mb-1 text-[8px] font-black text-indigo-500 uppercase tracking-widest">{{ __('Notifications') }}</div>
+                                    <div class="px-3 py-1 mt-1 mb-1 text-[8px] font-black text-blue-500 uppercase tracking-widest">{{ __('Notifications') }}</div>
                                     @foreach($dbNotifications as $notif)
                                         @php $notifType = $notif->data['type'] ?? 'general'; @endphp
                                         <div class="flex items-start gap-2.5 p-2.5 hover:bg-slate-50 rounded-xl transition-colors group relative">
@@ -590,13 +590,13 @@
                                                 @else
                                                     <p class="text-[10px] font-bold text-slate-900 leading-tight">{{ $notif->data['message'] ?? '' }}</p>
                                                 @endif
-                                                <p class="text-[8px] font-bold text-indigo-500 uppercase tracking-widest mt-1">{{ $notif->created_at->diffForHumans() }}</p>
+                                                <p class="text-[8px] font-bold text-blue-500 uppercase tracking-widest mt-1">{{ $notif->created_at->diffForHumans() }}</p>
                                             </div>
                                             
                                             {{-- Inline Mark as Read --}}
                                             <form method="POST" action="{{ route('notifications.read', $notif->id) }}" class="shrink-0 self-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                 @csrf
-                                                <button type="submit" title="{{ __('Mark as read') }}" class="w-6 h-6 rounded-md bg-slate-100 hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 flex items-center justify-center transition-colors">
+                                                <button type="submit" title="{{ __('Mark as read') }}" class="w-6 h-6 rounded-md bg-slate-100 hover:bg-blue-50 text-slate-400 hover:text-blue-600 flex items-center justify-center transition-colors">
                                                     <i class="fa-solid fa-check text-[10px]"></i>
                                                 </button>
                                             </form>
@@ -677,7 +677,7 @@
                             
                             <div class="p-1.5 border-t border-slate-100 bg-slate-50 flex gap-1">
                                 <a href="{{ route('notifications.index') }}" 
-                                    class="block w-1/2 py-2 text-center text-[9px] font-black text-indigo-600 hover:bg-indigo-50 rounded-lg border border-indigo-100 transition-all uppercase tracking-widest">
+                                    class="block w-1/2 py-2 text-center text-[9px] font-black text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-100 transition-all uppercase tracking-widest">
                                     {{ __('Notification Center') }}
                                 </a>
                                 <a href="{{ route('workspace.index') }}" 
@@ -692,7 +692,7 @@
                     <div class="relative" x-data="{ open: false }">
                         <button @click="open = !open" 
                             class="flex items-center gap-2 pl-3 border-l border-slate-200 hover:opacity-80 transition-all outline-none">
-                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-[10px] font-black shadow-sm">
+                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white text-[10px] font-black shadow-sm">
                                 {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                             </div>
                             <div class="hidden md:block text-left leading-none">
@@ -710,7 +710,7 @@
                                 <p class="text-[9px] text-slate-400 font-medium truncate">{{ auth()->user()->email }}</p>
                             </div>
                             <a href="{{ route('profile.edit') }}" 
-                                class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-all">
+                                class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-all">
                                 <i class="fa-solid fa-user-gear text-slate-400 text-xs"></i> 
                                 {{ __('Profile Settings') }}
                             </a>
@@ -761,7 +761,7 @@
                             placeholder="{{ __('Search sessions, controls, resources...') }}"
                             class="flex-1 text-sm font-medium text-slate-700 placeholder:text-slate-400 outline-none bg-transparent">
                         <div x-show="quickSearchLoading" class="shrink-0">
-                            <svg class="animate-spin w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24">
+                            <svg class="animate-spin w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                             </svg>
@@ -772,7 +772,7 @@
                     <div x-show="quickSearchResults.length > 0" class="max-h-72 overflow-y-auto custom-scrollbar py-2">
                         <template x-for="(result, idx) in quickSearchResults" :key="idx">
                             <a :href="result.url" @click="closeQuickSearch()" @mouseenter="quickSearchActive = idx"
-                                :class="quickSearchActive === idx ? 'bg-indigo-50' : 'hover:bg-slate-50'"
+                                :class="quickSearchActive === idx ? 'bg-blue-50' : 'hover:bg-slate-50'"
                                 class="flex items-center gap-3 px-4 py-2.5 transition-colors cursor-pointer">
                                 <div :class="{
                                     'bg-blue-100 text-blue-600': result.type === 'session',
@@ -809,8 +809,8 @@
                         <div class="grid grid-cols-2 gap-1">
                             @foreach([
                                 ['label' => 'Audit Sessions',      'icon' => 'fa-list-check',        'url' => route('sessions.index'),        'color' => 'blue'],
-                                ['label' => 'Compliance Center',   'icon' => 'fa-diagram-project',   'url' => route('workspace.index'),       'color' => 'indigo'],
-                                ['label' => 'Assessment Result',   'icon' => 'fa-chart-line',        'url' => route('reports.strategic'),     'color' => 'violet'],
+                                ['label' => 'Compliance Center',   'icon' => 'fa-diagram-project',   'url' => route('workspace.index'),       'color' => 'blue'],
+                                ['label' => 'Assessment Result',   'icon' => 'fa-chart-line',        'url' => route('reports.strategic'),     'color' => 'cyan'],
                                 ['label' => 'Knowledge Base',      'icon' => 'fa-book-open',         'url' => route('knowledge-base.index'),  'color' => 'teal'],
                                 ['label' => 'Audit Trail',         'icon' => 'fa-clock-rotate-left', 'url' => route('audit-trail.index'),     'color' => 'amber'],
                             ] as $shortcut)
@@ -848,7 +848,7 @@
                                 title: '{{ __("Success") }}',
                                 text: msg,
                                 width: '22rem',
-                                confirmButtonColor: '#4f46e5',
+                                confirmButtonColor: '#2563eb',
                                 customClass: {
                                     popup: 'rounded-2xl p-4',
                                     title: 'text-sm font-bold text-slate-800 mt-2',
@@ -899,7 +899,7 @@
             x-transition:enter-end="opacity-100 scale-100 translate-y-0">
             
             {{-- Header --}}
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 px-8 py-6 relative overflow-hidden shrink-0">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-6 relative overflow-hidden shrink-0">
                 <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
                 <div class="absolute -left-4 -bottom-6 w-24 h-24 bg-white/5 rounded-full blur-xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-start justify-between gap-4">
@@ -934,8 +934,8 @@
 
                     {{-- Compliance Center --}}
                     <a href="{{ route('workspace.index') }}" @click="dismissGuide()"
-                        class="flex items-start gap-3 p-4 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-2xl transition-all group cursor-pointer">
-                        <div class="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center shrink-0 shadow-md shadow-indigo-600/20 group-hover:scale-110 transition-transform">
+                        class="flex items-start gap-3 p-4 bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-2xl transition-all group cursor-pointer">
+                        <div class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center shrink-0 shadow-md shadow-blue-600/20 group-hover:scale-110 transition-transform">
                             <i class="fa-solid fa-diagram-project text-sm"></i>
                         </div>
                         <div class="min-w-0">
@@ -946,8 +946,8 @@
 
                     {{-- Assessment Result --}}
                     <a href="{{ route('reports.strategic') }}" @click="dismissGuide()"
-                        class="flex items-start gap-3 p-4 bg-violet-50 hover:bg-violet-100 border border-violet-100 rounded-2xl transition-all group cursor-pointer">
-                        <div class="w-10 h-10 bg-violet-600 text-white rounded-xl flex items-center justify-center shrink-0 shadow-md shadow-violet-600/20 group-hover:scale-110 transition-transform">
+                        class="flex items-start gap-3 p-4 bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-2xl transition-all group cursor-pointer">
+                        <div class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center shrink-0 shadow-md shadow-blue-600/20 group-hover:scale-110 transition-transform">
                             <i class="fa-solid fa-chart-line text-sm"></i>
                         </div>
                         <div class="min-w-0">
@@ -959,7 +959,7 @@
                     {{-- Knowledge Base --}}
                     <a href="{{ route('knowledge-base.index') }}" @click="dismissGuide()"
                         class="flex items-start gap-3 p-4 bg-teal-50 hover:bg-teal-100 border border-teal-100 rounded-2xl transition-all group cursor-pointer">
-                        <div class="w-10 h-10 bg-teal-600 text-white rounded-xl flex items-center justify-center shrink-0 shadow-md shadow-teal-600/20 group-hover:scale-110 transition-transform">
+                        <div class="w-10 h-10 bg-teal-600 text-white rounded-xl flex items-center justify-center shrink-0 shadow-md shadow-blue-600/20 group-hover:scale-110 transition-transform">
                             <i class="fa-solid fa-book-open text-sm"></i>
                         </div>
                         <div class="min-w-0">
@@ -985,7 +985,7 @@
             {{-- Footer --}}
             <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-3 shrink-0">
                 <button @click="localStorage.removeItem('guideShown'); showWelcomeGuide = false; addToast('{{ addslashes(__('Guide will be shown again on next login')) }}')"
-                    class="text-[10px] font-bold text-slate-400 hover:text-indigo-600 underline transition-colors">
+                    class="text-[10px] font-bold text-slate-400 hover:text-blue-600 underline transition-colors">
                     {{ __('Remind me later') }}
                 </button>
                 <div class="flex items-center gap-2">
@@ -1067,15 +1067,15 @@
         var LS_STEP   = 'gt_step';
         var steps = [
             /* ── 1: Dashboard Overview ──────────────────────── */
-            { path: ROUTES.dashboard,  target: '#sidebar-dashboard',  icon: 'fa-gauge-high',       color: '#6366f1',
+            { path: ROUTES.dashboard,  target: '#sidebar-dashboard',  icon: 'fa-gauge-high',       color: '#3b82f6',
               title: @js(__('Dashboard – Overview')),
               text:  @js(__('Welcome to the ISO 27001:2022 Compliance Platform. This is your central hub for monitoring compliance posture.')) },
             /* ── 2: Dashboard KPI Grid ──────────────────────── */
-            { path: ROUTES.dashboard,  target: '#dashboard-kpi-grid', icon: 'fa-chart-pie',         color: '#6366f1',
+            { path: ROUTES.dashboard,  target: '#dashboard-kpi-grid', icon: 'fa-chart-pie',         color: '#3b82f6',
               title: @js(__('Dashboard – Key Indicators')),
               text:  @js(__('Track your Overall Compliance, Priority Gaps, and Maturity Level here. These stats update instantly as you audit.')) },
             /* ── 3: Dashboard Resume Banner ─────────────────── */
-            { path: ROUTES.dashboard,  target: '#dashboard-resume-banner', icon: 'fa-rocket',       color: '#6366f1',
+            { path: ROUTES.dashboard,  target: '#dashboard-resume-banner', icon: 'fa-rocket',       color: '#3b82f6',
               title: @js(__('Dashboard – Continue Audit')),
               text:  @js(__('Ready to work? Click \'Continue\' to jump directly back into your latest active assessment session.')) },
             
@@ -1341,7 +1341,7 @@
         
         {{-- Floating Button --}}
         <button @click="helpPanelOpen = !helpPanelOpen" id="floating-help-btn"
-            class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-2xl shadow-xl shadow-blue-600/30 flex items-center justify-center transition-all hover:scale-110 active:scale-95 border-2 border-white/20"
+            class="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-2xl shadow-xl shadow-blue-600/30 flex items-center justify-center transition-all hover:scale-110 active:scale-95 border-2 border-white/20"
             :class="helpPanelOpen ? 'rotate-45 scale-110' : ''"
             title="{{ __('Need Help?') }}">
             <i class="fa-solid fa-circle-question text-lg" x-show="!helpPanelOpen"></i>
@@ -1359,7 +1359,7 @@
             x-transition:leave-end="opacity-0 scale-95 translate-y-2">
 
             {{-- Panel Header --}}
-            <div class="px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+            <div class="px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                 <div class="flex items-center gap-2">
                     <div class="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center border border-white/20">
                         <i class="fa-solid fa-circle-question text-xs"></i>
@@ -1384,8 +1384,8 @@
                         $helpTitle = __('Dashboard Guide');
                         $helpItems = [
                             ['icon' => 'fa-chart-pie', 'color' => 'blue', 'text' => __('This dashboard shows your overall compliance posture. The cards at the top display your compliance score, priority gaps, and maturity level.')],
-                            ['icon' => 'fa-play', 'color' => 'indigo', 'text' => __("Click 'Continue' on the session banner to resume your latest audit.")],
-                            ['icon' => 'fa-chart-line', 'color' => 'violet', 'text' => __('The compliance trend chart shows your progress across completed audit sessions.')],
+                            ['icon' => 'fa-play', 'color' => 'blue', 'text' => __("Click 'Continue' on the session banner to resume your latest audit.")],
+                            ['icon' => 'fa-chart-line', 'color' => 'cyan', 'text' => __('The compliance trend chart shows your progress across completed audit sessions.')],
                         ];
                         $helpLinks = [
                             ['label' => __('Audit Sessions'), 'url' => route('sessions.index')],
@@ -1395,7 +1395,7 @@
                         $helpTitle = __('Audit Sessions Guide');
                         $helpItems = [
                             ['icon' => 'fa-plus', 'color' => 'blue', 'text' => __("Click '+ New Assessment' in the sidebar or the button on this page to create a new session.")],
-                            ['icon' => 'fa-layer-group', 'color' => 'indigo', 'text' => __('Each session is independent — you can run multiple sessions for different periods or departments.')],
+                            ['icon' => 'fa-layer-group', 'color' => 'blue', 'text' => __('Each session is independent — you can run multiple sessions for different periods or departments.')],
                             ['icon' => 'fa-arrow-right', 'color' => 'teal', 'text' => __('After creating a session, click on it to start answering the 93 ISO 27001:2022 controls.')],
                         ];
                         $helpLinks = [
@@ -1406,7 +1406,7 @@
                         $helpItems = [
                             ['icon' => 'fa-star', 'color' => 'amber', 'text' => __('For each control, select a maturity score from 1 (None) to 5 (Optimized).')],
                             ['icon' => 'fa-pen', 'color' => 'blue', 'text' => __('Write your implementation evidence or notes in the text box provided.')],
-                            ['icon' => 'fa-robot', 'color' => 'violet', 'text' => __('Use the AI button to get intelligent recommendations for each control.')],
+                            ['icon' => 'fa-robot', 'color' => 'cyan', 'text' => __('Use the AI button to get intelligent recommendations for each control.')],
                         ];
                         $helpLinks = [];
                     } elseif (request()->routeIs('workspace.*')) {
@@ -1414,7 +1414,7 @@
                         $helpItems = [
                             ['icon' => 'fa-filter', 'color' => 'blue', 'text' => __('Select an active session from the dropdown to view its controls and gaps.')],
                             ['icon' => 'fa-triangle-exclamation', 'color' => 'rose', 'text' => __("Controls with maturity score 1-3 are flagged as 'Gaps' and need remediation.")],
-                            ['icon' => 'fa-file-alt', 'color' => 'indigo', 'text' => __("Use the 'Gap Report' tab to see a summary of all identified gaps.")],
+                            ['icon' => 'fa-file-alt', 'color' => 'blue', 'text' => __("Use the 'Gap Report' tab to see a summary of all identified gaps.")],
                         ];
                         $helpLinks = [
                             ['label' => __('Audit Sessions'), 'url' => route('sessions.index')],
@@ -1424,7 +1424,7 @@
                         $helpItems = [
                             ['icon' => 'fa-magnifying-glass', 'color' => 'blue', 'text' => __('Search for articles, policies, or guides using the search bar at the top.')],
                             ['icon' => 'fa-plus-circle', 'color' => 'teal', 'text' => __("Create your own knowledge articles using the 'Add New' button.")],
-                            ['icon' => 'fa-paperclip', 'color' => 'indigo', 'text' => __('Attach files (PDF, DOCX) as evidence references to each article.')],
+                            ['icon' => 'fa-paperclip', 'color' => 'blue', 'text' => __('Attach files (PDF, DOCX) as evidence references to each article.')],
                         ];
                         $helpLinks = [];
                     } elseif (request()->routeIs('audit-trail.*')) {
@@ -1439,7 +1439,7 @@
                         $helpTitle = __('Platform Guide');
                         $helpItems = [
                             ['icon' => 'fa-list-check', 'color' => 'blue', 'text' => __('Audit Sessions') . ': ' . __('Create and manage your ISO 27001:2022 assessment sessions. Each session covers all 93 controls.')],
-                            ['icon' => 'fa-diagram-project', 'color' => 'indigo', 'text' => __('Compliance Center') . ': ' . __('Fill in control evaluations, identify gaps, and manage Improvement Tracking.')],
+                            ['icon' => 'fa-diagram-project', 'color' => 'blue', 'text' => __('Compliance Center') . ': ' . __('Fill in control evaluations, identify gaps, and manage Improvement Tracking.')],
                         ];
                         $helpLinks = [
                             ['label' => __('Audit Sessions'), 'url' => route('sessions.index')],
@@ -1477,7 +1477,7 @@
             {{-- Panel Footer --}}
             <div class="px-4 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
                 <button @click="resetGuide(); helpPanelOpen = false" 
-                    class="text-[9px] font-bold text-slate-400 hover:text-indigo-600 transition-colors underline">
+                    class="text-[9px] font-bold text-slate-400 hover:text-blue-600 transition-colors underline">
                     {{ __('Show this guide again') }}
                 </button>
                 <button @click="helpPanelOpen = false" onclick="window.GuidedTour && window.GuidedTour.start()"
@@ -1526,7 +1526,7 @@
                     timer: 3000,
                     timerProgressBar: true,
                     width: '22rem',
-                    confirmButtonColor: '#4f46e5',
+                    confirmButtonColor: '#2563eb',
                     customClass: {
                         popup: 'rounded-2xl p-4',
                         title: 'text-sm font-bold text-slate-800 mt-2',

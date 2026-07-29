@@ -49,7 +49,7 @@
         {{-- Part 2: Organization & Governance Scope --}}
         <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm space-y-4">
             <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <i class="fa-solid fa-building text-indigo-500"></i> Organization & ISMS Governance
+                <i class="fa-solid fa-building text-blue-500"></i> Organization & ISMS Governance
             </h3>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

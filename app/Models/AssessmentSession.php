@@ -86,7 +86,7 @@ class AssessmentSession extends Model
             return true;
         }
 
-        if ($this->deadline && $this->deadline->isPast()) {
+        if ($this->deadline && $this->deadline->endOfDay()->isPast()) {
             return true;
         }
 
@@ -98,7 +98,7 @@ class AssessmentSession extends Model
      */
     public function isPastDeadline(): bool
     {
-        return $this->deadline && $this->deadline->isPast();
+        return $this->deadline && $this->deadline->endOfDay()->isPast();
     }
 
     /**

@@ -43,7 +43,7 @@
                 <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">ISO 27001:2022 DSS</span>
             </div>
             <h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-3 flex-wrap">
-                <span>{{ __('Welcome Back') }}, <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 font-black">{{ auth()->user()->name }}</span>!</span>
+                <span>{{ __('Welcome Back') }}, <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-600 font-black">{{ auth()->user()->name }}</span>!</span>
                 @if(isset($assessorBadge))
                 <span class="px-2 py-0.5 rounded-lg border text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 {{ $assessorBadge['color'] }} shadow-sm">
                     <i class="fa-solid {{ $assessorBadge['icon'] }}"></i> {{ $assessorBadge['title'] }}
@@ -99,22 +99,22 @@
                 <div>
                     <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Overall Maturity Score') }}</p>
                     <div class="flex items-baseline gap-2 mt-1">
-                        <h3 class="text-2xl font-black text-indigo-600 tracking-tight">{{ number_format($averageMaturity, 2) }}/5</h3>
+                        <h3 class="text-2xl font-black text-blue-600 tracking-tight">{{ number_format($averageMaturity, 2) }}/5</h3>
                         @php
                             $cleanLevel = str_replace([' (Level 5)', ' (Level 4)', ' (Level 3)', ' (Level 2)', ' (Level 1)', ' (Level 0)'], '', $statusKematangan);
                         @endphp
-                        <span class="px-2 py-0.5 rounded border border-indigo-100 bg-indigo-50 text-indigo-750 text-[8px] font-black uppercase tracking-wider">
+                        <span class="px-2 py-0.5 rounded border border-blue-100 bg-blue-50 text-blue-800 text-[8px] font-black uppercase tracking-wider">
                             {{ __($cleanLevel) }}
                         </span>
                     </div>
                 </div>
-                <div class="w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
                     <i class="fa-solid fa-gauge-high"></i>
                 </div>
             </div>
             <div>
                 <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-indigo-500 rounded-full" style="width: {{ min(($averageMaturity / 5) * 100, 100) }}%"></div>
+                    <div class="h-full bg-blue-500 rounded-full" style="width: {{ min(($averageMaturity / 5) * 100, 100) }}%"></div>
                 </div>
             </div>
         </div>
@@ -160,7 +160,7 @@
     </div>
 
     {{-- Resume Assessment Hero Banner --}}
-    <div id="dashboard-resume-banner" class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-4 shadow-lg shadow-blue-900/20 text-white flex flex-col sm:flex-row items-center justify-between gap-3 relative overflow-hidden">
+    <div id="dashboard-resume-banner" class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-4 shadow-lg shadow-blue-900/20 text-white flex flex-col sm:flex-row items-center justify-between gap-3 relative overflow-hidden">
         <div class="absolute -right-16 -top-16 w-40 h-40 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
         <div class="relative z-10 flex items-center gap-4 flex-1 min-w-0">
             <div class="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center border border-white/20 shrink-0">
@@ -288,7 +288,7 @@
         </div>
 
         {{-- Executive Summary --}}
-        <div class="relative bg-gradient-to-br from-indigo-600 to-blue-800 rounded-2xl p-5 shadow-lg shadow-blue-900/20 text-white overflow-hidden flex flex-col" style="min-height: 300px; max-height: 340px;">
+        <div class="relative bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-5 shadow-lg shadow-blue-900/20 text-white overflow-hidden flex flex-col" style="min-height: 300px; max-height: 340px;">
             <div class="absolute -right-8 -top-8 w-28 h-28 bg-white/10 rounded-full blur-3xl"></div>
 
             <div class="flex items-center gap-3 mb-4 relative z-10 shrink-0">
@@ -357,7 +357,7 @@
     <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100">
+                <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100">
                     <i class="fa-solid fa-list-check"></i>
                 </div>
                 <div>
@@ -365,7 +365,7 @@
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Improvement Tracking') }}</p>
                 </div>
             </div>
-            <span class="px-2.5 py-1 bg-indigo-50 text-indigo-600 border border-indigo-100 text-[9px] font-bold rounded-lg uppercase tracking-widest">
+            <span class="px-2.5 py-1 bg-blue-50 text-blue-600 border border-blue-100 text-[9px] font-bold rounded-lg uppercase tracking-widest">
                 {{ $activeTasks->count() }} {{ __('Active') }}
             </span>
         </div>
@@ -390,7 +390,7 @@
                         <td class="py-3 px-3">
                             <span class="font-bold text-slate-900 text-xs group-hover:text-blue-600 transition-colors">{{ $task->standard->code }}</span>
                             <p class="text-[10px] text-slate-500 font-medium truncate max-w-[180px]">{{ $task->standard->title }}</p>
-                            <p class="text-[9px] font-bold text-indigo-500 bg-indigo-50 w-fit px-1.5 py-0.5 rounded mt-1 truncate max-w-[180px]" title="{{ $task->session->name ?? __('Unknown Session') }}">{{ $task->session->name ?? __('Unknown Session') }}</p>
+                            <p class="text-[9px] font-bold text-blue-500 bg-blue-50 w-fit px-1.5 py-0.5 rounded mt-1 truncate max-w-[180px]" title="{{ $task->session->name ?? __('Unknown Session') }}">{{ $task->session->name ?? __('Unknown Session') }}</p>
                         </td>
                         <td class="py-3 px-3">
                             <span class="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest {{ 
@@ -432,7 +432,7 @@
     {{-- Empty Remediation State --}}
     <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
         <div class="flex items-center gap-3 mb-3">
-            <div class="w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100">
+            <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100">
                 <i class="fa-solid fa-list-check"></i>
             </div>
             <div>
@@ -602,12 +602,12 @@ window.initDashboardCharts = function() {
                     datasets: [{
                         label: 'Avg Maturity',
                         data: radarData.data,
-                        backgroundColor: 'rgba(99, 102, 241, 0.2)', // Indigo
-                        borderColor: '#6366f1',
-                        pointBackgroundColor: '#6366f1',
+                        backgroundColor: 'rgba(37, 99, 235, 0.2)', // Blue
+                        borderColor: '#3b82f6',
+                        pointBackgroundColor: '#3b82f6',
                         pointBorderColor: '#fff',
                         pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: '#6366f1',
+                        pointHoverBorderColor: '#3b82f6',
                         borderWidth: 2,
                     }]
                 },

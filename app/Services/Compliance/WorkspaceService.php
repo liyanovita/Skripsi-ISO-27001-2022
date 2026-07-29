@@ -41,12 +41,14 @@ class WorkspaceService
         $notApplicableCount = $results->where('is_applicable', false)->count();
         $applicableCount = max(0, 137 - $notApplicableCount);
 
-        // Calculate stats from already-loaded results (Gaps are controls with maturity_rating < 5)
+        // Calculate stats: gaps = 91 applicable controls with maturity < 5, not_applicable = 3 excluded controls from SoA
+        $gapsCount = $results->where('is_applicable', true)->where('status', 'completed')->whereNotNull('maturity_rating')->where('maturity_rating', '<', 5)->count();
         $stats = [
             'total'         => 137,
-            'gaps'          => $results->where('is_applicable', true)->where('status', 'completed')->whereNotNull('maturity_rating')->where('maturity_rating', '<', 5)->count(),
+            'gaps'          => $gapsCount,
             'applicable'    => $applicableCount,
             'not_applicable'=> $notApplicableCount,
+            'total_eval'    => $gapsCount + $notApplicableCount,
             'closed'        => $results
                 ->where('is_applicable', true)
                 ->where('status', 'completed')

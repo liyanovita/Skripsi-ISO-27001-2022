@@ -35,7 +35,7 @@
             </span>
 
             {{-- Gap Value --}}
-            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold border bg-indigo-50 text-indigo-700 border-indigo-200">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold border bg-blue-50 text-blue-700 border-blue-200">
                 Gap: {{ $capa->gap }}
             </span>
 

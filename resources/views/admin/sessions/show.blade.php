@@ -18,7 +18,7 @@
     {{-- Hero Session Banner (Polished Executive Light Theme) --}}
     <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80 relative overflow-hidden">
         {{-- Subtle Gradient Top Accent Line --}}
-        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600"></div>
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-600 via-blue-600 to-sky-600"></div>
 
         <div class="relative z-10 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6">
             {{-- Left Info Block --}}
@@ -118,10 +118,10 @@
                 <div class="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-4 text-center flex flex-col justify-between min-w-[115px]">
                     <div class="flex items-center justify-between text-slate-400 mb-1">
                         <span class="text-[9px] font-bold uppercase tracking-widest">{{ __('Maturity') }}</span>
-                        <i class="fa-solid fa-award text-purple-500 text-xs"></i>
+                        <i class="fa-solid fa-award text-sky-500 text-xs"></i>
                     </div>
                     <div>
-                        <span class="text-2xl font-black tracking-tight text-purple-600">{{ number_format($session->overall_maturity_score, 2) }}</span>
+                        <span class="text-2xl font-black tracking-tight text-sky-600">{{ number_format($session->overall_maturity_score, 2) }}</span>
                         <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mt-0.5">{{ $maturityLabel }}</span>
                     </div>
                 </div>
@@ -206,7 +206,7 @@
             <div>
                 <div class="flex items-center justify-between mb-1">
                     <h3 class="font-black text-slate-900 tracking-tight text-base flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xs shrink-0">
+                        <div class="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xs shrink-0">
                             <i class="fa-solid fa-chart-column"></i>
                         </div>
                         {{ __('Maturity Distribution') }}
@@ -220,11 +220,11 @@
             </div>
 
             {{-- Chart 2 Summary Takeaway --}}
-            <div class="mt-3 p-3 bg-purple-50/70 border border-purple-100/80 rounded-2xl text-[11px] text-slate-700 flex items-start gap-2">
-                <i class="fa-solid fa-chart-column text-purple-600 mt-0.5 shrink-0 text-xs"></i>
+            <div class="mt-3 p-3 bg-sky-50/70 border border-sky-100/80 rounded-2xl text-[11px] text-slate-700 flex items-start gap-2">
+                <i class="fa-solid fa-chart-column text-sky-600 mt-0.5 shrink-0 text-xs"></i>
                 <div>
-                    <strong class="font-bold text-purple-950 block text-[9px] uppercase tracking-wider mb-0.5">{{ __('Maturity Summary') }}:</strong>
-                    <span>Session overall maturity score is <strong class="text-purple-700 font-bold">{{ number_format($session->overall_maturity_score, 2) }} / 5.00</strong> (Classification: <strong class="text-purple-900 font-bold">{{ $maturityLabel }}</strong>).</span>
+                    <strong class="font-bold text-sky-950 block text-[9px] uppercase tracking-wider mb-0.5">{{ __('Maturity Summary') }}:</strong>
+                    <span>Session overall maturity score is <strong class="text-sky-700 font-bold">{{ number_format($session->overall_maturity_score, 2) }} / 5.00</strong> (Classification: <strong class="text-sky-900 font-bold">{{ $maturityLabel }}</strong>).</span>
                 </div>
             </div>
         </div>
@@ -273,7 +273,7 @@
 
             <div class="mt-3 pt-3 border-t border-slate-100">
                 <h4 class="text-xs font-bold text-slate-800 mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-robot text-indigo-500"></i> {{ __('AI Summary Insights') }}
+                    <i class="fa-solid fa-robot text-blue-500"></i> {{ __('AI Summary Insights') }}
                 </h4>
                 @if($session->ai_summary)
                     <div class="text-xs text-slate-600 leading-relaxed max-h-24 overflow-y-auto prose prose-xs bg-slate-50 p-3 rounded-xl border border-slate-100">
@@ -291,7 +291,177 @@
         $excludedList = $excludedControls ?? collect();
     @endphp
 
-    <div x-data="{ activeTab: 'gaps' }" class="space-y-4">
+    <div x-data="{ 
+            activeTab: 'gaps',
+            showAiModal: false,
+            activeAiDetails: { code: '', title: '', rec: '', plan: '', insight: '', priority: '', validation: '', impact: '' },
+            openAiDetails(details) {
+                this.activeAiDetails = details;
+                this.showAiModal = true;
+            }
+        }" class="space-y-4">
+
+        {{-- Global AI Detail Modal --}}
+        <div x-show="showAiModal" 
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            x-cloak>
+            
+            <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-md" @click="showAiModal = false"></div>
+
+            <div class="relative bg-white rounded-3xl border border-slate-100 w-full max-w-3xl p-6 md:p-8 shadow-2xl space-y-6 z-10 overflow-hidden max-h-[90vh] overflow-y-auto"
+                @click.away="showAiModal = false">
+                
+                {{-- Header --}}
+                <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-5">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-600/20 shrink-0">
+                            <i class="fa-solid fa-robot text-xl"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2.5">
+                                <span class="px-2.5 py-0.5 bg-blue-50 border border-blue-100/90 text-blue-700 text-[11px] font-extrabold rounded-lg uppercase tracking-wider leading-none" x-text="activeAiDetails.code"></span>
+                                <span class="text-[10px] text-blue-500 font-extrabold uppercase tracking-widest leading-none">{{ __('AI COMPLIANCE SYNTHESIS') }}</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-900 tracking-tight leading-snug mt-1" x-text="activeAiDetails.title"></h3>
+                        </div>
+                    </div>
+                    <button @click="showAiModal = false" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-all flex items-center justify-center shrink-0 cursor-pointer">
+                        <i class="fa-solid fa-xmark text-base"></i>
+                    </button>
+                </div>
+
+                {{-- AI Analysis Accordion List --}}
+                <div class="space-y-3.5" x-data="{ openSection: 'rec' }">
+
+                    {{-- Section 1: Strategic Recommendation --}}
+                    <div class="rounded-2xl border transition-all overflow-hidden"
+                         :class="openSection === 'rec' ? 'border-blue-200/90 bg-blue-50/40 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
+                        <button type="button"
+                            @click="openSection = openSection === 'rec' ? null : 'rec'"
+                            class="w-full flex items-center justify-between gap-3 p-4 text-left cursor-pointer transition-colors"
+                            :class="openSection === 'rec' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                     :class="openSection === 'rec' ? 'bg-blue-600 text-white shadow-xs shadow-blue-600/20' : 'bg-slate-100 text-slate-400'">
+                                    <i class="fa-solid fa-lightbulb text-xs"></i>
+                                </div>
+                                <span class="text-xs font-black uppercase tracking-widest"
+                                      :class="openSection === 'rec' ? 'text-blue-700' : 'text-slate-600'">
+                                    {{ __('STRATEGIC RECOMMENDATION') }}
+                                </span>
+                            </div>
+                            <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
+                               :class="openSection === 'rec' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
+                        </button>
+                        <div x-show="openSection === 'rec'" x-collapse.duration.250ms>
+                            <div class="p-5 text-xs font-medium text-slate-600 leading-relaxed bg-blue-50/40 border-t border-blue-100/60 rounded-b-2xl">
+                                <p class="whitespace-pre-line" x-text="activeAiDetails.rec || '{{ __('No recommendation recorded.') }}'"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Section 2: Corrective Action Plan --}}
+                    <div class="rounded-2xl border transition-all overflow-hidden"
+                         :class="openSection === 'cap' ? 'border-blue-200/90 bg-blue-50/40 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
+                        <button type="button"
+                            @click="openSection = openSection === 'cap' ? null : 'cap'"
+                            class="w-full flex items-center justify-between gap-3 p-4 text-left cursor-pointer transition-colors"
+                            :class="openSection === 'cap' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                     :class="openSection === 'cap' ? 'bg-blue-600 text-white shadow-xs shadow-blue-600/20' : 'bg-slate-100 text-slate-400'">
+                                    <i class="fa-solid fa-list-check text-xs"></i>
+                                </div>
+                                <span class="text-xs font-black uppercase tracking-widest"
+                                      :class="openSection === 'cap' ? 'text-blue-700' : 'text-slate-600'">
+                                    {{ __('CORRECTIVE ACTION PLAN') }}
+                                </span>
+                            </div>
+                            <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
+                               :class="openSection === 'cap' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
+                        </button>
+                        <div x-show="openSection === 'cap'" x-collapse.duration.250ms>
+                            <div class="p-5 text-xs font-medium text-slate-600 leading-relaxed bg-blue-50/40 border-t border-blue-100/60 rounded-b-2xl">
+                                <p class="whitespace-pre-line" x-text="activeAiDetails.plan || '{{ __('No specific action plan drafted.') }}'"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Section 3: AI Audit Insight (Gap) --}}
+                    <div class="rounded-2xl border transition-all overflow-hidden"
+                         :class="openSection === 'gap' ? 'border-blue-200/90 bg-blue-50/40 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
+                        <button type="button"
+                            @click="openSection = openSection === 'gap' ? null : 'gap'"
+                            class="w-full flex items-center justify-between gap-3 p-4 text-left cursor-pointer transition-colors"
+                            :class="openSection === 'gap' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                     :class="openSection === 'gap' ? 'bg-blue-600 text-white shadow-xs shadow-blue-600/20' : 'bg-slate-100 text-slate-400'">
+                                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                                </div>
+                                <span class="text-xs font-black uppercase tracking-widest"
+                                      :class="openSection === 'gap' ? 'text-blue-700' : 'text-slate-600'">
+                                    {{ __('AI AUDIT INSIGHT (GAP)') }}
+                                </span>
+                            </div>
+                            <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
+                               :class="openSection === 'gap' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
+                        </button>
+                        <div x-show="openSection === 'gap'" x-collapse.duration.250ms>
+                            <div class="p-5 text-xs font-medium text-slate-600 leading-relaxed bg-blue-50/40 border-t border-blue-100/60 rounded-b-2xl">
+                                <p class="whitespace-pre-line" x-text="activeAiDetails.insight || '{{ __('Control shows solid operational alignment.') }}'"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Section 4: Impact Interpretation --}}
+                    <div class="rounded-2xl border transition-all overflow-hidden"
+                         :class="openSection === 'impact' ? 'border-blue-200/90 bg-blue-50/40 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
+                        <button type="button"
+                            @click="openSection = openSection === 'impact' ? null : 'impact'"
+                            class="w-full flex items-center justify-between gap-3 p-4 text-left cursor-pointer transition-colors"
+                            :class="openSection === 'impact' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                     :class="openSection === 'impact' ? 'bg-blue-600 text-white shadow-xs shadow-blue-600/20' : 'bg-slate-100 text-slate-400'">
+                                    <i class="fa-solid fa-triangle-exclamation text-xs"></i>
+                                </div>
+                                <span class="text-xs font-black uppercase tracking-widest"
+                                      :class="openSection === 'impact' ? 'text-blue-700' : 'text-slate-600'">
+                                    {{ __('IMPACT INTERPRETATION') }}
+                                </span>
+                            </div>
+                            <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
+                               :class="openSection === 'impact' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
+                        </button>
+                        <div x-show="openSection === 'impact'" x-collapse.duration.250ms>
+                            <div class="p-5 text-xs font-medium text-slate-600 leading-relaxed bg-blue-50/40 border-t border-blue-100/60 rounded-b-2xl">
+                                <p class="whitespace-pre-line" x-text="activeAiDetails.impact || '{{ __('No impact interpretation available.') }}'"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                {{-- Footer Badges --}}
+                <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3" x-show="activeAiDetails.priority">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ __('Risk Tier:') }}</span>
+                        <span class="px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-100 text-[9px] font-black rounded-lg uppercase tracking-wider leading-none" x-text="activeAiDetails.priority"></span>
+                    </div>
+                    <button type="button" @click="showAiModal = false" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer">
+                        {{ __('Close') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
         {{-- Tab Switcher Bar --}}
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 flex-wrap gap-3">
             <div class="flex items-center gap-1.5 p-1 bg-slate-100/90 rounded-2xl border border-slate-200/80">
@@ -373,6 +543,7 @@
                                 <th class="px-6 py-3.5 text-center">{{ __('Score') }}</th>
                                 <th class="px-6 py-3.5 text-center">{{ __('Gap') }}</th>
                                 <th class="px-6 py-3.5 text-center">{{ __('Risk Level') }}</th>
+                                <th class="px-6 py-3.5 text-right">{{ __('AI Analysis') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -411,6 +582,27 @@
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider {{ $riskBadge }}">
                                         {{ $risk }}
                                     </span>
+                                </td>
+                                <td class="px-6 py-3.5 text-right shrink-0">
+                                    @if($finding->ai_recommendation || $finding->control_insight || $finding->impact_interpretation)
+                                        <button type="button"
+                                            @click="openAiDetails({
+                                                code: '{{ $finding->standard->code ?? '' }}',
+                                                title: @js(__($finding->standard->title ?? '')),
+                                                rec: @js($finding->ai_recommendation ?? ''),
+                                                plan: @js(is_array($finding->corrective_action_plan) ? implode("\n", $finding->corrective_action_plan) : ($finding->corrective_action_plan ?? '')),
+                                                insight: @js(is_array($finding->control_insight) ? implode("\n", $finding->control_insight) : ($finding->control_insight ?? '')),
+                                                priority: @js($finding->calculated_risk_priority ?? ''),
+                                                validation: @js($finding->evidence_validation ?? ''),
+                                                impact: @js($finding->impact_interpretation ?? '')
+                                            })"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold transition-all shadow-sm shadow-blue-600/20 active:scale-95 cursor-pointer">
+                                            <i class="fa-solid fa-robot text-xs"></i>
+                                            <span>{{ __('Detail AI') }}</span>
+                                        </button>
+                                    @else
+                                        <span class="text-slate-400 font-medium text-xs">—</span>
+                                    @endif
                                 </td>
                             </tr>
                             @endforeach
