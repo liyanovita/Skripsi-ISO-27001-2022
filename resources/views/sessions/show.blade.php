@@ -88,7 +88,7 @@
                         <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">
                             {{ __('Score') }}: {{ number_format($session->overall_maturity_score, 1) }}/5
                         </span>
-                        @php $gapCount = $applicableResults->where('status', 'completed')->whereNotNull('maturity_rating')->where('maturity_rating', '<', 4)->count(); @endphp
+                        @php $gapCount = $session->results->where('is_applicable', true)->where('status', 'completed')->whereNotNull('maturity_rating')->where('maturity_rating', '<', 5)->count(); @endphp
                         @if($gapCount > 0)
                         <span class="text-slate-200">·</span>
                         <span class="text-[10px] font-bold text-rose-500 uppercase tracking-widest">

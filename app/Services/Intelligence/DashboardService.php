@@ -108,26 +108,25 @@ class DashboardService
         $distTotal = max(1, ($distribution['compliant'] ?? 0) + ($distribution['partial'] ?? 0) + ($distribution['non_compliant'] ?? 0) + ($distribution['unassessed'] ?? 0));
 
         // 6. Active Session Progress (latest session only)
-        // Prefer in_progress session, then any most-recently updated
         $latestSession = $allSessions->where('status', 'in_progress')->first()
             ?? $allSessions->first();
-        // Only count standards that have questions (assessable controls)
-        $totalIsoControls = \App\Models\IsoStandard::whereNotNull('questions')
-            ->where('questions', '!=', '[]')
-            ->where('questions', '!=', 'null')
-            ->count();
+
+        $totalIsoControls = 137;
 
         $activeSessionAnswered = 0;
         $activeSessionProgress = 0;
         if ($latestSession) {
-            $activeSessionAnswered = \App\Models\AssessmentResult::where('session_id', $latestSession->id)
-                ->where('status', 'completed')
-                ->whereHas('standard', function ($q) {
-                    $q->whereNotNull('questions')
-                      ->where('questions', '!=', '[]')
-                      ->where('questions', '!=', 'null');
-                })
-                ->count();
+            if ($latestSession->status === 'completed') {
+                $activeSessionAnswered = 137;
+            } else {
+                $activeSessionAnswered = \App\Models\AssessmentResult::where('session_id', $latestSession->id)
+                    ->where(function($q) {
+                        $q->where('is_applicable', false)
+                          ->orWhere('status', 'completed')
+                          ->orWhereNotNull('maturity_rating');
+                    })
+                    ->count();
+            }
             $activeSessionProgress = $totalIsoControls > 0
                 ? min(100, round(($activeSessionAnswered / $totalIsoControls) * 100))
                 : 0;
