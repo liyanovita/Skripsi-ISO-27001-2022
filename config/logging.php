@@ -57,7 +57,6 @@ return [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
-            'permission' => 0666,
         ],
 
         'daily' => [
@@ -65,7 +64,6 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => 14,
-            'permission' => 0666,
         ],
 
         'slack' => [
@@ -123,7 +121,6 @@ return [
             'path' => storage_path('logs/audit.log'),
             'level' => 'info',
             'days' => 90,
-            'permission' => 0666,
         ],
 
         'security' => [
@@ -131,7 +128,6 @@ return [
             'path' => storage_path('logs/security.log'),
             'level' => 'info',
             'days' => 90,
-            'permission' => 0666,
         ],
 
         'api' => [
@@ -139,7 +135,6 @@ return [
             'path' => storage_path('logs/api.log'),
             'level' => 'debug',
             'days' => 30,
-            'permission' => 0666,
         ],
 
         'performance' => [
@@ -147,7 +142,6 @@ return [
             'path' => storage_path('logs/performance.log'),
             'level' => 'debug',
             'days' => 30,
-            'permission' => 0666,
         ],
 
         'database' => [
@@ -155,7 +149,6 @@ return [
             'path' => storage_path('logs/database.log'),
             'level' => 'debug',
             'days' => 14,
-            'permission' => 0666,
         ],
 
         'errors' => [
@@ -163,7 +156,6 @@ return [
             'path' => storage_path('logs/errors.log'),
             'level' => 'error',
             'days' => 60,
-            'permission' => 0666,
         ],
 
         'webhooks' => [
@@ -171,7 +163,6 @@ return [
             'path' => storage_path('logs/webhooks.log'),
             'level' => 'info',
             'days' => 30,
-            'permission' => 0666,
         ],
 
         'cache' => [
@@ -179,7 +170,6 @@ return [
             'path' => storage_path('logs/cache.log'),
             'level' => 'debug',
             'days' => 14,
-            'permission' => 0666,
         ],
     ],
 

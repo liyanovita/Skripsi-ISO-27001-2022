@@ -45,7 +45,11 @@ class AuditLogger
             'data' => $data,
         ];
 
-        Log::channel('audit')->info("User Action: {$action}", $logData);
+        try {
+            Log::channel('audit')->info("User Action: {$action}", $logData);
+        } catch (\Throwable $e) {
+            // Silently ignore log write failures (e.g. log file permission issues in CLI/Seeder)
+        }
     }
 
     /**
@@ -75,11 +79,15 @@ class AuditLogger
             'details' => $details,
         ];
 
-        Log::channel('security')->log(
-            $severity === 'critical' ? 'critical' : ($severity === 'warning' ? 'warning' : 'info'),
-            "Security Event: {$event}",
-            $logData
-        );
+        try {
+            Log::channel('security')->log(
+                $severity === 'critical' ? 'critical' : ($severity === 'warning' ? 'warning' : 'info'),
+                "Security Event: {$event}",
+                $logData
+            );
+        } catch (\Throwable $e) {
+            // Silently ignore log write failures
+        }
     }
 
     /**
@@ -112,11 +120,15 @@ class AuditLogger
             'metadata' => $metadata,
         ];
 
-        // Log slow requests
-        if ($duration > 1000) {
-            Log::channel('performance')->warning("Slow API Request: {$method} {$path}", $logData);
-        } else {
-            Log::channel('api')->info("API Request: {$method} {$path}", $logData);
+        try {
+            // Log slow requests
+            if ($duration > 1000) {
+                Log::channel('performance')->warning("Slow API Request: {$method} {$path}", $logData);
+            } else {
+                Log::channel('api')->info("API Request: {$method} {$path}", $logData);
+            }
+        } catch (\Throwable $e) {
+            // Silently ignore log write failures
         }
     }
 
@@ -151,7 +163,11 @@ class AuditLogger
             'changes' => self::calculateChanges($oldValues, $newValues),
         ];
 
-        Log::channel('audit')->info("Data Modification: {$entity} {$action}", $logData);
+        try {
+            Log::channel('audit')->info("Data Modification: {$entity} {$action}", $logData);
+        } catch (\Throwable $e) {
+            // Silently ignore log write failures
+        }
     }
 
     /**
