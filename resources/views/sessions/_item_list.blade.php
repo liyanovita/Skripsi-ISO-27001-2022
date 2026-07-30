@@ -12,7 +12,7 @@
         </button>
     </div>
 
-    <div x-show="showGuide" x-collapse x-cloak class="mt-5 space-y-5">
+    <div x-show="showGuide" x-collapse class="mt-5 space-y-5">
         {{-- Protocol steps --}}
         <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-xl relative overflow-hidden">
             <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -63,10 +63,10 @@
                 ];
             @endphp
             @foreach($guides as $v => $g)
-            <div class="p-3 rounded-xl border {{ $g['color'] }} flex flex-col items-center justify-center text-center group hover:scale-[1.02] transition-all bg-white shadow-sm">
+            <div class="p-3 rounded-xl border {{ $g['color'] }} flex flex-col items-center justify-center text-center group hover:scale-[1.02] transition-all shadow-2xs">
                 <span class="text-xl font-black leading-none mb-1">{{ $v }}</span>
                 <span class="text-[7px] font-bold uppercase tracking-widest leading-none mb-1.5">{{ __($g['title']) }}</span>
-                <p class="text-[8px] font-medium leading-tight opacity-70 px-1">{{ __($g['desc']) }}</p>
+                <p class="text-[8px] font-medium leading-tight opacity-85 px-1">{{ __($g['desc']) }}</p>
             </div>
             @endforeach
         </div>
@@ -378,7 +378,7 @@
             </div>
 
             {{-- Card Body --}}
-            <div x-show="open" x-collapse x-cloak>
+            <div x-show="open" x-collapse>
                 <form x-ref="form" action="{{ route('results.update', $result->id) }}" method="POST" class="p-5 space-y-5 border-t border-slate-100">
                     @csrf
                     <fieldset @if($session->isLockedForUser(auth()->user())) disabled class="opacity-75 pointer-events-none select-none" @endif>

@@ -141,16 +141,23 @@
                 <div class="p-4 bg-white rounded-2xl border border-slate-200 space-y-1.5 shadow-xs">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">{{ __('Initial Evidence File (Uploaded Evidence)') }}</span>
                     @if($capa->evidence_file)
-                        <div class="flex items-center justify-between gap-2 p-2.5 bg-blue-50/60 rounded-xl border border-blue-100">
-                            <div class="flex items-center gap-2 truncate">
-                                <i class="fa-solid fa-file-arrow-down text-blue-600 text-sm"></i>
-                                <span class="text-xs font-bold text-blue-900 truncate">{{ basename($capa->evidence_file) }}</span>
-                            </div>
-                            <a href="{{ Storage::url($capa->evidence_file) }}" target="_blank" 
-                               class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold shrink-0 transition-colors shadow-xs">
-                                <i class="fa-solid fa-eye"></i> {{ __('View Evidence') }}
-                            </a>
-                        </div>
+                        @php
+                            $capaFilesList = is_array($capa->evidence_file) ? $capa->evidence_file : [$capa->evidence_file];
+                        @endphp
+                        @foreach($capaFilesList as $file)
+                            @if(is_string($file) && !empty($file))
+                                <div class="flex items-center justify-between gap-2 p-2.5 bg-blue-50/60 rounded-xl border border-blue-100 mb-1">
+                                    <div class="flex items-center gap-2 truncate">
+                                        <i class="fa-solid fa-file-arrow-down text-blue-600 text-sm"></i>
+                                        <span class="text-xs font-bold text-blue-900 truncate">{{ basename($file) }}</span>
+                                    </div>
+                                    <a href="{{ Storage::url($file) }}" target="_blank" 
+                                       class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold shrink-0 transition-colors shadow-xs">
+                                        <i class="fa-solid fa-eye"></i> {{ __('View Evidence') }}
+                                    </a>
+                                </div>
+                            @endif
+                        @endforeach
                     @else
                         <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-[11px] text-slate-400 italic">
                             <i class="fa-solid fa-circle-info mr-1"></i> {{ __('No supporting evidence uploaded during initial assessment.') }}

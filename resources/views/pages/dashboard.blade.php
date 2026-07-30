@@ -44,13 +44,11 @@
             </div>
             <h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-3 flex-wrap">
                 <span>{{ __('Welcome Back') }}, <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-600 font-black">{{ auth()->user()->name }}</span>!</span>
-                @if(isset($assessorBadge))
-                <span class="px-2 py-0.5 rounded-lg border text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 {{ $assessorBadge['color'] }} shadow-sm">
-                    <i class="fa-solid {{ $assessorBadge['icon'] }}"></i> {{ $assessorBadge['title'] }}
-                </span>
-                @endif
             </h1>
-            <p class="text-sm text-slate-500 font-medium mt-0.5">{{ __('Here is the aggregate overview of your ISO 27001:2022 compliance posture.') }}</p>
+            <p class="text-sm text-slate-500 font-medium mt-0.5 flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-info text-blue-500 text-xs shrink-0"></i>
+                <span>{{ __('Here is the aggregate average overview from all completed ISO 27001:2022 audit sessions.') }}</span>
+            </p>
         </div>
     </div>
 
@@ -61,7 +59,7 @@
         <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between h-[122px]">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Compliance Score') }}</p>
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Overall Compliance Score') }}</p>
                     <div class="flex items-baseline gap-2 mt-1">
                         <h3 class="text-2xl font-black text-emerald-600 tracking-tight">{{ $complianceScore }}%</h3>
                         @php
@@ -123,7 +121,7 @@
         <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between h-[122px] text-slate-700">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Risk Priority') }}</p>
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Overall Risk Priority') }}</p>
                     <div class="flex items-baseline gap-2 mt-1">
                         @php
                             $riskColor = match($riskPriority) {
@@ -138,22 +136,15 @@
                             };
                         @endphp
                         <h3 class="text-2xl font-black {{ $riskColor }} tracking-tight">{{ __($riskPriority) }}</h3>
-                        <span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase tracking-wider {{ $riskColorBadge }}">
-                            {{ $totalGaps }} {{ __('Gaps') }}
-                        </span>
                     </div>
                 </div>
                 <div class="w-9 h-9 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center border border-rose-100 group-hover:bg-rose-600 group-hover:text-white transition-all duration-300 shadow-sm">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
             </div>
-            <div class="pt-1 border-t border-slate-100">
-                <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-widest text-slate-450">
-                    <span class="text-rose-500">{{ $highRiskGapsCount }} {{ __('High') }}</span>
-                    <span>&bull;</span>
-                    <span class="text-amber-500">{{ $mediumRiskGapsCount }} {{ __('Medium') }}</span>
-                    <span>&bull;</span>
-                    <span class="text-emerald-500">{{ $lowRiskGapsCount }} {{ __('Low') }}</span>
+            <div>
+                <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full {{ $riskPriority === 'High' ? 'bg-rose-500' : ($riskPriority === 'Medium' ? 'bg-amber-500' : 'bg-emerald-500') }} rounded-full" style="width: {{ min(100, round(($totalGaps / 137) * 100)) }}%"></div>
                 </div>
             </div>
         </div>
@@ -206,7 +197,7 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            @foreach($allSessions->take(6) as $session)
+            @foreach($allSessions->take(3) as $session)
             @php
                 $score = $session->overall_maturity_score > 0 ? (float)$session->overall_maturity_score : ((float)$session->calculateMaturityScore() ?: 0.0);
                 $pct = round(($score / 5) * 100);
@@ -251,26 +242,8 @@
         </div>
     </div>
 
-    {{-- Compliance Trend - Full Width --}}
-    <div class="mt-5 mb-5">
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-            <h3 class="text-sm font-bold text-slate-900 mb-4">{{ __('Compliance Trend over Time') }}</h3>
-            <div class="relative w-full" style="height: 280px;">
-                @if(count($trendData['data']) >= 1)
-                    <canvas id="complianceTrendChart" style="display:block; width:100%; height:280px;"></canvas>
-                @else
-                    <div class="flex flex-col items-center justify-center h-full text-center">
-                        <i class="fa-solid fa-chart-line text-3xl text-slate-200 mb-2"></i>
-                        <p class="text-xs font-bold text-slate-400">{{ __('No completed sessions yet') }}</p>
-                        <p class="text-[10px] text-slate-400 mt-1">{{ __('Complete an audit session to see the trend.') }}</p>
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
-
     {{-- Analytics & Insights Grid --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5 mt-5">
 
         {{-- Compliance Radar Chart --}}
         <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full min-h-[300px]">
@@ -292,7 +265,7 @@
             <div class="absolute -right-8 -top-8 w-28 h-28 bg-white/10 rounded-full blur-3xl"></div>
 
             <div class="flex items-center gap-3 mb-4 relative z-10 shrink-0">
-                <h3 class="text-sm font-bold tracking-tight">{{ __('Compliance & Maturity Overview') }}</h3>
+                <h3 class="text-sm font-bold tracking-tight">{{ __('Global Overview') }}</h3>
                 <span class="ml-auto px-2 py-0.5 bg-blue-500/50 text-blue-100 rounded-lg text-[9px] font-black uppercase tracking-widest border border-blue-400/30">{{ __('Auto Generated') }}</span>
             </div>
 
@@ -309,6 +282,24 @@
             </div>
         </div>
 
+    </div>
+
+    {{-- Compliance Trend - Full Width --}}
+    <div class="mb-5">
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+            <h3 class="text-sm font-bold text-slate-900 mb-4">{{ __('Compliance Trend over Time') }}</h3>
+            <div class="relative w-full" style="height: 280px;">
+                @if(count($trendData['data']) >= 1)
+                    <canvas id="complianceTrendChart" style="display:block; width:100%; height:280px;"></canvas>
+                @else
+                    <div class="flex flex-col items-center justify-center h-full text-center">
+                        <i class="fa-solid fa-chart-line text-3xl text-slate-200 mb-2"></i>
+                        <p class="text-xs font-bold text-slate-400">{{ __('No completed sessions yet') }}</p>
+                        <p class="text-[10px] text-slate-400 mt-1">{{ __('Complete an audit session to see the trend.') }}</p>
+                    </div>
+                @endif
+            </div>
+        </div>
     </div>
 
     {{-- Live Audit Trail Row --}}
@@ -365,9 +356,9 @@
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Improvement Tracking') }}</p>
                 </div>
             </div>
-            <span class="px-2.5 py-1 bg-blue-50 text-blue-600 border border-blue-100 text-[9px] font-bold rounded-lg uppercase tracking-widest">
-                {{ $activeTasks->count() }} {{ __('Active') }}
-            </span>
+            <a href="{{ route('workspace.index') }}" class="text-[10px] font-bold text-blue-600 hover:underline uppercase tracking-widest">
+                {{ __('Manage All') }} →
+            </a>
         </div>
 
         <div class="overflow-x-auto overflow-y-auto max-h-[350px] border border-slate-100 rounded-xl">
@@ -381,7 +372,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
-                    @foreach($activeTasks as $task)
+                    @foreach($activeTasks->take(5) as $task)
                     @php
                         $isOverdue = $task->treatment_due_date->isPast();
                         $daysLeft = $task->treatment_due_date->startOfDay()->diffInDays(now()->startOfDay());

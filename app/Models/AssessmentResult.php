@@ -21,6 +21,7 @@ class AssessmentResult extends Model
         'corrective_action_plan' => 'array',
         'control_insight' => 'array',
         'evidence_file' => 'array',
+        'evidence_after_improvement' => 'array',
         'is_applicable' => 'boolean',
         'treatment_due_date' => 'date',
         'treatment_progress' => 'integer',
@@ -47,14 +48,16 @@ class AssessmentResult extends Model
             
             foreach ($trackedFields as $field) {
                 if ($result->wasChanged($field)) {
+                    $oldVal = $result->getOriginal($field);
+                    $newVal = $result->$field;
                     AuditTrail::create([
                         'user_id' => auth()->id(),
                         'model_type' => get_class($result),
                         'model_id' => $result->id,
                         'action' => 'updated',
                         'field_changed' => $field,
-                        'old_value' => $result->getOriginal($field),
-                        'new_value' => $result->$field,
+                        'old_value' => is_array($oldVal) ? json_encode($oldVal) : (string)$oldVal,
+                        'new_value' => is_array($newVal) ? json_encode($newVal) : (string)$newVal,
                     ]);
                 }
             }

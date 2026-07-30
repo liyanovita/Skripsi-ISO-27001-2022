@@ -21,9 +21,18 @@ class WorkspaceService
      */
     public function getWorkspaceData(int $userId, ?int $selectedId): array
     {
-        // Load sessions with results and standards in one query
+        $user = auth()->user();
+        // Load sessions with results and standards in one query (only completed sessions for regular users)
         $sessions = AssessmentSession::with(['results.standard'])
-            ->when(!auth()->user() || !auth()->user()->isAdmin(), fn($q) => $q->where(function($q) use ($userId) { $q->where('user_id', $userId)->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId)); }))
+            ->when($user && !$user->isAdmin(), function($q) use ($userId, $user) {
+                $q->where(function($sq) use ($userId, $user) {
+                    $sq->where('user_id', $userId)
+                       ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId));
+                    if ($user?->organization_id) {
+                        $sq->orWhere('organization_id', $user->organization_id);
+                    }
+                })->where('status', 'completed');
+            })
             ->orderByDesc('created_at')
             ->get();
 
@@ -68,36 +77,30 @@ class WorkspaceService
      * - Verify ownership with single query
      * - Only update changed fields
      */
-    public function updateEntry(int $resultId, int $userId, array $data): AssessmentResult
+    public function updateEntry($resultId, int $userId, array $data): AssessmentResult
     {
+        $id = $resultId instanceof AssessmentResult ? $resultId->id : (int) $resultId;
         $user = auth()->user();
         $query = AssessmentResult::with(['standard', 'session']);
         if (!$user || !$user->isAdmin()) {
-            $query->whereHas('session', function($q) use ($userId) {
-                $q->where('user_id', $userId)
-                  ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId));
+            $query->whereHas('session', function($q) use ($userId, $user) {
+                $q->where(function($sq) use ($userId, $user) {
+                    $sq->where('user_id', $userId)
+                       ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId))
+                       ->orWhereHas('results', function($rq) use ($userId, $user) {
+                           $rq->where('treatment_pic', (string) $userId)
+                              ->when($user?->name, fn($nq) => $nq->orWhere('treatment_pic', $user->name));
+                       });
+                    if ($user?->organization_id) {
+                        $sq->orWhere('organization_id', $user->organization_id);
+                    }
+                });
             });
         }
-        $result = $query->findOrFail($resultId);
+        $result = $query->findOrFail($id);
 
-        $isLead = false;
-        if ($user) {
-            $isLead = $user->isAdmin() || 
-                      ($result->session->user_id === $user->id) || 
-                      $result->session->invitedUsers()
-                          ->where('assessment_session_users.user_id', $user->id)
-                          ->where('assessment_session_users.role', 'lead')
-                          ->exists();
-        }
-
-        if ($user && !$user->isAdmin()) {
-            if ($result->session->isLockedForUser($user) || $result->session->status === 'completed') {
-                abort(403, __('This audit session is completed and locked. Modifications are disabled.'));
-            }
-            $isPic = ($result->treatment_pic == $user->id) || ($result->treatment_pic === $user->name);
-            if (!$isLead && !$isPic) {
-                abort(403, __('Unauthorized. You are not the assigned PIC for this control.'));
-            }
+        if ($result->session && $result->session->isLockedForUser($user)) {
+            abort(403, __('This audit session is locked for updates.'));
         }
 
         $updateData = [];
@@ -114,14 +117,12 @@ class WorkspaceService
         }
         $assignedUser = null;
         if (array_key_exists('treatment_pic', $data)) {
-            if ($isLead) {
-                $newPic = $data['treatment_pic'];
-                $oldPic = $result->treatment_pic;
-                if ($newPic !== $oldPic) {
-                    $updateData['treatment_pic'] = $newPic;
-                    if (!empty($newPic)) {
-                        $assignedUser = User::where('name', $newPic)->first();
-                    }
+            $newPic = $data['treatment_pic'];
+            $oldPic = $result->treatment_pic;
+            if ($newPic !== $oldPic) {
+                $updateData['treatment_pic'] = $newPic;
+                if (!empty($newPic)) {
+                    $assignedUser = User::where('name', $newPic)->first();
                 }
             }
         }

@@ -142,6 +142,7 @@ Route::middleware(['auth'])->group(function () {
     
     // Intelligence Domain - Reports
     Route::get('/reports/pdf/{session}', [ReportController::class, 'exportPdf'])->name('reports.export-pdf');
+    Route::get('/reports/result-pdf/{session}', [ReportController::class, 'exportResultPdf'])->name('reports.export-result-pdf');
     Route::get('/reports/excel/{session}', [ReportController::class, 'exportExcel'])->name('reports.export-excel');
     
     // Intelligence Domain - AI Summary
@@ -150,7 +151,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Compliance Domain - Workspace
     Route::get('/workspace', [WorkspaceController::class, 'index'])->name('workspace.index');
-    Route::patch('/workspace/entry/{result}', [WorkspaceController::class, 'updateSingle'])->name('workspace.entry.update');
+    Route::get('/workspace/remediate/{result}', [WorkspaceController::class, 'remediate'])->name('workspace.remediate');
+    Route::match(['POST', 'PATCH'], '/workspace/entry/{result}', [WorkspaceController::class, 'updateSingle'])->name('workspace.entry.update');
     Route::get('/workspace/{session_id}/export-soa', [WorkspaceController::class, 'exportSoa'])->name('workspace.export-soa');
     Route::get('/workspace/{session_id}/export-soa-pdf', [WorkspaceController::class, 'exportSoaPdf'])->name('workspace.export-soa-pdf');
 

@@ -18,6 +18,19 @@ class UpdateWorkspaceEntryRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'treatment_due_date' => $this->input('treatment_due_date') ?: null,
+            'treatment_pic' => $this->input('treatment_pic') ?: null,
+            'soa_justification' => $this->input('soa_justification') ?: null,
+            'notes' => $this->input('notes') ?: null,
+        ]);
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      */
     public function rules(): array

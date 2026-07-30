@@ -109,7 +109,7 @@
                                 @if($session->trashed())
                                   <div class="block opacity-70">
                                       <p class="text-sm font-bold text-slate-900 tracking-tight">{{ $session->name }}</p>
-                                      <div class="flex items-center gap-2 mt-1">
+                                      <div class="flex items-center gap-2 mt-1 flex-wrap">
                                           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
                                               <i class="fa-solid fa-calendar text-[8px] opacity-40"></i> {{ $session->created_at->format('d M Y') }}
                                           </p>
@@ -142,7 +142,11 @@
                                                 <i class="fa-solid fa-hourglass-half text-[8px]"></i> {{ __('Deadline') }}: {{ $session->deadline->format('d M Y') }}
                                             </span>
                                         @endif
-                                        @if($session->user_id !== auth()->id())
+                                        @if($session->user_id === auth()->id())
+                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-600 border border-indigo-200">
+                                                <i class="fa-solid fa-user-shield text-[8px]"></i> {{ __('Lead') }}
+                                            </span>
+                                        @else
                                             <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-200">
                                                 <i class="fa-solid fa-user-plus text-[8px]"></i> {{ __('Invited') }}
                                             </span>
@@ -195,8 +199,8 @@
                                         @endif
                                         <span>{{ $session->status == 'completed' ? __('Completed') : ($session->status == 'draft' ? __('Draft') : __('In Progress')) }}</span>
 
-                                        @if($session->status === 'completed' || $session->status === 'closed' || $session->isPastDeadline() || $session->isLockedForUser(auth()->user()))
-                                            <span class="px-1.5 py-0.2 bg-amber-100 text-amber-800 rounded border border-amber-200 text-[8px] font-black uppercase tracking-wider flex items-center gap-1 ml-0.5" title="{{ $session->getLockReason(auth()->user()) ?? __('Completed / Locked') }}">
+                                        @if($session->isLockedForUser(auth()->user()))
+                                            <span class="px-1.5 py-0.2 bg-amber-100 text-amber-800 rounded border border-amber-200 text-[8px] font-black uppercase tracking-wider flex items-center gap-1 ml-0.5" title="{{ __('Locked for editing') }}">
                                                 <i class="fa-solid fa-lock text-[7px] text-amber-600"></i> {{ __('Locked') }}
                                             </span>
                                         @endif

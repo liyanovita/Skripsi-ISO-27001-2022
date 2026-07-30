@@ -82,7 +82,7 @@ class AssessmentSession extends Model
             return false;
         }
 
-        if (in_array($this->status, ['completed', 'closed'])) {
+        if ($this->status === 'closed') {
             return true;
         }
 

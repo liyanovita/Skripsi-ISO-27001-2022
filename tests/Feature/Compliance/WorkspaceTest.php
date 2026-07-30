@@ -95,11 +95,12 @@ class WorkspaceTest extends TestCase
         $this->assertSame('in_progress', $result->refresh()->treatment_status);
     }
 
-    public function test_non_pic_user_cannot_update_workspace_entry(): void
+    public function test_invited_session_user_can_update_workspace_entry(): void
     {
         [$user, $session, $result] = $this->createWorkspaceFixture();
+        $result->update(['treatment_pic' => $user->name]);
         
-        // Create another user who is invited as auditor (collaborator, not lead)
+        // Create another user who is invited as auditor (collaborator, joined in session)
         $auditorUser = User::factory()->create();
         $session->invitedUsers()->attach($auditorUser->id, ['role' => 'auditor']);
 
@@ -109,8 +110,8 @@ class WorkspaceTest extends TestCase
                 'treatment_status' => 'closed',
             ]);
 
-        $response->assertForbidden();
-        $this->assertSame('open', $result->refresh()->treatment_status);
+        $response->assertOk()->assertJsonPath('success', true);
+        $this->assertSame('closed', $result->refresh()->treatment_status);
     }
 
     public function test_workspace_entry_cannot_be_updated_by_unrelated_user(): void
@@ -279,7 +280,7 @@ class WorkspaceTest extends TestCase
         $session = AssessmentSession::create([
             'user_id' => $user->id,
             'name' => 'Internal Audit 2026',
-            'status' => 'in_progress',
+            'status' => 'completed',
             'overall_maturity_score' => 2.00,
         ]);
 

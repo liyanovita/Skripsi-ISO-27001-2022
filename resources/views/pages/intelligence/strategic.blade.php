@@ -15,9 +15,9 @@
     
     {{-- Header with Session Filter --}}
     <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+            <div class="flex items-center gap-3 shrink-0">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20 shrink-0">
                     <i class="fa-solid fa-microchip text-lg"></i>
                 </div>
                 <div class="leading-none">
@@ -25,11 +25,12 @@
                     <p class="text-slate-400 font-bold uppercase tracking-widest text-[8px] mt-0.5">{{ __('Unified Strategic Reporting & Technical Analysis') }}</p>
                 </div>
             </div>
-            <div class="flex items-center gap-4">
-                <form action="{{ route('reports.strategic') }}" method="GET" id="hubFilter" class="flex items-center gap-3">
-                    <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none hidden md:block">{{ __('Session:') }}</label>
+
+            <div class="flex flex-wrap items-center justify-start xl:justify-end gap-3">
+                <form action="{{ route('reports.strategic') }}" method="GET" id="hubFilter" class="flex items-center gap-2">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none hidden sm:inline">{{ __('Session:') }}</span>
                     <select name="session_id" onchange="document.getElementById('hubFilter').requestSubmit()" 
-                        class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-600/5 transition-all min-w-[260px] cursor-pointer shadow-sm">
+                        class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-600/5 focus:border-blue-500 transition-all min-w-[240px] sm:min-w-[280px] cursor-pointer shadow-sm">
                         @if($sessions && $sessions->count() > 0)
                             @foreach($sessions as $session)
                                 <option value="{{ $session->id }}" {{ $selectedId == $session->id ? 'selected' : '' }}>
@@ -41,6 +42,18 @@
                         @endif
                     </select>
                 </form>
+
+                @if($latestSession)
+                <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('reports.export-result-pdf', $latestSession->id) }}" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-md shadow-blue-600/20 transition-all flex items-center gap-1.5 shrink-0" title="{{ __('Export Full Assessment Result PDF Report') }}">
+                        <i class="fa-solid fa-file-pdf text-white text-[10px]"></i>{{ __('Result PDF') }}</a>
+                    <a href="{{ route('workspace.export-soa', $latestSession->id) }}" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-md shadow-emerald-600/20 transition-all flex items-center gap-1.5 shrink-0" title="{{ __('Export Statement of Applicability Excel') }}">
+                        <i class="fa-solid fa-file-excel text-white text-[10px]"></i>{{ __('SoA Excel') }}</a>
+                    <a href="{{ route('workspace.export-soa-pdf', $latestSession->id) }}" class="px-3 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-md shadow-emerald-700/20 transition-all flex items-center gap-1.5 shrink-0" title="{{ __('Export Statement of Applicability PDF') }}">
+                        <i class="fa-solid fa-file-pdf text-white text-[10px]"></i>{{ __('SoA PDF') }}</a>
+                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -224,18 +237,12 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 leading-none">
                 <h2 class="text-xs font-black text-white tracking-tight uppercase flex items-center gap-2">
                     <i class="fa-solid fa-sparkles text-blue-400 text-xs"></i>{{ __('AI Analysis') }}</h2>
-                @if($latestSession)
+                @if($latestSession && $latestSession->status === 'completed' && empty($latestSession->ai_summary))
                 <div class="flex flex-wrap items-center gap-2">
-                    <a href="{{ route('reports.export-pdf', $latestSession->id) }}" class="px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/40 text-rose-100 rounded-xl text-[8px] font-black uppercase tracking-widest border border-rose-500/30 transition-all flex items-center gap-1.5">
-                        <i class="fa-solid fa-file-pdf text-rose-400"></i>{{ __('PDF') }}</a>
-                    <a href="{{ route('reports.export-excel', $latestSession->id) }}" class="px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-100 rounded-xl text-[8px] font-black uppercase tracking-widest border border-emerald-500/30 transition-all flex items-center gap-1.5">
-                        <i class="fa-solid fa-file-excel text-emerald-400"></i>{{ __('Excel') }}</a>
-                    @if($latestSession->status === 'completed')
-                    <button @click="triggerAISummary()" :disabled="isGenerating" id="btn-generate-summary" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[8px] font-black uppercase tracking-widest border border-white/10 disabled:opacity-50 transition-all sm:ml-1">
-                        <i class="fa-solid fa-arrows-rotate mr-1" :class="isGenerating && 'animate-spin'"></i>
-                        <span x-text="isGenerating ? '{{ __('Synthesizing...') }}' : '{{ __('Regenerate') }}'"></span>
+                    <button @click="triggerAISummary()" :disabled="isGenerating" id="btn-generate-summary" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[8px] font-black uppercase tracking-widest border border-blue-500/30 disabled:opacity-50 transition-all sm:ml-1 shadow-md shadow-blue-600/20">
+                        <i class="fa-solid fa-sparkles mr-1" :class="isGenerating && 'animate-spin'"></i>
+                        <span x-text="isGenerating ? '{{ __('Synthesizing...') }}' : '{{ __('Generate AI Analysis') }}'"></span>
                     </button>
-                    @endif
                 </div>
                 @endif
             </div>
@@ -822,9 +829,18 @@
                                                             </span>
                                                             <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 text-xs text-slate-700 font-medium flex items-center justify-between">
                                                                 @if($result->evidence_file)
-                                                                    <a href="{{ \Illuminate\Support\Facades\Storage::url($result->evidence_file) }}" target="_blank" class="inline-flex items-center gap-1.5 font-bold text-blue-600 hover:underline">
-                                                                        <i class="fa-solid fa-file-pdf text-rose-500"></i> View Uploaded Evidence Document
-                                                                    </a>
+                                                                    @php
+                                                                        $evidenceFilesList = is_array($result->evidence_file) ? $result->evidence_file : [$result->evidence_file];
+                                                                    @endphp
+                                                                    <div class="flex flex-wrap gap-2">
+                                                                        @foreach($evidenceFilesList as $file)
+                                                                            @if(is_string($file) && !empty($file))
+                                                                                <a href="{{ \Illuminate\Support\Facades\Storage::url($file) }}" target="_blank" class="inline-flex items-center gap-1.5 font-bold text-blue-600 hover:underline">
+                                                                                    <i class="fa-solid fa-file-pdf text-rose-500"></i> {{ basename($file) }}
+                                                                                </a>
+                                                                            @endif
+                                                                        @endforeach
+                                                                    </div>
                                                                 @else
                                                                     <span class="text-slate-400 italic">No evidence document uploaded for this control</span>
                                                                 @endif

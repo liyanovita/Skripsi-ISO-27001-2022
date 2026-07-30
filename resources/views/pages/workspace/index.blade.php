@@ -20,14 +20,64 @@
         'isCritical' => $finding->risk_level === 'Critical' || $finding->maturity_rating <= 1,
         'isApplicable' => (bool) $finding->is_applicable,
     ])->values();
+
+    $resultDataMap = $results->mapWithKeys(function($result) {
+        $evidenceFiles = is_array($result->evidence_file) ? $result->evidence_file : (empty($result->evidence_file) ? [] : [$result->evidence_file]);
+        $mappedFiles = [];
+        foreach ($evidenceFiles as $file) {
+            $mappedFiles[] = [
+                'name' => basename($file),
+                'url'  => route('results.evidence', [$result->id, 'file' => $file])
+            ];
+        }
+        $aiPlanText = is_array($result->corrective_action_plan) 
+            ? implode("\n", array_map(fn($item) => is_array($item) ? implode(' ', $item) : (string)$item, $result->corrective_action_plan)) 
+            : ($result->corrective_action_plan ?? '');
+        $aiInsightText = $result->control_insight ?? $result->ai_recommendation ?? '';
+
+        $complianceStatus = match(true) {
+            !$result->is_applicable => __('Not Applicable'),
+            $result->status !== 'completed' => __('Pending'),
+            $result->maturity_rating >= 4 => __('Compliant'),
+            $result->maturity_rating >= 2 => __('Partially Compliant'),
+            default => __('Non-Compliant'),
+        };
+
+        $riskLevelLabel = $result->calculated_risk_priority ?? $result->risk_level ?? 'Low';
+        $dueDate = optional($result->treatment_due_date)->toDateString() ?? '';
+        $status = $result->treatment_status ?? 'open';
+
+        return [(string)$result->id => [
+            'id' => $result->id,
+            'code' => $result->standard->code ?? '',
+            'title' => __($result->standard->title ?? ''),
+            'complianceStatus' => $complianceStatus,
+            'riskLevel' => $riskLevelLabel,
+            'maturity' => $result->maturity_rating ?? 0,
+            'gap' => 5 - ($result->maturity_rating ?? 0),
+            'justification' => $result->soa_justification ?? '',
+            'auditEvidence' => is_array($result->evidence_file) ? implode(', ', $result->evidence_file) : ($result->evidence_file ?? ''),
+            'auditNotes' => $result->notes ?? '',
+            'aiPlan' => $aiPlanText,
+            'aiInsight' => $aiInsightText,
+            'rec' => $result->ai_recommendation ?? '',
+            'priority' => $result->calculated_risk_priority ?? '',
+            'validation' => $result->evidence_validation ?? '',
+            'impact' => $result->impact_interpretation ?? '',
+            'pic' => $result->treatment_pic ?? '',
+            'dueDate' => $dueDate,
+            'status' => $status,
+            'notes' => $result->notes ?? '',
+            'files' => $mappedFiles,
+        ]];
+    });
 @endphp
 <div class="max-w-[1600px] mx-auto space-y-3 pb-6" x-data="{
-    activeTab: '{{ $activeTab }}',
     filterOption: 'gaps',
     riskFilter: 'all',
     searchQuery: '',
-    saving: false,
     saveState: 'ready',
+    activeTab: '{{ $activeTab }}',
     workspaceStats: {
         total: {{ $stats['total'] }},
         gaps: {{ $stats['gaps'] }},
@@ -44,6 +94,7 @@
     },
     controls: @js($workspaceControls),
     gapFindings: @js($gapFindings),
+    resultDataMap: @js($resultDataMap),
     showAiModal: false,
     activeAiDetails: { code: '', title: '', rec: '', plan: '', insight: '', priority: '', validation: '', impact: '' },
     showEvidenceModal: false,
@@ -51,6 +102,41 @@
     showManageModal: false,
     activeManageDetails: { id: null, code: '', title: '', pic: '', dueDate: '', status: 'open', notes: '', files: [] },
     submittingManage: false,
+    openAiDetails(details) {
+        this.activeAiDetails = {
+            code: details.code || '',
+            title: details.title || '',
+            rec: details.rec || '',
+            plan: details.plan || '',
+            insight: details.insight || '',
+            priority: details.priority || '',
+            validation: details.validation || '',
+            impact: details.impact || ''
+        };
+        this.showAiModal = true;
+    },
+    openAiDetailsById(id) {
+        let details = null;
+        if (Array.isArray(this.resultDataMap)) {
+            details = this.resultDataMap.find(item => item && (item.id === id || item.id === Number(id)));
+        } else if (this.resultDataMap) {
+            details = this.resultDataMap[id] || this.resultDataMap[String(id)];
+        }
+        if (details) {
+            this.openAiDetails(details);
+        }
+    },
+    openManageModalById(id) {
+        let details = null;
+        if (Array.isArray(this.resultDataMap)) {
+            details = this.resultDataMap.find(item => item && (item.id === id || item.id === Number(id)));
+        } else if (this.resultDataMap) {
+            details = this.resultDataMap[id] || this.resultDataMap[String(id)];
+        }
+        if (details) {
+            this.openManageModal(details);
+        }
+    },
     openEvidenceDetails(details) {
         this.activeEvidenceDetails = {
             code: details.code || '',
@@ -87,6 +173,7 @@
         this.submittingManage = true;
         const formData = new FormData();
         formData.append('_token', '{{ csrf_token() }}');
+        formData.append('_method', 'PATCH');
         formData.append('treatment_pic', this.activeManageDetails.pic || '');
         formData.append('treatment_due_date', this.activeManageDetails.dueDate || '');
         formData.append('treatment_status', this.activeManageDetails.status || 'open');
@@ -144,12 +231,10 @@
     get filteredControls() {
         return this.controls.filter((control) => {
             let matchesOption = true;
-            if (this.filterOption === 'gaps') {
-                matchesOption = control.isGap && control.isApplicable;
-            } else if (this.filterOption === 'applicable') {
-                matchesOption = control.isApplicable;
-            } else if (this.filterOption === 'excluded') {
+            if (this.filterOption === 'excluded') {
                 matchesOption = !control.isApplicable;
+            } else {
+                matchesOption = control.isGap && control.isApplicable;
             }
 
             let matchesRisk = (this.riskFilter === 'all' || this.riskFilter === control.risk);
@@ -372,12 +457,6 @@
 
             {{-- Export Report Buttons (Placed directly below the cards, buttons only) --}}
             <div class="flex flex-wrap gap-2 mt-4 justify-start">
-                {{-- SoA Exports --}}
-                <a href="{{ route('workspace.export-soa', $selectedSession->id) }}" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow transition-all flex items-center gap-1.5 shrink-0" title="{{ __('Export Statement of Applicability Excel') }}">
-                    <i class="fa-solid fa-file-excel text-white"></i>{{ __('SoA Excel') }}</a>
-                <a href="{{ route('workspace.export-soa-pdf', $selectedSession->id) }}" class="px-3 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow transition-all flex items-center gap-1.5 shrink-0" title="{{ __('Export Statement of Applicability PDF') }}">
-                    <i class="fa-solid fa-file-pdf text-white"></i>{{ __('SoA PDF') }}</a>
-                
                 {{-- Gap Report Exports --}}
                 <a href="{{ route('reports.export-excel', $selectedSession->id) }}" class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow transition-all flex items-center gap-1.5 shrink-0" title="{{ __('Export Gap Report Excel') }}">
                     <i class="fa-solid fa-file-excel text-white"></i>{{ __('Gap Excel') }}</a>
@@ -447,11 +526,6 @@
                     :class="filterOption === 'gaps' ? 'bg-rose-600 text-white shadow shadow-rose-600/20' : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'"
                     class="px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">
                     <i class="fa-solid fa-filter text-[7px] mr-1"></i>{{ __('Gaps Only') }}
-                </button>
-                <button @click="filterOption = 'applicable'"
-                    :class="filterOption === 'applicable' ? 'bg-emerald-600 text-white shadow shadow-blue-600/20' : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'"
-                    class="px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">
-                    {{ __('Applicable') }}
                 </button>
                 <button @click="filterOption = 'excluded'"
                     :class="filterOption === 'excluded' ? 'bg-slate-800 text-white shadow' : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'"
@@ -639,46 +713,17 @@
                             <div class="inline-flex items-center justify-center gap-1.5 flex-wrap">
                                 @if($result->ai_recommendation || $result->control_insight || $result->impact_interpretation || $result->corrective_action_plan)
                                     <button type="button"
-                                        @click="openAiDetails({
-                                            code: @js($result->standard->code),
-                                            title: @js(__($result->standard->title)),
-                                            rec: @js($result->ai_recommendation ?? ''),
-                                            plan: @js($aiPlanText),
-                                            insight: @js($result->control_insight ?? ''),
-                                            priority: @js($result->calculated_risk_priority ?? ''),
-                                            validation: @js($result->evidence_validation ?? ''),
-                                            impact: @js($result->impact_interpretation ?? '')
-                                        })"
+                                        @click="openAiDetailsById({{ $result->id }})"
                                         class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 rounded-xl text-[10px] font-black uppercase tracking-wider border border-blue-200 transition-all shadow-2xs active:scale-95 cursor-pointer">
                                         <i class="fa-solid fa-robot text-[10px]"></i>
                                         <span>{{ __('Detail AI') }}</span>
                                     </button>
                                 @endif
-                                <button @click="openManageModal({
-                                        id: {{ $result->id }},
-                                        code: @js($result->standard->code),
-                                        title: @js(__($result->standard->title)),
-                                        complianceStatus: @js($complianceStatus),
-                                        riskLevel: @js($riskLevelLabel),
-                                        maturity: @js($result->maturity_rating),
-                                        gap: @js(5 - ($result->maturity_rating ?? 0)),
-                                        justification: @js($result->soa_justification ?? ''),
-                                        auditEvidence: @js($result->evidence ?? ''),
-                                        auditNotes: @js($result->notes ?? ''),
-                                        aiPlan: @js($aiPlanText),
-                                        aiInsight: @js($aiInsightText),
-                                        rec: @js($result->ai_recommendation ?? ''),
-                                        impact: @js($result->impact_interpretation ?? ''),
-                                        pic: @js($result->treatment_pic ?? ''),
-                                        dueDate: @js($dueDate),
-                                        status: @js($status),
-                                        notes: @js($result->notes ?? ''),
-                                        files: @js($mappedFiles)
-                                    })"
-                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer">
+                                <a href="{{ route('workspace.remediate', $result->id) }}"
+                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm transition-all hover:scale-105 active:scale-95">
                                     <i class="fa-solid fa-file-pen text-[10px]"></i>
                                     <span>{{ __('Remediate') }}</span>
-                                </button>
+                                </a>
                             </div>
                         </td>
                     </tr>

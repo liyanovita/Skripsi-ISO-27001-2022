@@ -12,7 +12,8 @@ class SessionService
 {
     public function getUserSessions(int $userId): Collection
     {
-        $query = AssessmentSession::with(['organization'])
+        $user = auth()->user();
+        $query = AssessmentSession::with(['organization', 'user', 'invitedUsers'])
             ->withCount([
                 'results' => function ($query) {
                     $query->where('is_applicable', true)
@@ -28,20 +29,21 @@ class SessionService
                         });
                 }
             ])
-            ->where(function ($q) use ($userId) {
-                $user = auth()->user();
+            ->where(function ($q) use ($userId, $user) {
                 if ($user && $user->isAdmin()) {
-                    $q->where('user_id', $userId)
-                      ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId));
+                    // Admin sees all sessions
+                    $q->whereNotNull('id');
                 } else {
-                    $q->where(function ($sub) use ($userId) {
+                    $q->where(function ($sub) use ($userId, $user) {
                         $sub->where('user_id', $userId)
                             ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId));
-                    })->whereIn('status', ['in_progress', 'completed']);
+                        if ($user?->organization_id) {
+                            $sub->orWhere('organization_id', $user->organization_id);
+                        }
+                    });
                 }
             });
 
-        $user = auth()->user();
         if ($user && $user->isAdmin()) {
             $query->withTrashed();
         }
@@ -51,13 +53,21 @@ class SessionService
 
     public function getSession(int $id, int $userId): AssessmentSession
     {
-        return AssessmentSession::with(['results.standard', 'organization', 'invitedUsers'])
+        $user = auth()->user();
+        return AssessmentSession::with(['results.standard', 'organization', 'user', 'invitedUsers'])
             ->when(
                 !auth()->user() || !auth()->user()->isAdmin(),
-                fn($q) => $q->where(function ($query) use ($userId) {
+                fn($q) => $q->where(function ($query) use ($userId, $user) {
                     $query->where('user_id', $userId)
-                          ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId));
-                })->whereIn('status', ['in_progress', 'completed'])
+                          ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId))
+                          ->orWhereHas('results', function($rq) use ($userId, $user) {
+                              $rq->where('treatment_pic', (string) $userId)
+                                 ->when($user?->name, fn($nq) => $nq->orWhere('treatment_pic', $user->name));
+                          });
+                    if ($user?->organization_id) {
+                        $query->orWhere('organization_id', $user->organization_id);
+                    }
+                })
             )
             ->findOrFail($id);
     }
@@ -332,7 +342,7 @@ class SessionService
             AssessmentResult::create([
                 'session_id' => $session->id,
                 'iso_standard_id' => $standard->id,
-                'maturity_rating' => 0,
+                'maturity_rating' => null,
                 'status' => 'not_started',
                 'answers' => [],
             ]);

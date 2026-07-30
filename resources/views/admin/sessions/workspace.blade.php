@@ -399,9 +399,18 @@
                                                             </span>
                                                             <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 text-xs text-slate-700 font-medium flex items-center justify-between">
                                                                 @if($result->evidence_file)
-                                                                    <a href="{{ Storage::url($result->evidence_file) }}" target="_blank" class="inline-flex items-center gap-1.5 font-bold text-blue-600 hover:underline">
-                                                                        <i class="fa-solid fa-file-pdf text-rose-500"></i> View Uploaded Evidence Document
-                                                                    </a>
+                                                                    @php
+                                                                        $evidenceFilesList = is_array($result->evidence_file) ? $result->evidence_file : [$result->evidence_file];
+                                                                    @endphp
+                                                                    <div class="flex flex-wrap gap-2">
+                                                                        @foreach($evidenceFilesList as $file)
+                                                                            @if(is_string($file) && !empty($file))
+                                                                                <a href="{{ Storage::url($file) }}" target="_blank" class="inline-flex items-center gap-1.5 font-bold text-blue-600 hover:underline">
+                                                                                    <i class="fa-solid fa-file-pdf text-rose-500"></i> {{ basename($file) }}
+                                                                                </a>
+                                                                            @endif
+                                                                        @endforeach
+                                                                    </div>
                                                                 @else
                                                                     <span class="text-slate-400 italic">No evidence document uploaded for this control</span>
                                                                 @endif

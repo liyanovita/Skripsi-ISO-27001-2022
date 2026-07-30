@@ -57,10 +57,21 @@ class WorkspaceController extends Controller
         ]));
     }
 
-    public function updateSingle(UpdateWorkspaceEntryRequest $request, $resultId): JsonResponse
+    public function remediate($resultId): View
     {
+        $id = $resultId instanceof \App\Models\AssessmentResult ? $resultId->id : (int) $resultId;
+        $result = \App\Models\AssessmentResult::with(['standard', 'session'])->findOrFail($id);
+        $users = \App\Models\User::orderBy('name')->get(['id', 'name', 'email']);
+
+        return view('pages.workspace.remediate', compact('result', 'users'));
+    }
+
+    public function updateSingle(UpdateWorkspaceEntryRequest $request, $resultId)
+    {
+        $id = $resultId instanceof \App\Models\AssessmentResult ? $resultId->id : (int) $resultId;
+
         $result = $this->workspaceService->updateEntry(
-            $resultId,
+            $id,
             auth()->id(),
             $request->validated()
         );
@@ -74,15 +85,23 @@ class WorkspaceController extends Controller
             ];
         }
 
-        return ApiResponse::success([
-            'is_applicable'      => $result->is_applicable,
-            'soa_justification'  => $result->soa_justification,
-            'treatment_due_date' => optional($result->treatment_due_date)->toDateString(),
-            'treatment_pic'      => $result->treatment_pic,
-            'treatment_status'   => $result->treatment_status,
-            'notes'              => $result->notes,
-            'evidence_files'     => $mappedFiles,
-        ], 'Record updated successfully.');
+        // If it's an AJAX/JSON request, return JSON
+        if ($request->wantsJson() || $request->ajax()) {
+            return ApiResponse::success([
+                'is_applicable'      => $result->is_applicable,
+                'soa_justification'  => $result->soa_justification,
+                'treatment_due_date' => optional($result->treatment_due_date)->toDateString(),
+                'treatment_pic'      => $result->treatment_pic,
+                'treatment_status'   => $result->treatment_status,
+                'notes'              => $result->notes,
+                'evidence_files'     => $mappedFiles,
+            ], 'Record updated successfully.');
+        }
+
+        // For HTML form submissions, redirect back with success message
+        return redirect()
+            ->route('workspace.remediate', $result->id)
+            ->with('success', __('Remediation plan updated successfully.'));
     }
 
     public function exportSoa($sessionId)

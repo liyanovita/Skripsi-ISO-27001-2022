@@ -25,7 +25,12 @@ class AiSummaryService
 
         // Guard: block regenerate if session results data has not changed since last AI summary generation
         $currentHash = $this->computeSessionHash($session);
-        if ($session->ai_summary_hash && $session->ai_summary && $session->ai_summary_hash === $currentHash) {
+        $effectiveHash = $session->ai_summary_hash ?: ($session->ai_summary ? $currentHash : null);
+
+        if ($session->ai_summary && $effectiveHash === $currentHash) {
+            if (!$session->ai_summary_hash) {
+                $session->update(['ai_summary_hash' => $currentHash]);
+            }
             throw new \Exception('NO_DATA_CHANGE');
         }
 

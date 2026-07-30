@@ -319,13 +319,8 @@
                         @endif
                     </div>
                     <span x-show="sidebarOpen" class="text-sm font-bold tracking-tight sidebar-text flex-1">{{ __('Audit Sessions') }}</span>
-                    @if($sidebarInProgressSessions > 0)
-                    <span x-show="sidebarOpen" class="ml-auto px-1.5 py-0.5 bg-amber-400/20 text-amber-300 rounded text-[8px] font-black leading-none">{{ $sidebarInProgressSessions }}</span>
-                    @endif
-                    <span x-show="!sidebarOpen" class="sidebar-tooltip">{{ __('Audit Sessions') }}{{ $sidebarInProgressSessions > 0 ? ' Ã‚Â· '.$sidebarInProgressSessions.' active' : '' }}</span>
+                    <span x-show="!sidebarOpen" class="sidebar-tooltip">{{ __('Audit Sessions') }}{{ $sidebarInProgressSessions > 0 ? ' · '.$sidebarInProgressSessions.' active' : '' }}</span>
                 </a>
-
-
 
                 {{-- Improvement Tracking --}}
                 <a href="{{ route('workspace.index') }}" 
@@ -339,9 +334,6 @@
                         @endif
                     </div>
                     <span x-show="sidebarOpen" class="text-sm font-bold tracking-tight sidebar-text flex-1">{{ __('Improvement Tracking') }}</span>
-                    @if($sidebarOpenGaps > 0)
-                    <span x-show="sidebarOpen" class="ml-auto px-1.5 py-0.5 bg-rose-500/20 text-rose-300 rounded text-[8px] font-black leading-none">{{ $sidebarOpenGaps }} gaps</span>
-                    @endif
                     <span x-show="!sidebarOpen" class="sidebar-tooltip">{{ __('Improvement Tracking') }}{{ $sidebarOpenGaps > 0 ? ' · '.$sidebarOpenGaps.' gaps' : '' }}</span>
                 </a>
 
@@ -378,12 +370,8 @@
                         <i class="fa-solid fa-book-open text-base"></i>
                     </div>
                     <span x-show="sidebarOpen" class="text-sm font-bold tracking-tight sidebar-text flex-1">{{ __('Knowledge Base') }}</span>
-                    @if($sidebarKbCustomCount > 0)
-                    <span x-show="sidebarOpen" class="ml-auto px-1.5 py-0.5 bg-white/10 text-blue-200 rounded text-[8px] font-black leading-none">{{ $sidebarKbCustomCount }}</span>
-                    @endif
                     <span x-show="!sidebarOpen" class="sidebar-tooltip">{{ __('Knowledge Base') }}</span>
                 </a>
-
 
                 {{-- Audit Trail --}}
                 <a href="{{ route('audit-trail.index') }}" 
@@ -397,9 +385,6 @@
                         @endif
                     </div>
                     <span x-show="sidebarOpen" class="text-sm font-bold tracking-tight sidebar-text flex-1">{{ __('Audit Trail') }}</span>
-                    @if($sidebarTodayTrail > 0)
-                    <span x-show="sidebarOpen" class="ml-auto px-1.5 py-0.5 bg-teal-400/20 text-teal-300 rounded text-[8px] font-black leading-none">{{ $sidebarTodayTrail }} today</span>
-                    @endif
                     <span x-show="!sidebarOpen" class="sidebar-tooltip">{{ __('Audit Trail') }}{{ $sidebarTodayTrail > 0 ? ' · '.$sidebarTodayTrail.' today' : '' }}</span>
                 </a>
 
@@ -415,7 +400,6 @@
                         <i class="fa-solid fa-shield-halved text-base text-sky-300"></i>
                     </div>
                     <span x-show="sidebarOpen" class="text-sm font-bold tracking-tight sidebar-text flex-1">Admin Panel</span>
-                    <span x-show="sidebarOpen" class="ml-auto px-1.5 py-0.5 bg-sky-500/30 text-sky-300 rounded text-[8px] font-black leading-none">ADMIN</span>
                     <span x-show="!sidebarOpen" class="sidebar-tooltip">Admin Panel</span>
                 </a>
             </div>
@@ -1490,6 +1474,18 @@
 
     <script>
     (function() {
+        // Re-initialize Alpine.js components seamlessly when Turbo renders a new page
+        document.addEventListener('turbo:load', function() {
+            if (window.Alpine) {
+                window.Alpine.initTree(document.body);
+            }
+        });
+        document.addEventListener('turbo:render', function() {
+            if (window.Alpine) {
+                window.Alpine.initTree(document.body);
+            }
+        });
+
         document.addEventListener("submit", function(e) {
             const form = e.target;
             if (form && form.method.toLowerCase() === 'get' && !form.hasAttribute('data-turbo-bypass')) {

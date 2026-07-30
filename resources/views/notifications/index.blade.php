@@ -63,6 +63,109 @@
 
         {{-- Notifications List --}}
         <div class="divide-y divide-slate-100">
+            @if(($filter === null || $filter === 'unread' || $filter === 'all') && isset($overdueTasks) && count($overdueTasks) > 0)
+                @foreach($overdueTasks as $task)
+                    <div class="p-5 flex items-start gap-4 transition-colors hover:bg-rose-50/30 bg-rose-50/20 border-l-4 border-rose-500">
+                        <div class="shrink-0 mt-0.5">
+                            <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 border border-rose-200 flex items-center justify-center shadow-sm">
+                                <i class="fa-solid fa-circle-exclamation text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="px-2 py-0.5 bg-rose-100 text-rose-700 border border-rose-200 rounded-md text-[8px] font-black uppercase tracking-widest">
+                                    {{ __('Overdue Remediation Task') }}
+                                </span>
+                                <span class="w-2 h-2 rounded-full bg-rose-500 inline-block animate-pulse"></span>
+                            </div>
+                            <p class="text-sm font-bold text-slate-800 leading-snug">
+                                <strong class="text-rose-600 font-extrabold mr-1">[{{ $task->standard->code }}]</strong> {{ __($task->standard->title) }}
+                            </p>
+                            <p class="text-xs text-slate-500 font-medium mt-1">
+                                {{ __('PIC Assigned') }}: <strong class="text-slate-700 font-bold">{{ $task->treatment_pic ?: __('Unassigned') }}</strong>
+                            </p>
+                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-[10px] text-slate-400 font-medium">
+                                <span class="flex items-center gap-1.5 text-rose-600 font-bold">
+                                    <i class="fa-regular fa-clock text-xs"></i>
+                                    {{ __('Overdue') }} {{ $task->treatment_due_date->diffForHumans() }}
+                                </span>
+                                <a href="{{ route('workspace.index', ['session_id' => $task->session_id, 'focus' => $task->id]) }}" class="text-blue-600 hover:text-blue-700 font-bold flex items-center gap-1">
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                                    {{ __('Open Action Item') }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            @endif
+
+            @if(($filter === null || $filter === 'unread' || $filter === 'all') && isset($upcomingTasks) && count($upcomingTasks) > 0)
+                @foreach($upcomingTasks as $task)
+                    <div class="p-5 flex items-start gap-4 transition-colors hover:bg-amber-50/30 bg-amber-50/15 border-l-4 border-amber-400">
+                        <div class="shrink-0 mt-0.5">
+                            <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 border border-amber-200 flex items-center justify-center shadow-sm">
+                                <i class="fa-solid fa-clock text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="px-2 py-0.5 bg-amber-100 text-amber-700 border border-amber-200 rounded-md text-[8px] font-black uppercase tracking-widest">
+                                    {{ __('Upcoming Remediation Deadline') }}
+                                </span>
+                            </div>
+                            <p class="text-sm font-bold text-slate-800 leading-snug">
+                                <strong class="text-amber-600 font-extrabold mr-1">[{{ $task->standard->code }}]</strong> {{ __($task->standard->title) }}
+                            </p>
+                            <p class="text-xs text-slate-500 font-medium mt-1">
+                                {{ __('PIC Assigned') }}: <strong class="text-slate-700 font-bold">{{ $task->treatment_pic ?: __('Unassigned') }}</strong>
+                            </p>
+                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-[10px] text-slate-400 font-medium">
+                                <span class="flex items-center gap-1.5 text-amber-600 font-bold">
+                                    <i class="fa-regular fa-clock text-xs"></i>
+                                    {{ __('Due in') }} {{ $task->treatment_due_date->diffInDays(now()) }} {{ __('days') }} ({{ $task->treatment_due_date->format('d M Y') }})
+                                </span>
+                                <a href="{{ route('workspace.index', ['session_id' => $task->session_id, 'focus' => $task->id]) }}" class="text-blue-600 hover:text-blue-700 font-bold flex items-center gap-1">
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                                    {{ __('Open Action Item') }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            @endif
+
+            @if(($filter === null || $filter === 'unread' || $filter === 'all') && isset($stagnantSessions) && count($stagnantSessions) > 0)
+                @foreach($stagnantSessions as $sess)
+                    <div class="p-5 flex items-start gap-4 transition-colors hover:bg-blue-50/30 bg-blue-50/15 border-l-4 border-blue-400">
+                        <div class="shrink-0 mt-0.5">
+                            <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 border border-blue-200 flex items-center justify-center shadow-sm">
+                                <i class="fa-solid fa-calendar-minus text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="px-2 py-0.5 bg-blue-100 text-blue-700 border border-blue-200 rounded-md text-[8px] font-black uppercase tracking-widest">
+                                    {{ __('Stagnant Audit Session') }}
+                                </span>
+                            </div>
+                            <p class="text-sm font-bold text-slate-800 leading-snug">
+                                {{ $sess->name }}
+                            </p>
+                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-[10px] text-slate-400 font-medium">
+                                <span class="flex items-center gap-1.5 text-blue-600 font-bold">
+                                    <i class="fa-regular fa-clock text-xs"></i>
+                                    {{ __('No updates since') }} {{ $sess->updated_at->format('d M Y') }} ({{ $sess->updated_at->diffForHumans() }})
+                                </span>
+                                <a href="{{ route('workspace.index', ['session_id' => $sess->id]) }}" class="text-blue-600 hover:text-blue-700 font-bold flex items-center gap-1">
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                                    {{ __('Resume Assessment') }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            @endif
+
             @forelse($notifications as $notif)
                 @php
                     $isUnread = is_null($notif->read_at);
@@ -149,6 +252,7 @@
                     </div>
                 </div>
             @empty
+                @if(($filter === 'read' || (count($overdueTasks ?? []) === 0 && count($upcomingTasks ?? []) === 0 && count($stagnantSessions ?? []) === 0)))
                 <div class="py-12 text-center">
                     <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-slate-100">
                         <i class="fa-regular fa-bell-slash text-xl text-slate-300"></i>
@@ -156,6 +260,7 @@
                     <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">{{ __('No Notifications') }}</h3>
                     <p class="text-slate-400 font-bold uppercase tracking-widest text-[8px] mt-1">{{ __('You are all caught up!') }}</p>
                 </div>
+                @endif
             @endforelse
         </div>
 

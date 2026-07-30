@@ -17,10 +17,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Run ISO Master Data & Knowledge Base
+        // 1. Run ISO Master Data, Knowledge Base & Dummy Audit Sessions
         $this->call([
             IsoStandardSeeder::class,
             KnowledgeBaseSeeder::class,
+            DummyAuditSessionSeeder::class,
         ]);
 
         // 2. Seed Organizations
