@@ -92,9 +92,9 @@ class AssessmentResult extends Model
     }
 
     /**
-     * Get compliance status based on maturity rating & gap analysis
+     * Get compliance status based on thesis decision matrix:
      * C = 5 (Gap = 0) -> Compliant
-     * C = 3, 4 (Gap = 2, 1) -> Partially Compliant
+     * C = 3, 4 (Gap = 1, 2) -> Partially Compliant
      * C <= 2 (Gap >= 3) -> Non-Compliant
      */
     public function getComplianceStatusAttribute(): string

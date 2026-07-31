@@ -5,14 +5,12 @@
 @section('content')
 @php
     $evidenceFiles = is_array($result->evidence_file) ? $result->evidence_file : (empty($result->evidence_file) ? [] : [$result->evidence_file]);
-    $complianceStatus = match(true) {
-        !$result->is_applicable => __('Not Applicable'),
-        $result->status !== 'completed' => __('Pending'),
-        $result->maturity_rating >= 4 => __('Compliant'),
-        $result->maturity_rating >= 2 => __('Partially Compliant'),
-        default => __('Non-Compliant'),
-    };
+    $complianceStatus = $result->compliance_status;
     $riskLevelLabel = $result->calculated_risk_priority ?? $result->risk_level ?? 'Low';
+    $questions = is_array($result->standard->questions ?? null) ? $result->standard->questions : [];
+    $existingAnswers = is_array($result->answers) ? $result->answers : [];
+    $hasQuestions = count($questions) > 0;
+    $currentMaturity = (int)($result->maturity_rating ?? 0);
 @endphp
 
 <div class="max-w-[1400px] mx-auto space-y-6 pb-16">
@@ -194,10 +192,13 @@
         </div>
 
         {{-- RIGHT: Editable Remediation Action Form --}}
-        <div>
-            <form action="{{ route('workspace.entry.update', $result->id) }}" method="POST" enctype="multipart/form-data">
+        <div
+            x-data="remediateForm({{ $currentMaturity }}, {{ $hasQuestions ? 'true' : 'false' }}, {{ json_encode($existingAnswers) }}, {{ count($questions) }})"
+        >
+            <form action="{{ route('workspace.entry.update', $result->id) }}" method="POST" enctype="multipart/form-data" @submit="prepareSubmit">
                 @csrf
                 @method('PATCH')
+                <input type="hidden" name="maturity_rating" :value="computedMaturity">
                 @php
                     $isRemediationExpired = $result->treatment_due_date && $result->treatment_due_date->isPast() && (!auth()->user() || !auth()->user()->isAdmin());
                     $isLocked = $isRemediationExpired;
@@ -225,6 +226,141 @@
                         <span class="leading-snug">
                             {{ __('The remediation deadline for this control has expired') }} ({{ $result->treatment_due_date->format('d/m/Y') }}). {{ __('Remediation updates are now locked (Read-Only).') }}
                         </span>
+                    </div>
+                    @endif
+
+                    {{-- ✦ Re-Evaluate Assessment --}}
+                    @if($result->is_applicable)
+                    <div class="border border-indigo-200 rounded-2xl overflow-hidden">
+                        <div class="bg-indigo-50 px-4 py-3 flex items-center justify-between border-b border-indigo-200">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-magnifying-glass-chart text-indigo-600 text-sm"></i>
+                                <span class="text-[9px] font-black text-indigo-800 uppercase tracking-widest">{{ __('Re-Evaluate Assessment') }}</span>
+                            </div>
+                            <span class="text-[8px] font-black text-indigo-500 uppercase tracking-widest px-2 py-0.5 bg-indigo-100 rounded-lg border border-indigo-200">{{ __('Recalculates Compliance & Risk') }}</span>
+                        </div>
+                        <div class="p-4 space-y-4 bg-white">
+
+                            {{-- Live Score Preview --}}
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-center">
+                                    <span class="text-[7px] font-black text-slate-400 uppercase tracking-widest block mb-1">{{ __('Maturity') }}</span>
+                                    <span class="text-base font-black text-slate-900" x-text="computedMaturity"></span>
+                                    <span class="text-[9px] text-slate-400">/5</span>
+                                </div>
+                                <div class="p-2.5 rounded-xl border text-center"
+                                    :class="computedGap <= 0 ? 'bg-emerald-50 border-emerald-200' : (computedGap <= 2 ? 'bg-amber-50 border-amber-200' : 'bg-rose-50 border-rose-200')">
+                                    <span class="text-[7px] font-black uppercase tracking-widest block mb-1"
+                                        :class="computedGap <= 0 ? 'text-emerald-400' : (computedGap <= 2 ? 'text-amber-400' : 'text-rose-400')">{{ __('Gap') }}</span>
+                                    <span class="text-base font-black"
+                                        :class="computedGap <= 0 ? 'text-emerald-600' : (computedGap <= 2 ? 'text-amber-600' : 'text-rose-600')">
+                                        <span x-text="computedGap"></span>
+                                    </span>
+                                </div>
+                                <div class="p-2.5 rounded-xl border text-center"
+                                    :class="computedStatus === 'Compliant' ? 'bg-emerald-50 border-emerald-200' : (computedStatus === 'Partially Compliant' ? 'bg-amber-50 border-amber-200' : 'bg-rose-50 border-rose-200')">
+                                    <span class="text-[7px] font-black uppercase tracking-widest block mb-1"
+                                        :class="computedStatus === 'Compliant' ? 'text-emerald-400' : (computedStatus === 'Partially Compliant' ? 'text-amber-400' : 'text-rose-400')">{{ __('Status') }}</span>
+                                    <span class="text-[8px] font-black leading-tight"
+                                        :class="computedStatus === 'Compliant' ? 'text-emerald-700' : (computedStatus === 'Partially Compliant' ? 'text-amber-700' : 'text-rose-700')">
+                                        <span x-text="computedStatus"></span>
+                                    </span>
+                                </div>
+                                <div class="p-2.5 rounded-xl border text-center"
+                                    :class="computedRisk === 'Low' ? 'bg-emerald-50 border-emerald-200' : (computedRisk === 'Medium' ? 'bg-amber-50 border-amber-200' : 'bg-rose-50 border-rose-200')">
+                                    <span class="text-[7px] font-black uppercase tracking-widest block mb-1"
+                                        :class="computedRisk === 'Low' ? 'text-emerald-400' : (computedRisk === 'Medium' ? 'text-amber-400' : 'text-rose-400')">{{ __('Risk') }}</span>
+                                    <span class="text-[8px] font-black"
+                                        :class="computedRisk === 'Low' ? 'text-emerald-700' : (computedRisk === 'Medium' ? 'text-amber-700' : 'text-rose-700')">
+                                        <span x-text="computedRisk"></span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            @if($hasQuestions)
+                            {{-- Likert Scale Questions --}}
+                            <div class="space-y-4">
+                                @foreach($questions as $qIndex => $question)
+                                @php
+                                    $qText = is_array($question) ? ($question['text'] ?? ($question['question'] ?? ('Question ' . ($qIndex + 1)))) : (string)$question;
+                                    $existingScore = $existingAnswers[$qIndex] ?? null;
+                                @endphp
+                                <div class="space-y-2">
+                                    <p class="text-[9px] font-bold text-slate-700 leading-relaxed">
+                                        <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-100 text-indigo-700 font-black text-[7px] mr-1">{{ $qIndex + 1 }}</span>
+                                        {{ $qText }}
+                                    </p>
+                                    <div class="flex gap-1.5 flex-wrap">
+                                        @for($score = 0; $score <= 5; $score++)
+                                        @php
+                                            $scoreLabels = [0 => 'N/I', 1 => '1', 2 => '2', 3 => '3', 4 => '4', 5 => '5'];
+                                            $scoreColors = [
+                                                0 => 'hover:border-slate-400 peer-checked:bg-slate-500 peer-checked:border-slate-500 peer-checked:text-white',
+                                                1 => 'hover:border-rose-400 peer-checked:bg-rose-500 peer-checked:border-rose-500 peer-checked:text-white',
+                                                2 => 'hover:border-orange-400 peer-checked:bg-orange-500 peer-checked:border-orange-500 peer-checked:text-white',
+                                                3 => 'hover:border-amber-400 peer-checked:bg-amber-500 peer-checked:border-amber-500 peer-checked:text-white',
+                                                4 => 'hover:border-blue-400 peer-checked:bg-blue-500 peer-checked:border-blue-500 peer-checked:text-white',
+                                                5 => 'hover:border-emerald-400 peer-checked:bg-emerald-500 peer-checked:border-emerald-500 peer-checked:text-white',
+                                            ];
+                                        @endphp
+                                        <label class="relative cursor-pointer {{ $isLocked ? 'opacity-50 pointer-events-none' : '' }}">
+                                            <input type="radio"
+                                                   name="answers[{{ $qIndex }}]"
+                                                   value="{{ $score }}"
+                                                   class="sr-only peer"
+                                                   x-model.number="answers[{{ $qIndex }}]"
+                                                   @change="updateMaturity()"
+                                                   {{ $existingScore == $score ? 'checked' : '' }}
+                                                   {{ $isLocked ? 'disabled' : '' }}>
+                                            <span class="flex items-center justify-center w-9 h-9 rounded-xl border-2 border-slate-200 bg-slate-50 text-[9px] font-black text-slate-500 transition-all {{ $scoreColors[$score] ?? '' }}">
+                                                {{ $scoreLabels[$score] }}
+                                            </span>
+                                        </label>
+                                        @endfor
+                                    </div>
+                                    @if($existingScore !== null)
+                                    <p class="text-[8px] text-indigo-500 font-bold flex items-center gap-1">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        {{ __('Current score') }}: {{ $existingScore }}
+                                    </p>
+                                    @endif
+                                </div>
+                                @endforeach
+                            </div>
+                            <p class="text-[8px] text-slate-400 font-medium flex items-center gap-1">
+                                <i class="fa-solid fa-circle-info text-slate-300"></i>
+                                {{ __('Scale: 0–2 = Non-Compliant, 3–4 = Partially Compliant, 5 = Compliant') }}
+                            </p>
+                            @else
+                            {{-- No Questions: Direct Maturity Score Input --}}
+                            <div class="space-y-2">
+                                <label class="text-[9px] font-black text-slate-600 uppercase tracking-widest block">
+                                    <i class="fa-solid fa-sliders text-indigo-600 mr-1"></i>{{ __('Maturity Score') }}
+                                </label>
+                                <div class="flex items-center gap-3">
+                                    <input type="range" name="maturity_range" min="0" max="5" step="1"
+                                           x-model.number="directMaturity"
+                                           @input="updateMaturity()"
+                                           class="flex-1 h-2 rounded-full appearance-none bg-gradient-to-r from-rose-300 via-amber-300 to-emerald-400 cursor-pointer disabled:opacity-60"
+                                           :value="directMaturity"
+                                           {{ $isLocked ? 'disabled' : '' }}>
+                                    <div class="flex items-center justify-center w-12 h-9 rounded-xl border-2 font-black text-sm transition-all"
+                                        :class="directMaturity >= 5 ? 'border-emerald-400 bg-emerald-50 text-emerald-700' : (directMaturity >= 3 ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-rose-400 bg-rose-50 text-rose-700')">
+                                        <span x-text="directMaturity"></span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between text-[7px] font-black text-slate-400 uppercase tracking-widest">
+                                    <span>0 Not Impl.</span>
+                                    <span>1 Initial</span>
+                                    <span>2 Managed</span>
+                                    <span>3 Defined</span>
+                                    <span>4 Measured</span>
+                                    <span>5 Optimized</span>
+                                </div>
+                            </div>
+                            @endif
+
+                        </div>
                     </div>
                     @endif
 
@@ -306,9 +442,10 @@
                         </button>
                         @else
                         <button type="submit"
-                                class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-blue-600/20 transition-all hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2">
+                                class="w-full py-3.5 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg transition-all hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
+                                :class="maturityChanged ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/20' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'">
                             <i class="fa-solid fa-floppy-disk"></i>
-                            <span>{{ __('Save & Update Remediation') }}</span>
+                            <span x-text="maturityChanged ? '{{ __('Save & Update Evaluation') }}' : '{{ __('Save & Update Remediation') }}'"></span>
                         </button>
                         @endif
                     </div>
@@ -320,3 +457,68 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function remediateForm(initialMaturity, hasQuestions, existingAnswers, questionCount) {
+    return {
+        hasQuestions: hasQuestions,
+        questionCount: questionCount,
+        answers: Array.isArray(existingAnswers) ? [...existingAnswers] : Object.values(existingAnswers || {}),
+        directMaturity: initialMaturity,
+        computedMaturity: initialMaturity,
+        originalMaturity: initialMaturity,
+        maturityChanged: false,
+
+        init() {
+            // Ensure answers array is initialized
+            if (!Array.isArray(this.answers)) {
+                this.answers = [];
+            }
+            while (this.answers.length < this.questionCount) {
+                this.answers.push(null);
+            }
+        },
+
+        updateMaturity() {
+            if (this.hasQuestions) {
+                const scores = this.answers.filter(v => v !== null && v !== '' && !isNaN(Number(v)));
+                if (scores.length > 0) {
+                    const avg = scores.reduce((sum, v) => sum + Number(v), 0) / scores.length;
+                    this.computedMaturity = Math.max(0, Math.min(5, Math.round(avg)));
+                } else {
+                    this.computedMaturity = 0;
+                }
+            } else {
+                this.computedMaturity = this.directMaturity;
+            }
+            this.maturityChanged = this.computedMaturity !== this.originalMaturity;
+        },
+
+        get computedGap() {
+            return Math.max(0, 5 - this.computedMaturity);
+        },
+
+        get computedStatus() {
+            const m = this.computedMaturity;
+            if (m >= 5) return 'Compliant';
+            if (m >= 3) return 'Partially Compliant';
+            return 'Non-Compliant';
+        },
+
+        get computedRisk() {
+            const s = this.computedStatus;
+            const g = this.computedGap;
+            if (s === 'Non-Compliant') return g >= 3 ? 'High' : 'Medium';
+            if (s === 'Partially Compliant') return g >= 2 ? 'Medium' : 'Low';
+            return 'Low';
+        },
+
+        prepareSubmit(e) {
+            // The hidden input maturity_rating already binds :value="computedMaturity"
+            // Nothing extra needed, Alpine keeps it updated
+        }
+    };
+}
+</script>
+@endpush

@@ -23,15 +23,15 @@ class AuditTrailController extends Controller
         })->orderByDesc('created_at')->get();
 
         $sessionIds = $sessions->pluck('id')->all();
-        $selectedId = $request->get('session_id', $sessions->first()?->id);
+        $selectedId = $request->get('session_id');
 
         if ($selectedId && !in_array($selectedId, $sessionIds)) {
-            $selectedId = $sessions->first()?->id;
+            $selectedId = null;
         }
 
         $search = $request->get('search');
         
-        $query = $this->buildQuery($userId, $selectedId, $search);
+        $query = $this->buildQuery($userId, $selectedId, $search, $sessionIds);
         
         $trails = $query->simplePaginate(15)->withQueryString();
 
@@ -51,12 +51,12 @@ class AuditTrailController extends Controller
         $selectedId = $request->get('session_id');
 
         if ($selectedId && !in_array($selectedId, $sessionIds)) {
-            abort(403, 'Unauthorized.');
+            $selectedId = null;
         }
 
         $search = $request->get('search');
 
-        $query = $this->buildQuery($userId, $selectedId, $search);
+        $query = $this->buildQuery($userId, $selectedId, $search, $sessionIds);
         $trails = $query->get();
 
         $fileName = 'Audit_Trail_' . now()->format('Y-m-d_H-i-s') . '.csv';
@@ -70,8 +70,6 @@ class AuditTrailController extends Controller
         ];
 
         $columns = ['Date & Time', 'User', 'Control Code', 'Field Changed', 'Old Value', 'New Value'];
-
-        $booleanFields = ['is_applicable'];
 
         $booleanFields = ['is_applicable'];
         $rows = [];
@@ -97,11 +95,11 @@ class AuditTrailController extends Controller
         return ExcelExportService::download($filename, $columns, $rows, 'Audit Trail');
     }
 
-    private function buildQuery($userId, $selectedId, $search)
+    private function buildQuery($userId, $selectedId, $search, array $sessionIds = [])
     {
         $query = AuditTrail::with(['user', 'model' => function ($morphTo) {
             $morphTo->morphWith([\App\Models\AssessmentResult::class => ['standard']]);
-        }])->orderByDesc('created_at');
+        }])->orderByDesc('created_at')->orderByDesc('id');
 
         if ($selectedId) {
             $query->where('model_type', \App\Models\AssessmentResult::class)
@@ -109,7 +107,17 @@ class AuditTrailController extends Controller
                     $q->where('session_id', $selectedId);
                 });
         } else {
-            $query->where('user_id', $userId);
+            $query->where(function($q) use ($userId, $sessionIds) {
+                $q->where('user_id', $userId);
+                if (!empty($sessionIds)) {
+                    $q->orWhere(function($q2) use ($sessionIds) {
+                        $q2->where('model_type', \App\Models\AssessmentResult::class)
+                           ->whereHasMorph('model', [\App\Models\AssessmentResult::class], function($q3) use ($sessionIds) {
+                               $q3->whereIn('session_id', $sessionIds);
+                           });
+                    });
+                }
+            });
         }
 
         if ($search) {
@@ -130,4 +138,5 @@ class AuditTrailController extends Controller
 
         return $query;
     }
+
 }

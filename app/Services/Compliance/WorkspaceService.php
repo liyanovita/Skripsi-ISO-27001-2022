@@ -113,6 +113,20 @@ class WorkspaceService
         if (array_key_exists('soa_justification', $data)) {
             $updateData['soa_justification'] = $data['soa_justification'];
         }
+        if (array_key_exists('answers', $data) && is_array($data['answers'])) {
+            $existingAnswers = is_array($result->answers) ? $result->answers : [];
+            $incomingAnswers = $data['answers'];
+            $mergedAnswers = array_merge($existingAnswers, $incomingAnswers);
+            $scores = array_filter($mergedAnswers, fn($v) => $v !== null && $v !== '' && is_numeric($v));
+            if (count($scores) > 0) {
+                $avgRating = max(0, min(5, (int) round(array_sum($scores) / count($scores))));
+                $updateData['answers'] = $mergedAnswers;
+                $updateData['maturity_rating'] = $avgRating;
+            }
+        } elseif (array_key_exists('maturity_rating', $data) && $data['maturity_rating'] !== null) {
+            $rating = max(0, min(5, (int) $data['maturity_rating']));
+            $updateData['maturity_rating'] = $rating;
+        }
         if (array_key_exists('treatment_due_date', $data)) {
             $updateData['treatment_due_date'] = $data['treatment_due_date'] ?: null;
         }

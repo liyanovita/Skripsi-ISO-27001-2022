@@ -6,24 +6,34 @@
 <div class="space-y-5 pb-8">
 
     {{-- Header Card --}}
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-        <div class="flex items-center gap-3.5">
-            <div class="w-11 h-11 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-slate-900/20">
-                <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+    <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+        {{-- Top Row: Title & Export Excel --}}
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-slate-900/20 shrink-0">
+                    <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black text-slate-800 tracking-tight">{{ __('Audit Trail') }}</h1>
+                    <p class="text-slate-400 font-semibold text-xs mt-0.5">{{ __('History of changes, assessment activities, and user events across the platform') }}</p>
+                </div>
             </div>
-            <div>
-                <h1 class="text-xl font-black text-slate-800 tracking-tight">{{ __('Audit Trail') }}</h1>
-                <p class="text-slate-400 font-semibold text-xs mt-0.5">{{ __('History of changes, assessment activities, and user events across the platform') }}</p>
-            </div>
+
+            <a href="{{ route('audit-trail.export', ['session_id' => $selectedId, 'search' => request('search')]) }}"
+               id="btn-export-excel"
+               class="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-1.5 shrink-0 self-start sm:self-auto">
+                <i class="fa-solid fa-file-excel text-xs"></i> {{ __('Export Excel') }}
+            </a>
         </div>
 
-        {{-- Filters & Export --}}
-        <div class="flex flex-col sm:flex-row items-center gap-2">
-            <form action="{{ route('audit-trail.index') }}" method="GET" id="audit-trail-filter" x-data class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                <div class="relative flex-1 sm:flex-none">
+        {{-- Bottom Row: Search & Session Filter (Di bawah Export Excel) --}}
+        <div class="pt-3 border-t border-slate-100">
+            <form action="{{ route('audit-trail.index') }}" method="GET" id="audit-trail-filter" x-data class="flex flex-col sm:flex-row items-center gap-3">
+                {{-- Search Bar --}}
+                <div class="relative w-full sm:w-72">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('Search logs...') }}"
-                        class="pl-9 {{ request('search') ? 'pr-8' : 'pr-3' }} py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-800 transition-all w-full sm:w-48"
+                        class="pl-9 {{ request('search') ? 'pr-8' : 'pr-3' }} py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-800 transition-all w-full"
                         @input.debounce.500ms="$el.form.requestSubmit()">
                     @if(request('search'))
                         <a href="{{ route('audit-trail.index', array_merge(request()->except(['search', 'page']))) }}" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
@@ -32,22 +42,19 @@
                     @endif
                 </div>
 
-                <select name="session_id" @change="$el.form.requestSubmit()"
-                    class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-800 transition-all cursor-pointer w-full sm:w-auto">
-                    <option value="" {{ empty($selectedId) ? 'selected' : '' }}>— {{ __('All Assessment Sessions') }} —</option>
-                    @foreach($sessions as $s)
-                        <option value="{{ $s->id }}" {{ $selectedId == $s->id ? 'selected' : '' }}>
-                            {{ $s->name }} ({{ $s->created_at->format('M Y') }})
-                        </option>
-                    @endforeach
-                </select>
+                {{-- Session Filter --}}
+                <div class="w-full sm:w-auto">
+                    <select name="session_id" @change="$el.form.requestSubmit()"
+                        class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-800 transition-all cursor-pointer w-full sm:w-72 max-w-full truncate">
+                        <option value="" {{ empty($selectedId) ? 'selected' : '' }}>— {{ __('All Assessment Sessions') }} —</option>
+                        @foreach($sessions as $s)
+                            <option value="{{ $s->id }}" {{ $selectedId == $s->id ? 'selected' : '' }}>
+                                {{ $s->name }} ({{ $s->created_at->format('M Y') }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
             </form>
-
-            <a href="{{ route('audit-trail.export', ['session_id' => $selectedId, 'search' => request('search')]) }}"
-               id="btn-export-excel"
-               class="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-600/20 active:scale-95 flex items-center gap-1.5 shrink-0">
-                <i class="fa-solid fa-file-excel text-xs"></i> {{ __('Export Excel') }}
-            </a>
         </div>
     </div>
 
