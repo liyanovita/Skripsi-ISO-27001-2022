@@ -755,134 +755,134 @@
         x-transition:leave-end="opacity-0 scale-95"
         x-cloak>
         <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-md" @click="showAiModal = false"></div>
-        <div class="relative bg-white rounded-3xl border border-slate-100 w-full max-w-3xl p-6 md:p-8 shadow-2xl space-y-6 z-10 max-h-[90vh] overflow-y-auto"
+        <div class="relative bg-white rounded-2xl border border-slate-100 w-full max-w-2xl p-5 md:p-6 shadow-2xl space-y-4 z-10 max-h-[85vh] overflow-y-auto"
             @click.away="showAiModal = false">
             
             {{-- Header --}}
-            <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-5">
-                <div class="flex items-center gap-3.5">
-                    <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-600/20 shrink-0">
-                        <i class="fa-solid fa-robot text-xl"></i>
+            <div class="flex items-start justify-between gap-3 border-b border-slate-100 pb-3.5">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-600/20 shrink-0">
+                        <i class="fa-solid fa-robot text-lg"></i>
                     </div>
                     <div>
-                        <div class="flex items-center gap-2.5">
-                            <span class="px-2.5 py-0.5 bg-blue-50 border border-blue-100/90 text-blue-700 text-[11px] font-extrabold rounded-lg uppercase tracking-wider leading-none" x-text="activeAiDetails.code"></span>
-                            <span class="text-[10px] text-blue-500 font-extrabold uppercase tracking-widest leading-none">{{ __('AI COMPLIANCE SYNTHESIS') }}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 bg-blue-50 border border-blue-100/90 text-blue-700 text-[10px] font-extrabold rounded-md uppercase tracking-wider leading-none" x-text="activeAiDetails.code"></span>
+                            <span class="text-[9px] text-blue-500 font-extrabold uppercase tracking-widest leading-none">{{ __('AI COMPLIANCE SYNTHESIS') }}</span>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-900 tracking-tight leading-snug mt-1" x-text="activeAiDetails.title"></h3>
+                        <h3 class="text-lg font-bold text-slate-900 tracking-tight leading-snug mt-0.5" x-text="activeAiDetails.title"></h3>
                     </div>
                 </div>
-                <button @click="showAiModal = false" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-all flex items-center justify-center shrink-0 cursor-pointer">
-                    <i class="fa-solid fa-xmark text-base"></i>
+                <button @click="showAiModal = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-all flex items-center justify-center shrink-0 cursor-pointer">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
             {{-- AI Analysis Accordion List --}}
-            <div class="space-y-3.5" x-data="{ openSection: 'rec' }">
+            <div class="space-y-2.5" x-data="{ openSection: 'rec' }">
 
                 {{-- Section 1: Strategic Recommendation --}}
-                <div class="rounded-2xl border transition-all overflow-hidden"
+                <div class="rounded-xl border transition-all overflow-hidden"
                      :class="openSection === 'rec' ? 'border-blue-200/90 bg-blue-50/40 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
                     <button type="button"
                         @click="openSection = openSection === 'rec' ? null : 'rec'"
-                        class="w-full flex items-center justify-between gap-3 p-4 text-left cursor-pointer transition-colors"
+                        class="w-full flex items-center justify-between gap-3 p-3 text-left cursor-pointer transition-colors"
                         :class="openSection === 'rec' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
-                        <div class="flex items-center gap-3">
-                            <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors"
                                  :class="openSection === 'rec' ? 'bg-blue-600 text-white shadow-xs shadow-blue-600/20' : 'bg-slate-100 text-slate-400'">
-                                <i class="fa-solid fa-lightbulb text-xs"></i>
+                                <i class="fa-solid fa-lightbulb text-[10px]"></i>
                             </div>
-                            <span class="text-xs font-black uppercase tracking-widest"
+                            <span class="text-[11px] font-black uppercase tracking-widest"
                                   :class="openSection === 'rec' ? 'text-blue-700' : 'text-slate-600'">
                                 {{ __('STRATEGIC RECOMMENDATION') }}
                             </span>
                         </div>
-                        <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
+                        <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"
                            :class="openSection === 'rec' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
                     </button>
                     <div x-show="openSection === 'rec'" x-collapse.duration.250ms>
-                        <div class="p-5 text-xs font-medium text-slate-600 leading-relaxed bg-blue-50/40 border-t border-blue-100/60 rounded-b-2xl">
+                        <div class="p-3.5 text-xs font-medium text-slate-600 leading-relaxed bg-blue-50/40 border-t border-blue-100/60 rounded-b-xl">
                             <p class="whitespace-pre-line" x-html="formatMarkdown(activeAiDetails.rec)"></p>
                         </div>
                     </div>
                 </div>
 
                 {{-- Section 2: Corrective Action Plan --}}
-                <div class="rounded-2xl border transition-all overflow-hidden"
+                <div class="rounded-xl border transition-all overflow-hidden"
                      :class="openSection === 'cap' ? 'border-blue-200/90 bg-blue-50/40 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
                     <button type="button"
                         @click="openSection = openSection === 'cap' ? null : 'cap'"
-                        class="w-full flex items-center justify-between gap-3 p-4 text-left cursor-pointer transition-colors"
+                        class="w-full flex items-center justify-between gap-3 p-3 text-left cursor-pointer transition-colors"
                         :class="openSection === 'cap' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
-                        <div class="flex items-center gap-3">
-                            <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors"
                                  :class="openSection === 'cap' ? 'bg-blue-600 text-white shadow-xs shadow-blue-600/20' : 'bg-slate-100 text-slate-400'">
-                                <i class="fa-solid fa-list-check text-xs"></i>
+                                <i class="fa-solid fa-list-check text-[10px]"></i>
                             </div>
-                            <span class="text-xs font-black uppercase tracking-widest"
+                            <span class="text-[11px] font-black uppercase tracking-widest"
                                   :class="openSection === 'cap' ? 'text-blue-700' : 'text-slate-600'">
                                 {{ __('CORRECTIVE ACTION PLAN') }}
                             </span>
                         </div>
-                        <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
+                        <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"
                            :class="openSection === 'cap' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
                     </button>
                     <div x-show="openSection === 'cap'" x-collapse.duration.250ms>
-                        <div class="p-5 text-xs font-medium text-slate-600 leading-relaxed bg-blue-50/40 border-t border-blue-100/60 rounded-b-2xl">
+                        <div class="p-3.5 text-xs font-medium text-slate-600 leading-relaxed bg-blue-50/40 border-t border-blue-100/60 rounded-b-xl">
                             <p class="whitespace-pre-line" x-html="formatMarkdown(activeAiDetails.plan) || '{{ __('No specific action plan drafted.') }}'"></p>
                         </div>
                     </div>
                 </div>
 
                 {{-- Section 3: AI Audit Insight (Gap) --}}
-                <div class="rounded-2xl border transition-all overflow-hidden"
+                <div class="rounded-xl border transition-all overflow-hidden"
                      :class="openSection === 'gap' ? 'border-blue-200/90 bg-blue-50/40 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
                     <button type="button"
                         @click="openSection = openSection === 'gap' ? null : 'gap'"
-                        class="w-full flex items-center justify-between gap-3 p-4 text-left cursor-pointer transition-colors"
+                        class="w-full flex items-center justify-between gap-3 p-3 text-left cursor-pointer transition-colors"
                         :class="openSection === 'gap' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
-                        <div class="flex items-center gap-3">
-                            <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors"
                                  :class="openSection === 'gap' ? 'bg-blue-600 text-white shadow-xs shadow-blue-600/20' : 'bg-slate-100 text-slate-400'">
-                                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                                <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
                             </div>
-                            <span class="text-xs font-black uppercase tracking-widest"
+                            <span class="text-[11px] font-black uppercase tracking-widest"
                                   :class="openSection === 'gap' ? 'text-blue-700' : 'text-slate-600'">
                                 {{ __('AI AUDIT INSIGHT (GAP)') }}
                             </span>
                         </div>
-                        <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
+                        <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"
                            :class="openSection === 'gap' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
                     </button>
                     <div x-show="openSection === 'gap'" x-collapse.duration.250ms>
-                        <div class="p-5 text-xs font-medium text-slate-600 leading-relaxed bg-blue-50/40 border-t border-blue-100/60 rounded-b-2xl">
+                        <div class="p-3.5 text-xs font-medium text-slate-600 leading-relaxed bg-blue-50/40 border-t border-blue-100/60 rounded-b-xl">
                             <p class="whitespace-pre-line" x-html="formatMarkdown(activeAiDetails.insight) || '{{ __('Control shows solid operational alignment.') }}'"></p>
                         </div>
                     </div>
                 </div>
 
                 {{-- Section 4: Impact Interpretation --}}
-                <div class="rounded-2xl border transition-all overflow-hidden"
+                <div class="rounded-xl border transition-all overflow-hidden"
                      :class="openSection === 'impact' ? 'border-blue-200/90 bg-blue-50/40 shadow-xs' : 'border-slate-200/80 bg-white hover:border-slate-300 shadow-2xs'">
                     <button type="button"
                         @click="openSection = openSection === 'impact' ? null : 'impact'"
-                        class="w-full flex items-center justify-between gap-3 p-4 text-left cursor-pointer transition-colors"
+                        class="w-full flex items-center justify-between gap-3 p-3 text-left cursor-pointer transition-colors"
                         :class="openSection === 'impact' ? 'bg-blue-50/80' : 'bg-white hover:bg-slate-50/60'">
-                        <div class="flex items-center gap-3">
-                            <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors"
                                  :class="openSection === 'impact' ? 'bg-blue-600 text-white shadow-xs shadow-blue-600/20' : 'bg-slate-100 text-slate-400'">
-                                <i class="fa-solid fa-triangle-exclamation text-xs"></i>
+                                <i class="fa-solid fa-triangle-exclamation text-[10px]"></i>
                             </div>
-                            <span class="text-xs font-black uppercase tracking-widest"
+                            <span class="text-[11px] font-black uppercase tracking-widest"
                                   :class="openSection === 'impact' ? 'text-blue-700' : 'text-slate-600'">
                                 {{ __('IMPACT INTERPRETATION') }}
                             </span>
                         </div>
-                        <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
+                        <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"
                            :class="openSection === 'impact' ? 'rotate-180 text-blue-500' : 'text-slate-400'"></i>
                     </button>
                     <div x-show="openSection === 'impact'" x-collapse.duration.250ms>
-                        <div class="p-5 text-xs font-medium text-slate-600 leading-relaxed bg-blue-50/40 border-t border-blue-100/60 rounded-b-2xl">
+                        <div class="p-3.5 text-xs font-medium text-slate-600 leading-relaxed bg-blue-50/40 border-t border-blue-100/60 rounded-b-xl">
                             <p class="whitespace-pre-line" x-html="formatMarkdown(activeAiDetails.impact) || '{{ __('No impact interpretation available.') }}'"></p>
                         </div>
                     </div>
@@ -890,12 +890,12 @@
 
             </div>
             {{-- Footer Badges --}}
-            <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3" x-show="activeAiDetails.priority">
+            <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5" x-show="activeAiDetails.priority">
                 <div class="flex items-center gap-2">
                     <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ __('Risk Tier:') }}</span>
-                    <span class="px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-100 text-[9px] font-black rounded-lg uppercase tracking-wider leading-none" x-text="activeAiDetails.priority"></span>
+                    <span class="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-100 text-[9px] font-black rounded-md uppercase tracking-wider leading-none" x-text="activeAiDetails.priority"></span>
                 </div>
-                <button type="button" @click="showAiModal = false" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer">
+                <button type="button" @click="showAiModal = false" class="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer">
                     {{ __('Close') }}
                 </button>
             </div>

@@ -43,8 +43,8 @@
                         <span class="text-blue-400 font-black text-sm">03</span>
                     </div>
                     <div>
-                        <h6 class="text-[11px] font-bold text-white uppercase tracking-wider mb-1">{{ __('Synthesize & Lock') }}</h6>
-                        <p class="text-[9px] text-slate-400 leading-relaxed font-medium">{!! __('Use <strong>AI Insights</strong> to generate recommendations, then click <strong>Verify & Finalize</strong> to lock the assessment.') !!}</p>
+                        <h6 class="text-[11px] font-bold text-white uppercase tracking-wider mb-1">{{ __('Synthesize & Complete') }}</h6>
+                        <p class="text-[9px] text-slate-400 leading-relaxed font-medium">{!! __('Use <strong>AI Insights</strong> to generate recommendations. Scores and findings are saved automatically as you complete questions.') !!}</p>
                     </div>
                 </div>
             </div>
@@ -107,11 +107,13 @@
                 risk: '{{ $result->risk_level }}',
                 loading: false,
                 aiLoading: false,
+                code: @js($result->standard->code),
+                title: @js(__($result->standard->title)),
                 isApplicable: {{ $isClause ? 'true' : ($result->is_applicable ? 'true' : 'false') }},
                 soaJustification: @js($result->soa_justification ?? ''),
                 aiRec: @js($result->ai_recommendation ?? ''),
-                aiPlan: @js(is_array($result->corrective_action_plan) ? implode("\n", $result->corrective_action_plan) : ($result->corrective_action_plan ?? '')),
-                aiInsight: @js(is_array($result->control_insight) ? ($result->control_insight['gap'] ?? '') : ($result->control_insight ?? '')),
+                aiPlan: @js(is_array($result->corrective_action_plan) ? ($result->corrective_action_plan['action'] ?? (implode("\n", $result->corrective_action_plan))) : ($result->corrective_action_plan ?? '')),
+                aiInsight: @js(is_array($result->control_insight) ? ($result->control_insight['gap'] ?? (implode("\n", $result->control_insight))) : ($result->control_insight ?? '')),
                 aiPriority: @js($result->risk_priority ?? ''),
                 aiValidation: '',
                 aiImpact: @js($result->impact_interpretation ?? ''),
@@ -239,7 +241,9 @@
                                     self.aiPlan       = (typeof aiResult.corrective_action_plan === 'object' && aiResult.corrective_action_plan !== null)
                                                          ? (aiResult.corrective_action_plan.action || (Array.isArray(aiResult.corrective_action_plan) ? aiResult.corrective_action_plan.join('\n') : JSON.stringify(aiResult.corrective_action_plan)))
                                                          : (aiResult.corrective_action_plan || '');
-                                    self.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null) ? (aiResult.control_insight.gap || '') : (aiResult.control_insight || '');
+                                    self.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null)
+                                                         ? (aiResult.control_insight.gap || (Array.isArray(aiResult.control_insight) ? aiResult.control_insight.join('\n') : JSON.stringify(aiResult.control_insight)))
+                                                         : (aiResult.control_insight || '');
                                     self.aiPriority   = aiResult.risk_priority || '';
                                     self.aiValidation = '';
                                     self.aiImpact     = aiResult.impact_interpretation || '';
@@ -260,13 +264,18 @@
                     };
 
                     try {
-                        const res = await fetch('{{ route('results.generate-ai', $result->id) }}', {
+                        const form = this.$refs.form;
+                        const formData = new FormData(form);
+                        formData.append('trigger_ai', '1');
+
+                        const res = await fetch(form.action, {
                             method: 'POST',
                             headers: {
                                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
                                 'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            }
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
                         });
                         const data = await res.json();
 
@@ -289,7 +298,9 @@
                                 self.aiPlan       = (typeof aiResult.corrective_action_plan === 'object' && aiResult.corrective_action_plan !== null)
                                                      ? (aiResult.corrective_action_plan.action || (Array.isArray(aiResult.corrective_action_plan) ? aiResult.corrective_action_plan.join('\n') : JSON.stringify(aiResult.corrective_action_plan)))
                                                      : (aiResult.corrective_action_plan || '');
-                                self.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null) ? (aiResult.control_insight.gap || '') : (aiResult.control_insight || '');
+                                self.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null)
+                                                     ? (aiResult.control_insight.gap || (Array.isArray(aiResult.control_insight) ? aiResult.control_insight.join('\n') : JSON.stringify(aiResult.control_insight)))
+                                                     : (aiResult.control_insight || '');
                                 self.aiPriority   = aiResult.risk_priority || '';
                                 self.aiValidation = '';
                                 self.aiImpact     = aiResult.impact_interpretation || '';
@@ -629,11 +640,9 @@
                             <template x-if="aiRec">
                                 <div class="flex items-center gap-2">
                                     <button type="button" 
-                                        data-code="{{ $result->standard->code }}"
-                                        data-title="{{ __($result->standard->title) }}"
                                         @click="window.dispatchEvent(new CustomEvent('open-ai-details', { detail: {
-                                            code: $el.dataset.code,
-                                            title: $el.dataset.title,
+                                            code: code,
+                                            title: title,
                                             rec: aiRec,
                                             plan: aiPlan,
                                             insight: aiInsight,
@@ -643,8 +652,10 @@
                                         }}))"
                                         class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shadow-md shadow-blue-600/20">
                                         <i class="fa-solid fa-eye mr-1"></i>{{ __('View Result') }}</button>
+                                    @if($session->status === 'completed')
                                     <a href="{{ route('workspace.index', ['session_id' => $session->id, 'focus' => $result->id]) }}" class="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-lg text-[8px] font-black uppercase tracking-widest transition-all border border-blue-100">{{ __('Workspace') }}<i class="fa-solid fa-arrow-right ml-1"></i>
                                     </a>
+                                    @endif
                                     <template x-if="rating < 5">
                                         <button type="button" @click="generateAi()" :disabled="aiLoading"
                                                 class="px-4 py-2 bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 text-slate-600">
@@ -665,15 +676,6 @@
                         </div>
                     </template>
 
-                    </div>
-
-                    <div class="flex justify-end pt-3 mt-2">
-                        <button type="button" @click="submitForm(true)" :disabled="loading"
-                                class="px-6 py-2.5 bg-slate-900 text-white rounded-lg text-[8px] font-bold uppercase tracking-widest hover:bg-blue-600 transition-all flex items-center gap-2 shadow-lg">
-                            <i class="fa-solid fa-circle-check text-xs"></i>
-                            {{ __('Verify & Finalize') }}
-                        </button>
-                    </div>
                     </fieldset>
                 </form>
             </div>

@@ -149,10 +149,12 @@ class AdminSessionsTest extends TestCase
             'name'       => 'Old Month Session',
             'status'     => 'in_progress',
         ]);
-        $oldSession->timestamps = false;
-        $oldSession->created_at = now()->subMonth();
-        $oldSession->updated_at = now()->subMonth();
-        $oldSession->save();
+        \Illuminate\Support\Facades\DB::table('assessment_sessions')
+            ->where('id', $oldSession->id)
+            ->update([
+                'created_at' => now()->subMonth(),
+                'updated_at' => now()->subMonth()
+            ]);
 
         // Create session dated today
         $newSession = AssessmentSession::create([

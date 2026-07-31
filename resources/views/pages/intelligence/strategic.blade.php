@@ -46,8 +46,10 @@
                 @if($latestSession)
                 <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('reports.export-result-pdf', $latestSession->id) }}" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-md shadow-blue-600/20 transition-all flex items-center gap-1.5 shrink-0" title="{{ __('Export Full Assessment Result PDF Report') }}">
+                    <a href="{{ route('reports.export-pdf', $latestSession->id) }}" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-md shadow-blue-600/20 transition-all flex items-center gap-1.5 shrink-0" title="{{ __('Export Full Assessment Result PDF Report') }}">
                         <i class="fa-solid fa-file-pdf text-white text-[10px]"></i>{{ __('Result PDF') }}</a>
+                    <a href="{{ route('reports.export-excel', $latestSession->id) }}" class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-md shadow-green-600/20 transition-all flex items-center gap-1.5 shrink-0" title="{{ __('Export Excel Report') }}">
+                        <i class="fa-solid fa-file-excel text-white text-[10px]"></i>{{ __('Excel') }}</a>
                     <a href="{{ route('workspace.export-soa', $latestSession->id) }}" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-md shadow-emerald-600/20 transition-all flex items-center gap-1.5 shrink-0" title="{{ __('Export Statement of Applicability Excel') }}">
                         <i class="fa-solid fa-file-excel text-white text-[10px]"></i>{{ __('SoA Excel') }}</a>
                     <a href="{{ route('workspace.export-soa-pdf', $latestSession->id) }}" class="px-3 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-md shadow-emerald-700/20 transition-all flex items-center gap-1.5 shrink-0" title="{{ __('Export Statement of Applicability PDF') }}">

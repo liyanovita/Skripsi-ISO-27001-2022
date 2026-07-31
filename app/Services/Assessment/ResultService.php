@@ -56,29 +56,43 @@ class ResultService
         if (!$isApplicable) {
             $maturityRating = null;
             $status = 'completed';
+            $mergedAnswers = $data['answers'] ?? $result->answers ?? [];
         } else {
-            // Score is the only required assessment input. Evidence, notes, PIC,
-            // and due date remain optional.
-            $hasSubmittedScore = array_key_exists('maturity_rating', $data)
-                || (isset($data['answers']) && is_array($data['answers']) && count($data['answers']) > 0);
+            $questions = $result->standard?->questions;
+            $totalQuestions = is_array($questions) ? count($questions) : 0;
 
-            if (!$hasSubmittedScore && $result->status !== 'completed') {
+            $existingAnswers = is_array($result->answers) ? $result->answers : [];
+            $incomingAnswers = (isset($data['answers']) && is_array($data['answers'])) ? $data['answers'] : [];
+            $mergedAnswers = array_merge($existingAnswers, $incomingAnswers);
+
+            $validAnswers = array_filter($mergedAnswers, fn($v) => $v !== null && $v !== '' && is_numeric($v));
+            $answeredCount = count($validAnswers);
+
+            $hasAnyAnswer = array_key_exists('maturity_rating', $data) || $answeredCount > 0;
+
+            if (!$hasAnyAnswer && $result->status !== 'completed') {
                 throw new \Exception('Please select a score before saving this control.');
             }
 
-            $maturityRating = $hasSubmittedScore
-                ? $this->calculateMaturityRating($data)
+            $maturityRating = $hasAnyAnswer
+                ? $this->calculateMaturityRating(array_merge($data, ['answers' => $mergedAnswers]))
                 : $result->maturity_rating;
+
             if ($maturityRating !== null && ($maturityRating < 0 || $maturityRating > 5)) {
                 throw new \Exception('Invalid maturity rating: must be between 0 and 5.');
             }
-            $status = $hasSubmittedScore ? 'completed' : $result->status;
+
+            if ($totalQuestions > 0) {
+                $status = ($answeredCount >= $totalQuestions) ? 'completed' : 'in_progress';
+            } else {
+                $status = $hasAnyAnswer ? 'completed' : $result->status;
+            }
         }
 
         $evidencePath = $this->handleEvidenceUpload($result, $file);
 
         $updateData = [
-            'answers' => $data['answers'] ?? [],
+            'answers' => $mergedAnswers,
             'maturity_rating' => $maturityRating,
             'notes' => $data['notes'] ?? null,
             'evidence_file' => $evidencePath,

@@ -159,7 +159,7 @@
                                 @php
                                     $completedControls = $session->status === 'completed'
                                         ? 137
-                                        : ($session->results ? $session->results->filter(fn($r) => !$r->is_applicable || $r->status === 'completed' || $r->maturity_rating !== null)->count() : 0);
+                                        : ($session->results ? $session->results->filter(fn($r) => !$r->is_applicable || $r->status === 'completed')->count() : 0);
                                     $prog = min(100, round(($completedControls / 137) * 100));
                                 @endphp
                                 <div class="flex flex-col gap-1.5 w-32">

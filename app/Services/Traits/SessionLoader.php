@@ -31,7 +31,7 @@ trait SessionLoader
             ->when(!auth()->user() || !auth()->user()->isAdmin(), fn($q) => $q->where(function($q) use ($userId) {
                 $q->where('user_id', $userId)
                   ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId));
-            })->where('status', 'completed'))
+            }))
             ->orderBy($orderBy, $direction);
 
         if ($limit) {
