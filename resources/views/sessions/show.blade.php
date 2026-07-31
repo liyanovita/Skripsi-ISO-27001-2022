@@ -61,28 +61,8 @@
             }
             this.updateProgress();
 
-            if (this.isReadyToFinalize && !detail.wasCompleted) {
-                Swal.fire({
-                    icon: 'success',
-                    title: '{{ addslashes(__('Assessment 100% Completed!')) }}',
-                    html: '<p class="text-sm text-slate-600 font-medium leading-relaxed">{{ addslashes(__('Congratulations! You have completed all 122 controls. Please finalize the assessment session to publish your results in Assessment Results & Workspace.')) }}</p>',
-                    confirmButtonText: '{{ addslashes(__('Finalize Now')) }}',
-                    showCancelButton: true,
-                    cancelButtonText: '{{ addslashes(__('Later')) }}',
-                    confirmButtonColor: '#10b981',
-                    cancelButtonColor: '#64748b',
-                    width: '26rem',
-                    customClass: {
-                        title: 'text-base font-bold text-slate-800 mt-1',
-                        htmlContainer: 'text-left px-2',
-                        confirmButton: 'text-xs font-bold uppercase tracking-widest px-5 py-2.5 rounded-lg',
-                        cancelButton: 'text-xs font-bold uppercase tracking-widest px-5 py-2.5 rounded-lg'
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.showFinalizeModal = true;
-                    }
-                });
+            if (this.isReadyToFinalize && !detail.wasCompleted && typeof window.promptFinalizeAssessment === 'function') {
+                window.promptFinalizeAssessment(this);
             }
         },
         updateProgress() {
@@ -592,6 +572,31 @@
                 attempts++;
                 if (attempts > 30) clearInterval(interval);
             }, 100);
+        };
+
+        window.promptFinalizeAssessment = function(alpineContext) {
+            if (typeof Swal === 'undefined') return;
+            Swal.fire({
+                icon: 'success',
+                title: @json(__('Assessment 100% Completed!')),
+                html: '<p class="text-sm text-slate-600 font-medium leading-relaxed">' + @json(__('Congratulations! You have completed all 122 controls. Please finalize the assessment session to publish your results in Assessment Results & Workspace.')) + '</p>',
+                confirmButtonText: @json(__('Finalize Now')),
+                showCancelButton: true,
+                cancelButtonText: @json(__('Later')),
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#64748b',
+                width: '26rem',
+                customClass: {
+                    title: 'text-base font-bold text-slate-800 mt-1',
+                    htmlContainer: 'text-left px-2',
+                    confirmButton: 'text-xs font-bold uppercase tracking-widest px-5 py-2.5 rounded-lg',
+                    cancelButton: 'text-xs font-bold uppercase tracking-widest px-5 py-2.5 rounded-lg'
+                }
+            }).then((result) => {
+                if (result.isConfirmed && alpineContext) {
+                    alpineContext.showFinalizeModal = true;
+                }
+            });
         };
 
         // Run only if it's not a Turbo preview to prevent double execution
