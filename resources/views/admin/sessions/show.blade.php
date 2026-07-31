@@ -8,7 +8,8 @@
 
     {{-- Top Back Navigation --}}
     <div class="flex items-center justify-between">
-        <a href="{{ route('admin.sessions.index') }}" 
+        <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('admin.sessions.index') }}" 
+           onclick="if (document.referrer && document.referrer !== location.href) { window.history.back(); return false; }"
            class="inline-flex items-center gap-2 px-3.5 py-2 bg-white border border-slate-200/80 rounded-xl text-xs font-bold text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:shadow-sm transition-all group">
             <i class="fa-solid fa-arrow-left text-slate-400 group-hover:-translate-x-0.5 group-hover:text-blue-600 transition-transform"></i>
             {{ __('Back to Sessions') }}

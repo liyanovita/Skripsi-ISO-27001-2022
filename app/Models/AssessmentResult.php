@@ -99,6 +99,8 @@ class AssessmentResult extends Model
      */
     public function getComplianceStatusAttribute(): string
     {
+        if (!$this->is_applicable) return 'Not Applicable';
+        if ($this->maturity_rating === null) return 'Unassessed';
         $c = (int) $this->maturity_rating;
         if ($c >= 5) return 'Compliant';
         if ($c >= 3) return 'Partially Compliant';
@@ -115,7 +117,7 @@ class AssessmentResult extends Model
      */
     public function getCalculatedRiskPriorityAttribute(): string
     {
-        if (!$this->is_applicable) return 'Low';
+        if (!$this->is_applicable) return 'N/A';
         
         $status = $this->compliance_status;
         $gap = $this->gap;
@@ -134,9 +136,8 @@ class AssessmentResult extends Model
      */
     public function getRiskLevelAttribute(): string
     {
-        if (!$this->is_applicable || $this->maturity_rating === null) {
-            return $this->status === 'completed' ? 'Low' : 'Unassessed';
-        }
+        if (!$this->is_applicable) return 'N/A';
+        if ($this->maturity_rating === null) return 'Unassessed';
 
         return $this->risk_priority ?: $this->calculated_risk_priority;
     }

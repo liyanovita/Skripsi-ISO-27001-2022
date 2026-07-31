@@ -48,7 +48,7 @@ class StrategicAnalyticsTest extends TestCase
         $this->assertSame(2, $stats['needs_improvement']);
         $this->assertSame(0, $stats['unassessed']);
         $this->assertSame(1, $stats['excluded']);
-        $this->assertSame(2, $stats['total_controls']);
+        $this->assertSame(122, $stats['total_controls']);
 
         $this->assertSame(1, $breakdown['excluded']);
         $this->assertSame([0, 1, 0, 1, 0], $distribution);

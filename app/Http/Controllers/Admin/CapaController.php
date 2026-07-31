@@ -223,7 +223,12 @@ class CapaController extends Controller
 
         // Handle document file upload for post-improvement evidence
         if ($request->hasFile('evidence_after_file')) {
-            $path = $request->file('evidence_after_file')->store('capa_evidence', 'public');
+            $file = $request->file('evidence_after_file');
+            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $extension = $file->getClientOriginalExtension();
+            $cleanName = \Illuminate\Support\Str::slug($originalName) ?: 'evidence';
+            $fileName = $cleanName . '-' . time() . '.' . $extension;
+            $path = $file->storeAs('capa_evidence', $fileName, 'public');
             $fileTag = "[Document] " . $path;
             if (!empty($validated['evidence_after_improvement'])) {
                 $capa->evidence_after_improvement = $fileTag . "\n" . $validated['evidence_after_improvement'];

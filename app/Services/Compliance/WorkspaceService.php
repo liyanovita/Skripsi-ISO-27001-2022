@@ -49,12 +49,12 @@ class WorkspaceService
         }
 
         $notApplicableCount = $results->where('is_applicable', false)->count();
-        $applicableCount = max(0, 137 - $notApplicableCount);
+        $applicableCount = max(0, 122 - $notApplicableCount);
 
-        // Calculate stats: gaps = 91 applicable controls with maturity < 5, not_applicable = 3 excluded controls from SoA
+        // Calculate stats: total = 122 ISO 27001:2022 controls, gaps = applicable controls with maturity < 5
         $gapsCount = $results->where('is_applicable', true)->where('status', 'completed')->whereNotNull('maturity_rating')->where('maturity_rating', '<', 5)->count();
         $stats = [
-            'total'         => 137,
+            'total'         => 122,
             'gaps'          => $gapsCount,
             'applicable'    => $applicableCount,
             'not_applicable'=> $notApplicableCount,
@@ -100,8 +100,8 @@ class WorkspaceService
         }
         $result = $query->findOrFail($id);
 
-        if ($result->session && $result->session->isLockedForUser($user)) {
-            abort(403, __('This audit session is locked for updates.'));
+        if ($result->treatment_due_date && $result->treatment_due_date->isPast() && (!$user || (!$user->isAdmin() && $user->role !== 'admin'))) {
+            abort(403, __('The remediation deadline for this control has passed.'));
         }
 
         $updateData = [];
@@ -138,7 +138,11 @@ class WorkspaceService
         }
         if (request()->hasFile('evidence_file')) {
             $file = request()->file('evidence_file');
-            $path = $file->store('evidence', 'public');
+            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $extension = $file->getClientOriginalExtension();
+            $cleanName = \Illuminate\Support\Str::slug($originalName) ?: 'evidence';
+            $fileName = $cleanName . '-' . time() . '.' . $extension;
+            $path = $file->storeAs('evidence', $fileName, 'public');
             $existing = is_array($result->evidence_file) ? $result->evidence_file : (empty($result->evidence_file) ? [] : [$result->evidence_file]);
             $existing[] = $path;
             $updateData['evidence_file'] = array_values(array_unique($existing));

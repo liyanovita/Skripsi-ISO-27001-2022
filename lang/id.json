@@ -1,5 +1,9 @@
 {
     "No data has changed": "Tidak ada data yang berubah",
+    "points": "poin",
+    "Assigned to Me": "Ditugaskan ke Saya",
+    "No controls match the selected filter criteria.": "Tidak ada kontrol yang cocok dengan kriteria filter yang dipilih.",
+    "Controls with assessment questions": "Kontrol yang memiliki pertanyaan penilaian",
     "The assessment data for this control has not changed since the last AI generation.": "Data asesmen untuk kontrol ini tidak berubah sejak pembuatan AI terakhir.",
     "PDF Export Notice:": "Pemberitahuan Cetak PDF:",
     "The content written in this editor will be compiled directly into the official PDF download. Please ensure alignment, lists, and tables are structured neatly for a professional printout.": "Konten artikel yang ditulis di editor ini akan disusun dan diformat langsung ke dalam dokumen PDF resmi yang dapat diunduh. Harap pastikan format judul, paragraf, dan daftar teratur dengan rapi dan profesional.",

@@ -33,9 +33,10 @@
 
     {{-- Back Navigation --}}
     <div class="flex items-center justify-between gap-4">
-        <a href="{{ route('workspace.index', ['session_id' => $result->session_id]) }}" 
+        <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('workspace.index', ['session_id' => $result->session_id]) }}" 
+           onclick="if (document.referrer && document.referrer !== location.href) { window.history.back(); return false; }"
            class="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors bg-white px-4 py-2.5 rounded-2xl border border-slate-200 shadow-xs hover:border-slate-300">
-            <i class="fa-solid fa-arrow-left"></i> {{ __('Back to Improvement Tracking') }}
+            <i class="fa-solid fa-arrow-left"></i> {{ __('Back') }}
         </a>
         <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">ISO 27001:2022 &mdash; Remediation Hub</span>
     </div>
@@ -90,19 +91,27 @@
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
                         <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">{{ __('Maturity') }}</span>
-                        <span class="text-lg font-black text-slate-900">{{ $result->maturity_rating ?? 0 }}<span class="text-xs text-slate-400">/5</span></span>
+                        @if(!$result->is_applicable || $result->maturity_rating === null)
+                            <span class="text-lg font-black text-slate-400">&mdash;</span>
+                        @else
+                            <span class="text-lg font-black text-slate-900">{{ $result->maturity_rating }}<span class="text-xs text-slate-400">/5</span></span>
+                        @endif
                     </div>
-                    <div class="bg-rose-50 p-3 rounded-2xl border border-rose-100 text-center">
+                    <div class="bg-rose-50/50 p-3 rounded-2xl border border-rose-100 text-center">
                         <span class="text-[8px] font-black text-rose-400 uppercase tracking-widest block mb-1">{{ __('Gap') }}</span>
-                        <span class="text-lg font-black text-rose-600">{{ 5 - ($result->maturity_rating ?? 0) }}<span class="text-xs text-rose-400"> pts</span></span>
+                        @if(!$result->is_applicable || $result->maturity_rating === null)
+                            <span class="text-lg font-black text-slate-400">&mdash;</span>
+                        @else
+                            <span class="text-lg font-black text-rose-600">{{ 5 - $result->maturity_rating }}</span>
+                        @endif
                     </div>
                     <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
                         <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">{{ __('Status') }}</span>
-                        <span class="text-xs font-black text-slate-800 leading-tight">{{ $complianceStatus }}</span>
+                        <span class="text-xs font-black text-slate-800 leading-tight">{{ !$result->is_applicable ? __('Not Applicable') : $complianceStatus }}</span>
                     </div>
                     <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
                         <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">{{ __('Risk') }}</span>
-                        <span class="text-xs font-black text-rose-600">{{ $riskLevelLabel }}</span>
+                        <span class="text-xs font-black text-slate-600">{{ !$result->is_applicable ? 'N/A' : $riskLevelLabel }}</span>
                     </div>
                 </div>
 
@@ -190,7 +199,8 @@
                 @csrf
                 @method('PATCH')
                 @php
-                    $isLocked = ($result->session->status === 'completed') && (!auth()->user() || !auth()->user()->isAdmin());
+                    $isRemediationExpired = $result->treatment_due_date && $result->treatment_due_date->isPast() && (!auth()->user() || !auth()->user()->isAdmin());
+                    $isLocked = $isRemediationExpired;
                 @endphp
                 <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-5 sticky top-6">
 
@@ -204,7 +214,7 @@
                         </div>
                         @if($isLocked)
                         <span class="px-2 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
-                            <i class="fa-solid fa-lock text-amber-500"></i> Locked
+                            <i class="fa-solid fa-lock text-amber-500"></i> {{ __('Deadline Expired') }}
                         </span>
                         @endif
                     </div>
@@ -212,7 +222,9 @@
                     @if($isLocked)
                     <div class="p-3.5 bg-amber-50/80 border border-amber-200/80 rounded-2xl text-amber-800 text-xs font-bold flex items-start gap-2.5">
                         <i class="fa-solid fa-circle-lock text-amber-500 text-sm mt-0.5 shrink-0"></i>
-                        <span class="leading-snug">{{ __('This audit session has been marked as completed. Remediation entries are locked (Read-Only).') }}</span>
+                        <span class="leading-snug">
+                            {{ __('The remediation deadline for this control has expired') }} ({{ $result->treatment_due_date->format('d/m/Y') }}). {{ __('Remediation updates are now locked (Read-Only).') }}
+                        </span>
                     </div>
                     @endif
 
@@ -264,7 +276,7 @@
                         </label>
                         <textarea name="notes" rows="5"
                                   {{ $isLocked ? 'disabled' : '' }}
-                                  placeholder="{{ $isLocked ? __('Session is completed (locked for new notes)') : __('Write new implementation progress, actions taken, findings, or updates here...') }}"
+                                  placeholder="{{ $isLocked ? __('Session is closed (locked for new notes)') : __('Write new implementation progress, actions taken, findings, or updates here...') }}"
                                   class="w-full text-xs font-medium text-slate-800 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500/30 bg-slate-50 resize-none placeholder:text-slate-300 disabled:opacity-60 disabled:cursor-not-allowed"></textarea>
                         @if(!empty($result->notes) && !$isLocked)
                         <p class="text-[8px] text-amber-500 font-bold flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i>{{ __('Previous notes are shown on the left. New input will replace them.') }}</p>
@@ -290,7 +302,7 @@
                         <button type="button" disabled
                                 class="w-full py-3.5 bg-slate-200 text-slate-500 font-black text-xs uppercase tracking-widest rounded-xl shadow-xs cursor-not-allowed flex items-center justify-center gap-2">
                             <i class="fa-solid fa-lock"></i>
-                            <span>{{ __('Completed & Locked (Read-Only)') }}</span>
+                            <span>{{ __('Remediation Deadline Expired') }}</span>
                         </button>
                         @else
                         <button type="submit"

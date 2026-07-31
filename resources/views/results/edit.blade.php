@@ -48,7 +48,9 @@
     {{-- Sticky Header --}}
     <div class="sticky top-[4rem] z-30 bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between mb-8">
         <div class="flex items-center gap-4">
-            <a href="{{ route('sessions.show', $session->id) }}" class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:text-blue-600 transition-all border border-slate-100">
+            <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('sessions.show', $session->id) }}" 
+               onclick="if (document.referrer && document.referrer !== location.href) { window.history.back(); return false; }"
+               class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:text-blue-600 transition-all border border-slate-100">
                 <i class="fa-solid fa-arrow-left"></i>
             </a>
             <div>

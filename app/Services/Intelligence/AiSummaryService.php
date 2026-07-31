@@ -13,8 +13,8 @@ class AiSummaryService
     {
         $session = AssessmentSession::with('results.standard')->findOrFail($sessionId);
 
-        // Verify ownership
-        if ($session->user_id !== auth()->id()) {
+        // Verify session access
+        if (!$session->hasUserAccess()) {
             throw new \Exception('Unauthorized: You do not have permission to generate summary for this session.');
         }
 

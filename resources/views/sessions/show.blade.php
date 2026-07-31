@@ -75,7 +75,9 @@
     <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-                <a href="{{ route('sessions.index') }}" class="w-9 h-9 bg-white text-slate-900 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 hover:bg-slate-50 hover:text-blue-600 transition-all active:scale-95 group shrink-0">
+                <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('sessions.index') }}" 
+                   onclick="if (document.referrer && document.referrer !== location.href) { window.history.back(); return false; }"
+                   class="w-9 h-9 bg-white text-slate-900 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 hover:bg-slate-50 hover:text-blue-600 transition-all active:scale-95 group shrink-0">
                     <i class="fa-solid fa-arrow-left text-sm transition-transform group-hover:-translate-x-1"></i>
                 </a>
                 <div>
@@ -128,8 +130,8 @@
                     <a href="{{ route('reports.export-excel', $session->id) }}" class="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all" title="{{ __('Export Excel') }}" aria-label="Export session report as Excel">
                         <i class="fa-solid fa-file-excel text-green-600"></i>{{ __('Excel') }}</a>
                     @if($session->status === 'completed')
-                    <a href="{{ route('workspace.index', ['session_id' => $session->id]) }}" class="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all" title="{{ __('Open Workspace') }}" aria-label="Open session workspace">
-                        <i class="fa-solid fa-diagram-project text-blue-500"></i>{{ __('Workspace') }}</a>
+                    <a href="{{ route('workspace.index', ['session_id' => $session->id]) }}" class="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all" title="{{ __('Open Improvement Tracking') }}" aria-label="Open session improvement tracking">
+                        <i class="fa-solid fa-chart-line text-blue-500"></i>{{ __('Improvement') }}</a>
                     @endif
                     
                     @if($session->status === 'completed')
@@ -171,7 +173,7 @@
             </div>
             <div>
                 <h3 class="text-lg font-black tracking-tight leading-tight">{{ __('Assessment 100% Completed!') }}</h3>
-                <p class="text-emerald-50 text-xs mt-0.5 font-medium">{{ __('You have completed all 122 controls. Please finalize the assessment session to lock your scores and publish your results in Assessment Results & Workspace.') }}</p>
+                <p class="text-emerald-50 text-xs mt-0.5 font-medium">{{ __('You have completed all 122 controls. Please finalize the assessment session to lock your scores and publish your results in Assessment Results & Improvement Tracking.') }}</p>
             </div>
         </div>
         <button type="button" @click="showFinalizeModal = true" class="shrink-0 px-6 py-2.5 bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md active:scale-95 flex items-center gap-2">
@@ -187,21 +189,28 @@
     @endphp
 
     @if($sessionLocked)
-    <div class="bg-amber-50 border border-amber-300 rounded-2xl p-4 shadow-sm text-amber-900 flex items-start gap-4 mb-4">
-        <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 shrink-0 border border-amber-200">
-            <i class="fa-solid fa-lock text-base"></i>
-        </div>
-        <div class="flex-1">
-            <div class="flex items-center justify-between gap-2">
-                <h4 class="font-bold text-sm text-amber-950">{{ __('Audit Session Locked (Read-Only Mode)') }}</h4>
-                <span class="px-2.5 py-0.5 bg-amber-200/80 text-amber-900 rounded-md text-[10px] font-black uppercase tracking-wider border border-amber-300">
-                    {{ $session->isPastDeadline() ? __('Deadline Expired') : __('Finalized') }}
-                </span>
+    <div class="bg-amber-50 border border-amber-300 rounded-2xl p-4 shadow-sm text-amber-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+        <div class="flex items-start gap-4">
+            <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 shrink-0 border border-amber-200">
+                <i class="fa-solid fa-lock text-base"></i>
             </div>
-            <p class="text-xs text-amber-800 font-medium mt-1 leading-relaxed">
-                {{ $lockReasonMsg }}
-            </p>
+            <div class="flex-1">
+                <div class="flex items-center gap-2">
+                    <h4 class="font-bold text-sm text-amber-950">{{ __('Audit Session Locked (Read-Only Mode)') }}</h4>
+                    <span class="px-2.5 py-0.5 bg-amber-200/80 text-amber-900 rounded-md text-[10px] font-black uppercase tracking-wider border border-amber-300">
+                        {{ $session->isPastDeadline() ? __('Deadline Expired') : __('Completed') }}
+                    </span>
+                </div>
+                <p class="text-xs text-amber-800 font-medium mt-1 leading-relaxed">
+                    {{ $lockReasonMsg }}
+                </p>
+            </div>
         </div>
+        @if($session->status === 'completed')
+        <a href="{{ route('workspace.index', ['session_id' => $session->id]) }}" class="shrink-0 px-4 py-2.5 bg-amber-800 hover:bg-amber-900 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2">
+            <i class="fa-solid fa-diagram-project text-xs"></i> {{ __('Improvement Tracking') }}
+        </a>
+        @endif
     </div>
     @endif
 
@@ -579,7 +588,7 @@
             Swal.fire({
                 icon: 'success',
                 title: @json(__('Assessment 100% Completed!')),
-                html: '<p class="text-sm text-slate-600 font-medium leading-relaxed">' + @json(__('Congratulations! You have completed all 122 controls. Please finalize the assessment session to publish your results in Assessment Results & Workspace.')) + '</p>',
+                html: '<p class="text-sm text-slate-600 font-medium leading-relaxed">' + @json(__('Congratulations! You have completed all 122 controls. Please finalize the assessment session to publish your results in Assessment Results & Improvement Tracking.')) + '</p>',
                 confirmButtonText: @json(__('Finalize Now')),
                 showCancelButton: true,
                 cancelButtonText: @json(__('Later')),

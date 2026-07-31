@@ -127,6 +127,12 @@ class ResultService
 
         $result->update($updateData);
 
+        // Always keep ai_data_hash in sync with current data so that
+        // the NO_DATA_CHANGE guard works correctly even after plain saves.
+        if (!isset($data['trigger_ai']) || $data['trigger_ai'] != '1') {
+            $result->updateQuietly(['ai_data_hash' => $newHash]);
+        }
+
         if (isset($data['trigger_ai']) && $data['trigger_ai'] == '1') {
             Cache::put("result_{$id}_ai_status", 'processing', 300);
             $result->update([

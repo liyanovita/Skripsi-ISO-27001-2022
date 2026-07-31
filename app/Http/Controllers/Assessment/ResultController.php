@@ -6,6 +6,7 @@ use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Assessment\UpdateResultRequest;
 use App\Http\Responses\ApiResponse;
+use App\Models\AssessmentResult;
 use App\Models\AssessmentSession;
 use App\Services\Assessment\ResultService;
 use App\Services\Assessment\SessionService;
@@ -52,6 +53,17 @@ class ResultController extends Controller
     public function update(UpdateResultRequest $request, int $id): JsonResponse|RedirectResponse
     {
         try {
+            $existing = AssessmentResult::with('session')->findOrFail($id);
+            if ($existing->session->status === 'completed' || $existing->session->status === 'closed') {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => __('This assessment session is completed and read-only. Assessment scores cannot be modified.'),
+                    ], 403);
+                }
+                return redirect()->back()->with('error', __('This assessment session is completed and read-only. Assessment scores cannot be modified.'));
+            }
+
             $result = $this->resultService->updateResult(
                 $id,
                 $request->all(),
@@ -108,6 +120,14 @@ class ResultController extends Controller
     public function generateAiInsight(int $id): JsonResponse
     {
         try {
+            $existing = AssessmentResult::with('session')->findOrFail($id);
+            if ($existing->session->status === 'completed' || $existing->session->status === 'closed') {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('This assessment session is completed and read-only.'),
+                ], 403);
+            }
+
             $this->resultService->generateAiInsight($id);
 
             return ApiResponse::success(
@@ -185,6 +205,16 @@ class ResultController extends Controller
     {
         try {
             $result = $this->resultService->getResultById($id);
+            if ($result->session->status === 'completed' || $result->session->status === 'closed') {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => __('This assessment session is completed and read-only.'),
+                    ], 403);
+                }
+                return redirect()->back()->with('error', __('This assessment session is completed and read-only.'));
+            }
+
             $filePath = $request->input('file_path');
 
             $files = is_array($result->evidence_file) ? $result->evidence_file : (empty($result->evidence_file) ? [] : [$result->evidence_file]);

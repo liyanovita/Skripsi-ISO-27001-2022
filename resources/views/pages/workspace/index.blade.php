@@ -13,6 +13,7 @@
         'isGap' => $result->is_applicable && $result->status === 'completed' && $result->maturity_rating !== null && $result->maturity_rating < 5,
         'isApplicable' => (bool) $result->is_applicable,
         'treatmentStatus' => $result->treatment_status ?? 'open',
+        'pic' => $result->treatment_pic ?? '',
     ])->values();
     $gapFindings = $findings->map(fn($finding) => [
         'id' => $finding->id,
@@ -228,11 +229,27 @@
             this.submittingManage = false;
         }
     },
+    currentUser: {
+        id: {{ auth()->id() }},
+        name: @js(auth()->user()?->name ?? ''),
+        email: @js(auth()->user()?->email ?? '')
+    },
     get filteredControls() {
+        const currentNameLower = (this.currentUser.name || '').toLowerCase().trim();
+        const currentEmailLower = (this.currentUser.email || '').toLowerCase().trim();
+        const currentIdStr = String(this.currentUser.id || '');
+
         return this.controls.filter((control) => {
             let matchesOption = true;
             if (this.filterOption === 'excluded') {
                 matchesOption = !control.isApplicable;
+            } else if (this.filterOption === 'assigned_to_me') {
+                const picLower = (control.pic || '').toLowerCase().trim();
+                matchesOption = control.isApplicable && control.isGap && (
+                    picLower === currentNameLower ||
+                    picLower === currentEmailLower ||
+                    picLower === currentIdStr
+                );
             } else {
                 matchesOption = control.isGap && control.isApplicable;
             }
@@ -398,7 +415,7 @@
                             <i class="fa-solid fa-table-list text-[9px]"></i>
                         </div>
                     </div>
-                    <p class="text-[8px] font-bold text-slate-400 mt-2">{{ __('All ISO 27001:2022 items') }}</p>
+                    <p class="text-[8px] font-bold text-slate-400 mt-2">{{ __('Controls with assessment questions') }}</p>
                 </div>
 
                 {{-- Identified Gaps --}}
@@ -527,6 +544,11 @@
                     class="px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">
                     <i class="fa-solid fa-filter text-[7px] mr-1"></i>{{ __('Gaps Only') }}
                 </button>
+                <button @click="filterOption = 'assigned_to_me'"
+                    :class="filterOption === 'assigned_to_me' ? 'bg-blue-600 text-white shadow shadow-blue-600/20' : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'"
+                    class="px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">
+                    <i class="fa-solid fa-user-check text-[7px] mr-1"></i>{{ __('Assigned to Me') }}
+                </button>
                 <button @click="filterOption = 'excluded'"
                     :class="filterOption === 'excluded' ? 'bg-slate-800 text-white shadow' : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'"
                     class="px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">
@@ -578,6 +600,7 @@
     @if($selectedSession && request()->has('focus'))
     <div class="sticky top-0 z-40 py-2">
         <a href="{{ route('sessions.show', $selectedSession) }}?focus={{ request('focus') }}"
+           onclick="if (document.referrer && document.referrer !== location.href) { window.history.back(); return false; }"
            class="inline-flex items-center gap-3 px-5 py-2.5 bg-slate-900/95 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-xl hover:bg-blue-600 transition-all duration-300 group hover:scale-[1.02] active:scale-95 backdrop-blur-md border border-white/10">
             <i class="fa-solid fa-arrow-left transition-transform group-hover:-translate-x-1"></i>
             <span>{{ __('Back to Assessment') }}</span>
@@ -671,43 +694,61 @@
                             </div>
                         </td>
                         <td class="px-4 py-4 text-center">
-                            <div class="flex flex-col items-center gap-1">
-                                <span class="px-2.5 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider inline-block text-center {{ $complianceClass }}">
-                                    {{ $complianceStatus }}
+                            @if(!$isApplicable)
+                                <span class="px-2.5 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider inline-block text-center text-slate-500 bg-slate-100 border-slate-200">
+                                    {{ __('Excluded (N/A)') }}
                                 </span>
-                                <span class="px-2 py-0.5 rounded-md border text-[8px] font-black uppercase tracking-wider inline-block text-center {{ $riskClass }}">
-                                    {{ __('Risk') }}: {{ $riskLevelLabel }}
-                                </span>
-                            </div>
-                        </td>
-                        <td class="px-4 py-4 text-center">
-                            <div class="flex flex-col items-center gap-1">
-                                <div class="inline-flex items-baseline">
-                                    <span class="text-sm font-black text-slate-900 leading-none">{{ $result->maturity_rating }}</span>
-                                    <span class="text-[10px] text-slate-400 font-bold ml-0.5">/5</span>
-                                </div>
-                                <span class="text-[9px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">
-                                    Gap: {{ 5 - $result->maturity_rating }}
-                                </span>
-                            </div>
-                        </td>
-                        <td class="px-4 py-4 text-center">
-                            <div class="flex flex-col items-center gap-1">
-                                <span class="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border {{ $statusBadgeClass }}">
-                                    {{ $statusLabel }}
-                                </span>
-                                @if($dueDate)
-                                    <span class="text-[8px] font-bold text-slate-400 flex items-center gap-1">
-                                        <i class="fa-regular fa-clock text-[8px]"></i> {{ $dueDate }}
+                            @else
+                                <div class="flex flex-col items-center gap-1">
+                                    <span class="px-2.5 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider inline-block text-center {{ $complianceClass }}">
+                                        {{ $complianceStatus }}
                                     </span>
-                                @endif
-                            </div>
+                                    <span class="px-2 py-0.5 rounded-md border text-[8px] font-black uppercase tracking-wider inline-block text-center {{ $riskClass }}">
+                                        {{ __('Risk') }}: {{ $riskLevelLabel }}
+                                    </span>
+                                </div>
+                            @endif
                         </td>
                         <td class="px-4 py-4 text-center">
-                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-700">
-                                <i class="fa-solid fa-user-gear text-[9px] text-slate-400"></i>
-                                <span>{{ $result->treatment_pic ?: __('Unassigned') }}</span>
-                            </div>
+                            @if(!$isApplicable || $result->maturity_rating === null)
+                                <span class="text-xs font-bold text-slate-400">&mdash;</span>
+                            @else
+                                <div class="flex flex-col items-center gap-1">
+                                    <div class="inline-flex items-baseline">
+                                        <span class="text-sm font-black text-slate-900 leading-none">{{ $result->maturity_rating }}</span>
+                                        <span class="text-[10px] text-slate-400 font-bold ml-0.5">/5</span>
+                                    </div>
+                                    <span class="text-[9px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">
+                                        Gap: {{ 5 - $result->maturity_rating }}
+                                    </span>
+                                </div>
+                            @endif
+                        </td>
+                        <td class="px-4 py-4 text-center">
+                            @if(!$isApplicable)
+                                <span class="text-xs font-bold text-slate-400">&mdash;</span>
+                            @else
+                                <div class="flex flex-col items-center gap-1">
+                                    <span class="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border {{ $statusBadgeClass }}">
+                                        {{ $statusLabel }}
+                                    </span>
+                                    @if($dueDate)
+                                        <span class="text-[8px] font-bold text-slate-400 flex items-center gap-1">
+                                            <i class="fa-regular fa-clock text-[8px]"></i> {{ $dueDate }}
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
+                        </td>
+                        <td class="px-4 py-4 text-center">
+                            @if(!$isApplicable)
+                                <span class="text-xs font-bold text-slate-400">&mdash;</span>
+                            @else
+                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-700">
+                                    <i class="fa-solid fa-user-gear text-[9px] text-slate-400"></i>
+                                    <span>{{ $result->treatment_pic ?: __('Unassigned') }}</span>
+                                </div>
+                            @endif
                         </td>
                         <td class="px-4 py-4 text-center">
                             <div class="inline-flex items-center justify-center gap-1.5 flex-wrap">
@@ -720,11 +761,19 @@
                                     </button>
                                 @endif
                                 <a href="{{ route('workspace.remediate', $result->id) }}"
-                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm transition-all hover:scale-105 active:scale-95">
-                                    <i class="fa-solid fa-file-pen text-[10px]"></i>
-                                    <span>{{ __('Remediate') }}</span>
+                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 @if(!$isApplicable) bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 @else bg-blue-600 hover:bg-blue-700 text-white shadow-sm @endif rounded-xl text-[10px] font-black uppercase tracking-wider transition-all hover:scale-105 active:scale-95">
+                                    <i class="fa-solid @if(!$isApplicable) fa-eye @else fa-file-pen @endif text-[10px]"></i>
+                                    <span>{{ !$isApplicable ? __('Detail') : __('Remediate') }}</span>
                                 </a>
                             </div>
+                        </td>
+                    </tr>
+                    <tr x-show="filteredControls.length === 0" x-cloak>
+                        <td colspan="6" class="px-6 py-16 text-center">
+                            <div class="w-14 h-14 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fa-solid fa-user-xmark text-2xl text-slate-300"></i>
+                            </div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">{{ __('No controls match the selected filter criteria.') }}</p>
                         </td>
                     </tr>
                     @empty

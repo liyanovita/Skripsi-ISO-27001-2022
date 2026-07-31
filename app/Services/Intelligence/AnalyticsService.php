@@ -146,7 +146,7 @@ class AnalyticsService
                 'needs_improvement' => $activeResults->where('status', 'completed')->whereNotNull('maturity_rating')->where('maturity_rating', '<', 5)->count(),
                 'unassessed' => $complianceBreakdown['unassessed'],
                 'excluded' => $excludedResults->count(),
-                'total_controls' => max($activeResults->count(), 1),
+                'total_controls' => 122,
             ];
             $groupedResults = $latestSession->results
                 ->filter(fn($r) => is_array($r->standard?->questions) && count($r->standard->questions) > 0)
@@ -166,7 +166,7 @@ class AnalyticsService
 
         $isAiProcessing = false;
         if ($latestSession && $latestSession->status === 'completed') {
-            $isAiProcessing = \Illuminate\Support\Facades\Cache::get("session_{$latestSession->id}_ai_summary_processing", false);
+            $isAiProcessing = \Illuminate\Support\Facades\Cache::get("session_{$latestSession->id}_summary_status") === 'processing';
         }
 
         return compact(

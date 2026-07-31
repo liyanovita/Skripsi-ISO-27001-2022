@@ -17,6 +17,7 @@
                         : (url()->previous() && url()->previous() !== url()->current() ? url()->previous() : route('admin.sessions.index')));
             @endphp
             <a href="{{ $backUrl }}" 
+               onclick="if (document.referrer && document.referrer !== location.href) { window.history.back(); return false; }"
                class="w-10 h-10 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-600 rounded-2xl flex items-center justify-center transition-all shrink-0 mt-0.5 shadow-xs"
                title="{{ __('Go Back') }}">
                 <i class="fa-solid fa-arrow-left text-sm"></i>
@@ -117,7 +118,7 @@
             </div>
             <div class="min-w-0">
                 <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">{{ __('Applicable') }}</div>
-                <div class="text-xl font-black text-slate-900 mt-0.5">{{ $stats['applicable'] }} / {{ $stats['total_controls'] ?? 137 }}</div>
+                <div class="text-xl font-black text-slate-900 mt-0.5">{{ $stats['applicable'] }} / {{ $stats['total_controls'] ?? 122 }}</div>
             </div>
         </div>
 

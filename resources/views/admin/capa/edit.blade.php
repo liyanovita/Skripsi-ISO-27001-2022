@@ -8,7 +8,8 @@
 
     {{-- Back Navigation --}}
     <div class="flex items-center justify-between gap-4">
-        <a href="{{ route('admin.capa.index') }}" 
+        <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('admin.capa.index') }}" 
+           onclick="if (document.referrer && document.referrer !== location.href) { window.history.back(); return false; }"
            class="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors bg-white px-4 py-2.5 rounded-2xl border border-slate-200 shadow-xs hover:border-slate-300">
             <i class="fa-solid fa-arrow-left"></i> {{ __('Back to Improvement Tracking') }}
         </a>

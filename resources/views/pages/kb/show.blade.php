@@ -6,7 +6,8 @@
 <div class="w-full space-y-4 pb-10">
     {{-- Top Action Navigation Toolbar (Compact and Sleek) --}}
     <div class="flex items-center justify-between">
-        <a href="{{ route('knowledge-base.index') }}" 
+        <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('knowledge-base.index') }}" 
+           onclick="if (document.referrer && document.referrer !== location.href) { window.history.back(); return false; }"
            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-600 hover:text-blue-600 border border-slate-200/80 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95">
             <i class="fa-solid fa-arrow-left text-[9px]"></i> {{ __('Back') }}
         </a>

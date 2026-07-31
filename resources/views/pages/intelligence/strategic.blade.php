@@ -205,9 +205,9 @@
                 <div>
                     <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ __('Control Implementation') }}</p>
                     @php
-                        $excludedCount = $latestSession ? ($stats['excluded'] ?? 3) : 3;
-                        $totalApplicable = $latestSession ? max($stats['total_controls'] ?? 134, 134) : 134;
-                        $totalStandards = $totalApplicable + $excludedCount;
+                        $excludedCount = $latestSession ? ($stats['excluded'] ?? 0) : 0;
+                        $totalStandards = 122;
+                        $totalApplicable = $totalStandards - $excludedCount;
                     @endphp
                     <div class="flex items-baseline gap-2 mt-1">
                         <h3 class="text-xl font-black text-teal-600 tracking-tight whitespace-nowrap">

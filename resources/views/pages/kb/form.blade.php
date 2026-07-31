@@ -75,7 +75,9 @@
                     <p class="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-1">{{ __('Knowledge Base Management') }}</p>
                 </div>
             </div>
-            <a href="{{ route('knowledge-base.index') }}" class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm">
+            <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('knowledge-base.index') }}" 
+               onclick="if (document.referrer && document.referrer !== location.href) { window.history.back(); return false; }"
+               class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm">
                 <i class="fa-solid fa-arrow-left mr-1"></i> {{ __('Back') }}
             </a>
         </div>

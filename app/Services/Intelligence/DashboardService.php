@@ -197,7 +197,7 @@ class DashboardService
         $latestSession = $allSessions->where('status', 'in_progress')->first()
             ?? $allSessions->first();
 
-        $totalIsoControls = 137;
+        $totalIsoControls = 122;
 
         $activeSessionAnswered = 0;
         $activeSessionProgress = 0;

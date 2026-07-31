@@ -59,10 +59,23 @@ class AssessmentSession extends Model
     /**
      * Check if a given user has access to this session
      */
-    public function hasUserAccess(int $userId): bool
+    public function hasUserAccess(User|int|null $user = null): bool
     {
-        return $this->user_id === $userId ||
-               $this->invitedUsers()->where('user_id', $userId)->exists();
+        if ($user instanceof User) {
+            $u = $user;
+        } elseif (is_int($user)) {
+            $u = User::find($user);
+        } else {
+            $u = auth()->user();
+        }
+
+        if (!$u) return false;
+
+        if ($u->isAdmin()) return true;
+        if ($this->user_id === $u->id) return true;
+        if ($this->organization_id && $u->organization_id && $this->organization_id === $u->organization_id) return true;
+
+        return $this->invitedUsers()->where('assessment_session_users.user_id', $u->id)->exists();
     }
 
     /**
@@ -77,16 +90,15 @@ class AssessmentSession extends Model
      */
     public function isLockedForUser(?User $user = null): bool
     {
-        $user = $user ?? auth()->user();
-        if ($user && ($user->isAdmin() || $user->role === 'admin')) {
-            return false;
-        }
-
-        if ($this->status === 'closed') {
+        if (in_array($this->status, ['completed', 'closed'])) {
             return true;
         }
 
         if ($this->deadline && $this->deadline->endOfDay()->isPast()) {
+            $user = $user ?? auth()->user();
+            if ($user && ($user->isAdmin() || $user->role === 'admin')) {
+                return false;
+            }
             return true;
         }
 

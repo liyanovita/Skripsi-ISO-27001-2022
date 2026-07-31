@@ -168,6 +168,9 @@
                 },
 
                 async submitForm(finalize = false) {
+                    if ({{ ($session->status === 'completed' || $session->isLockedForUser(auth()->user())) ? 'true' : 'false' }}) {
+                        return;
+                    }
                     this.loading = true;
                     try {
                         const form = this.$refs.form;
@@ -216,6 +219,10 @@
                 },
 
                 async generateAi() {
+                    if ({{ ($session->status === 'completed' || $session->isLockedForUser(auth()->user())) ? 'true' : 'false' }}) {
+                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('This assessment session is completed and read-only.') }}', type: 'info' } }));
+                        return;
+                    }
                     this.aiLoading = true;
                     this.aiRec = '';
                     this.aiPlan = '';
@@ -392,7 +399,7 @@
             <div x-show="open" x-collapse>
                 <form x-ref="form" action="{{ route('results.update', $result->id) }}" method="POST" class="p-5 space-y-5 border-t border-slate-100">
                     @csrf
-                    <fieldset @if($session->isLockedForUser(auth()->user())) disabled class="opacity-75 pointer-events-none select-none" @endif>
+                    <fieldset @if($session->isLockedForUser(auth()->user()) || $session->status === 'completed') disabled class="opacity-80" @endif>
 
                     @if(!$isClause)
                     {{-- Statement of Applicability (SoA) - Annex A only --}}
@@ -402,27 +409,29 @@
                                 <h4 class="text-[10px] font-bold text-slate-800 uppercase tracking-wider">{{ __('Statement of Applicability (SoA)') }}</h4>
                                 <p class="text-[9px] text-slate-500 font-medium leading-snug mt-0.5">{{ __('Is this control applicable to your organization?') }}</p>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <label class="relative inline-flex items-center cursor-pointer">
+                            <div class="flex items-center gap-2 @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) pointer-events-none select-none opacity-60 @endif">
+                                <label class="relative inline-flex items-center @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) cursor-not-allowed @else cursor-pointer @endif">
                                     <input type="radio" name="is_applicable" value="1" :checked="isApplicable"
+                                        @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) disabled @endif
                                         x-on:change="
-                                            isApplicable = true;
-                                            $nextTick(() => submitForm());
-                                        "
+                                             isApplicable = true;
+                                             $nextTick(() => submitForm());
+                                         "
                                         class="peer hidden">
-                                    <div class="px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-500 peer-checked:bg-slate-900 peer-checked:text-white peer-checked:border-slate-900 transition-all hover:bg-slate-100">
+                                    <div class="px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-500 peer-checked:bg-slate-900 peer-checked:text-white peer-checked:border-slate-900 transition-all">
                                         {{ __('Yes') }}
                                     </div>
                                 </label>
-                                <label class="relative inline-flex items-center cursor-pointer">
+                                <label class="relative inline-flex items-center @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) cursor-not-allowed @else cursor-pointer @endif">
                                     <input type="radio" name="is_applicable" value="0" :checked="!isApplicable"
+                                        @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) disabled @endif
                                         x-on:change="
-                                            isApplicable = false;
-                                            rating = null;
-                                            $nextTick(() => submitForm());
-                                        "
+                                             isApplicable = false;
+                                             rating = null;
+                                             $nextTick(() => submitForm());
+                                         "
                                         class="peer hidden">
-                                    <div class="px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-500 peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-rose-600 transition-all hover:bg-slate-100">
+                                    <div class="px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-500 peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-rose-600 transition-all">
                                         {{ __('No') }}
                                     </div>
                                 </label>
@@ -430,9 +439,10 @@
                         </div>
 
                         {{-- SoA Justification (Shown only if NOT applicable) --}}
-                        <div x-show="!isApplicable" x-transition class="pt-3 border-t border-slate-200">
+                        <div x-show="!isApplicable" x-transition class="pt-3 border-t border-slate-200 @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) pointer-events-none select-none opacity-70 @endif">
                             <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-2">{{ __('Exclusion Justification') }} <span class="text-rose-500">*</span></label>
                             <textarea name="soa_justification" rows="2" x-model="soaJustification"
+                                @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) disabled readonly @endif
                                 x-on:blur="submitForm()"
                                 placeholder="{{ __('Enter explanation for excluding this control...') }}"
                                 class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-[10px] font-medium outline-none focus:border-blue-600 transition-all text-slate-800 leading-relaxed shadow-inner">{{ $result->soa_justification }}</textarea>
@@ -444,7 +454,7 @@
 
                     {{-- Collapsible: Control Details (Structural Requirements + Implementation Roadmap) --}}
                     @if($result->standard->description || $result->standard->implementation_guidance)
-                    <div x-data="{ showDetails: false }" class="rounded-xl border border-slate-200/70 overflow-hidden">
+                    <div x-data="{ showDetails: false }" class="rounded-xl border border-slate-200/70 overflow-hidden pointer-events-auto">
                         <button type="button" @click="showDetails = !showDetails"
                             class="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50 hover:bg-slate-100 transition-colors text-left group">
                             <div class="flex items-center gap-2">
@@ -480,7 +490,7 @@
                     {{-- Scoring Section — always visible, full width --}}
                     <div class="space-y-3">
                         <h5 class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Score This Control') }}</h5>
-                        <div class="space-y-4">
+                        <div class="space-y-4 @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) pointer-events-none select-none opacity-80 @endif">
                             @foreach($result->standard->questions as $qIndex => $q)
                             <div class="space-y-2">
                                 <p class="text-slate-800 font-bold text-[11px] leading-relaxed">{{ __($q) }}</p>
@@ -496,13 +506,14 @@
                                         ];
                                     @endphp
                                     @foreach($options as $val => $opt)
-                                    <label class="cursor-pointer group/btn" title="{{ __($opt['desc']) }}">
+                                    <label class="@if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) cursor-not-allowed @else cursor-pointer @endif group/btn" title="{{ __($opt['desc']) }}">
                                         <input type="radio" name="answers[q{{ $qIndex }}]" value="{{ $val }}"
+                                               @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) disabled @endif
                                                {{ isset($result->answers["q$qIndex"]) && $result->answers["q$qIndex"] == $val ? 'checked' : '' }}
                                                @change="rating = {{ $val }}; submitForm()"
                                                class="peer hidden">
                                         <div class="py-1.5 px-0.5 text-center rounded-lg border-2 transition-all duration-300 {{ $opt['color'] }}
-                                                    opacity-40 saturate-50 hover:opacity-100 hover:saturate-100 peer-checked:opacity-100 peer-checked:saturate-100 peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-blue-500 peer-checked:border-blue-500 peer-checked:scale-105 peer-checked:shadow-md">
+                                                    opacity-40 saturate-50 peer-checked:opacity-100 peer-checked:saturate-100 peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-blue-500 peer-checked:border-blue-500 peer-checked:scale-105 peer-checked:shadow-md">
                                             <div class="text-sm font-black mb-0.5">{{ $val }}</div>
                                             <div class="text-[6px] font-bold uppercase tracking-widest opacity-90 leading-none">{{ __($opt['title']) }}</div>
                                         </div>
@@ -517,9 +528,10 @@
                     {{-- Evidence & Notes --}}
                     <div class="pt-4 border-t border-slate-100 grid grid-cols-1 lg:grid-cols-12 gap-6">
                         {{-- User Findings (Left Side) --}}
-                        <div class="lg:col-span-6">
+                        <div class="lg:col-span-6 @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) pointer-events-none select-none opacity-70 @endif">
                             <h5 class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2">{{ __('User Findings') }}</h5>
                             <textarea name="notes" rows="3" @input.debounce.2000ms="submitForm()"
+                                      @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) disabled readonly @endif
                                       placeholder="{{ __('Enter findings...') }}" 
                                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-[10px] font-medium outline-none focus:bg-white focus:border-blue-600 transition-all text-slate-800 leading-relaxed shadow-inner h-[86px] resize-none">{{ $result->notes }}</textarea>
                         </div>
@@ -528,9 +540,11 @@
                         <div class="lg:col-span-6 flex flex-col justify-between">
                             <div>
                                 <h5 class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2">{{ __('Evidence Repository') }}</h5>
-                                <div class="relative group/up">
+                                <div class="relative group/up @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) pointer-events-none select-none opacity-60 @endif">
+                                    @if($session->status !== 'completed' && !$session->isLockedForUser(auth()->user()))
                                     <input type="file" name="evidence_file" @change="submitForm().then(() => { $el.value = ''; window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Artifact uploaded!') }}', type: 'success' } })); });" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                                    <div class="w-full py-2 bg-white border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-1 group-hover/up:border-blue-400 group-hover:bg-blue-50/50 transition-all">
+                                    @endif
+                                    <div class="w-full py-2 bg-white border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-1 @if($session->status !== 'completed' && !$session->isLockedForUser(auth()->user())) group-hover/up:border-blue-400 group-hover:bg-blue-50/50 @else opacity-50 cursor-not-allowed bg-slate-50 @endif transition-all">
                                         <div class="flex items-center gap-2">
                                             <i class="fa-solid fa-paperclip text-slate-300 group-hover/up:text-blue-600 text-xs"></i>
                                             <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
@@ -558,6 +572,7 @@
                                                :title="file.split('/').pop()" 
                                                x-text="file.split('/').pop()"></a>
                                             <div class="flex items-center gap-2 shrink-0">
+                                                @if($session->status !== 'completed' && !$session->isLockedForUser(auth()->user()))
                                                 <button type="button" 
                                                         @click="
                                                              Swal.fire({
@@ -604,6 +619,7 @@
                                                     <i class="fa-solid fa-trash-can text-[9px]" x-show="!deleting"></i>
                                                     <i class="fa-solid fa-spinner fa-spin text-[9px]" x-show="deleting"></i>
                                                 </button>
+                                                @endif
                                             </div>
                                         </div>
                                     </template>
@@ -614,6 +630,8 @@
                             </template>
                         </div>
                     </div>
+
+                    </fieldset>
 
                     {{-- Compact AI Status Indicator --}}
                     <template x-if="rating < 5">
@@ -650,12 +668,13 @@
                                             validation: '',
                                             impact: aiImpact
                                         }}))"
-                                        class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shadow-md shadow-blue-600/20">
+                                        class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shadow-md shadow-blue-600/20 cursor-pointer">
                                         <i class="fa-solid fa-eye mr-1"></i>{{ __('View Result') }}</button>
                                     @if($session->status === 'completed')
-                                    <a href="{{ route('workspace.index', ['session_id' => $session->id, 'focus' => $result->id]) }}" class="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-lg text-[8px] font-black uppercase tracking-widest transition-all border border-blue-100">{{ __('Workspace') }}<i class="fa-solid fa-arrow-right ml-1"></i>
+                                    <a href="{{ route('workspace.index', ['session_id' => $session->id, 'focus' => $result->id]) }}" class="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-lg text-[8px] font-black uppercase tracking-widest transition-all border border-blue-100 cursor-pointer">{{ __('Improvement') }}<i class="fa-solid fa-arrow-right ml-1"></i>
                                     </a>
                                     @endif
+                                    @if($session->status !== 'completed' && !$session->isLockedForUser(auth()->user()))
                                     <template x-if="rating < 5">
                                         <button type="button" @click="generateAi()" :disabled="aiLoading"
                                                 class="px-4 py-2 bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 text-slate-600">
@@ -663,9 +682,11 @@
                                             <span x-text="aiLoading ? '{{ __('Regenerating...') }}' : '{{ __('Regenerate') }}'"></span>
                                         </button>
                                     </template>
+                                    @endif
                                 </div>
                             </template>
 
+                            @if($session->status !== 'completed' && !$session->isLockedForUser(auth()->user()))
                             <template x-if="isCompleted && rating < 5 && !aiRec">
                                 <button type="button" @click="generateAi()" :disabled="aiLoading"
                                         class="px-4 py-2 bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 text-slate-600">
@@ -673,10 +694,9 @@
                                     <span x-text="aiLoading ? '{{ __('Synthesizing...') }}' : '{{ __('Generate AI') }}'"></span>
                                 </button>
                             </template>
+                            @endif
                         </div>
                     </template>
-
-                    </fieldset>
                 </form>
             </div>
         </div>

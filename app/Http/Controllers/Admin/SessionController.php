@@ -167,7 +167,7 @@ class SessionController extends Controller
             : 0;
 
         $stats = [
-            'total_controls'     => $results->count(),                      // 137
+            'total_controls'     => 122,                                  // ISO 27001:2022 controls with questions
             'total_questions'    => $totalQuestionsCount,                   // 151
             'answered_questions' => $answeredQuestionsCount,                // 96
             'applicable'         => $allApplicable->count(),                // 137
