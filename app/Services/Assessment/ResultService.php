@@ -106,25 +106,21 @@ class ResultService
             $updateData['soa_justification'] = $data['soa_justification'];
         }
 
-        $newPayload = implode('|', [
-            (string) $updateData['maturity_rating'],
-            $updateData['is_applicable'] ? '1' : '0',
-            (string) ($updateData['notes'] ?? ''),
-            json_encode($updateData['answers'] ?? []),
-        ]);
-        $newHash = hash('sha256', $newPayload);
+        $newHash = $this->computeDataHash(
+            $updateData['maturity_rating'],
+            (bool) $updateData['is_applicable'],
+            $updateData['notes'] ?? null,
+            $updateData['answers'] ?? []
+        );
 
         if (isset($data['trigger_ai']) && $data['trigger_ai'] == '1') {
             if (Cache::get("result_{$id}_ai_status") === 'processing') {
                 throw new \Exception('PROCESSING');
             }
 
-            $hasFullAiData = $result->ai_recommendation
-                && $result->ai_data_hash === $newHash
-                && $result->impact_interpretation !== null
-                && $result->corrective_action_plan !== null
-                && $result->risk_priority !== null;
-            if ($hasFullAiData) {
+            // Guard: block regenerate if AI recommendation exists and data has not changed since last AI generation
+            $hasAiDataForHash = !empty($result->ai_recommendation) && $result->ai_data_hash === $newHash;
+            if ($hasAiDataForHash) {
                 throw new \Exception('NO_DATA_CHANGE');
             }
         }
@@ -163,15 +159,11 @@ class ResultService
             throw new \Exception('PROCESSING');
         }
 
-        // Guard: block regenerate if assessment data has not changed since last AI generation and we have all AI fields
+        // Guard: block regenerate if assessment data has not changed since last AI generation
         $currentHash = $this->computeResultHash($result);
-        $hasFullAiData = $result->ai_recommendation
-            && $result->ai_data_hash === $currentHash
-            && $result->impact_interpretation !== null
-            && $result->corrective_action_plan !== null
-            && $result->risk_priority !== null;
+        $hasAiDataForHash = !empty($result->ai_recommendation) && $result->ai_data_hash === $currentHash;
 
-        if ($hasFullAiData) {
+        if ($hasAiDataForHash) {
             throw new \Exception('NO_DATA_CHANGE');
         }
 
@@ -198,11 +190,25 @@ class ResultService
      */
     public function computeResultHash(AssessmentResult $result): string
     {
+        return $this->computeDataHash(
+            $result->maturity_rating,
+            (bool) $result->is_applicable,
+            $result->notes,
+            $result->answers
+        );
+    }
+
+    /**
+     * Helper to compute normalized hash of assessment input data
+     */
+    public function computeDataHash(?float $maturityRating, bool $isApplicable, ?string $notes, mixed $answers): string
+    {
+        $answersArr = is_array($answers) ? array_values($answers) : [];
         $payload = implode('|', [
-            (string) $result->maturity_rating,
-            $result->is_applicable ? '1' : '0',
-            (string) ($result->notes ?? ''),
-            json_encode($result->answers ?? []),
+            (string) ($maturityRating !== null ? (string)$maturityRating : ''),
+            $isApplicable ? '1' : '0',
+            trim((string) ($notes ?? '')),
+            json_encode($answersArr),
         ]);
 
         return hash('sha256', $payload);

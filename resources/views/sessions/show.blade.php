@@ -60,6 +60,30 @@
                 this.assessedCount--;
             }
             this.updateProgress();
+
+            if (this.isReadyToFinalize && !detail.wasCompleted) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '{{ addslashes(__('Assessment 100% Completed!')) }}',
+                    html: '<p class="text-sm text-slate-600 font-medium leading-relaxed">{{ addslashes(__('Congratulations! You have completed all 122 controls. Please finalize the assessment session to publish your results in Assessment Results & Workspace.')) }}</p>',
+                    confirmButtonText: '{{ addslashes(__('Finalize Now')) }}',
+                    showCancelButton: true,
+                    cancelButtonText: '{{ addslashes(__('Later')) }}',
+                    confirmButtonColor: '#10b981',
+                    cancelButtonColor: '#64748b',
+                    width: '26rem',
+                    customClass: {
+                        title: 'text-base font-bold text-slate-800 mt-1',
+                        htmlContainer: 'text-left px-2',
+                        confirmButton: 'text-xs font-bold uppercase tracking-widest px-5 py-2.5 rounded-lg',
+                        cancelButton: 'text-xs font-bold uppercase tracking-widest px-5 py-2.5 rounded-lg'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.showFinalizeModal = true;
+                    }
+                });
+            }
         },
         updateProgress() {
             this.progress = this.totalAssessable > 0 ? Math.round((this.assessedCount / this.totalAssessable) * 100) : 0;
@@ -167,7 +191,7 @@
             </div>
             <div>
                 <h3 class="text-lg font-black tracking-tight leading-tight">{{ __('Assessment 100% Completed!') }}</h3>
-                <p class="text-emerald-50 text-xs mt-0.5 font-medium">{{ __('You have scored all controls. Please finalize the assessment to lock your scores and generate the Statement of Applicability.') }}</p>
+                <p class="text-emerald-50 text-xs mt-0.5 font-medium">{{ __('You have completed all 122 controls. Please finalize the assessment session to lock your scores and publish your results in Assessment Results & Workspace.') }}</p>
             </div>
         </div>
         <button type="button" @click="showFinalizeModal = true" class="shrink-0 px-6 py-2.5 bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md active:scale-95 flex items-center gap-2">
