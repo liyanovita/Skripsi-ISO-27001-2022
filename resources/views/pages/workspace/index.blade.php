@@ -391,8 +391,8 @@
                 <div class="bg-white rounded-xl p-3 border border-slate-100 shadow-sm hover:shadow transition-all group flex flex-col justify-between min-h-[90px]">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-tight">{{ __('Total Items') }}</p>
-                            <p class="text-xl font-black text-slate-900 mt-1">137</p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-tight">{{ __('Total Controls') }}</p>
+                            <p class="text-xl font-black text-slate-900 mt-1">122</p>
                         </div>
                         <div class="w-6.5 h-6.5 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center border border-slate-100 shrink-0">
                             <i class="fa-solid fa-table-list text-[9px]"></i>

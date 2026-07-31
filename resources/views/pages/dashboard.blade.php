@@ -144,7 +144,7 @@
             </div>
             <div>
                 <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full {{ $riskPriority === 'High' ? 'bg-rose-500' : ($riskPriority === 'Medium' ? 'bg-amber-500' : 'bg-emerald-500') }} rounded-full" style="width: {{ min(100, round(($totalGaps / 137) * 100)) }}%"></div>
+                    <div class="h-full {{ $riskPriority === 'High' ? 'bg-rose-500' : ($riskPriority === 'Medium' ? 'bg-amber-500' : 'bg-emerald-500') }} rounded-full" style="width: {{ min(100, round(($totalGaps / 122) * 100)) }}%"></div>
                 </div>
             </div>
         </div>

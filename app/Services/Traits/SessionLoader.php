@@ -25,13 +25,16 @@ trait SessionLoader
         int $userId,
         string $orderBy = 'created_at',
         string $direction = 'desc',
-        ?int $limit = null
+        ?int $limit = null,
+        bool $onlyCompleted = true
     ): Collection {
+        $user = auth()->user();
         $query = AssessmentSession::with(['results.standard'])
-            ->when(!auth()->user() || !auth()->user()->isAdmin(), fn($q) => $q->where(function($q) use ($userId) {
+            ->when(!$user || !$user->isAdmin(), fn($q) => $q->where(function($q) use ($userId) {
                 $q->where('user_id', $userId)
                   ->orWhereHas('invitedUsers', fn($iq) => $iq->where('user_id', $userId));
             }))
+            ->when($onlyCompleted, fn($q) => $q->where('status', 'completed'))
             ->orderBy($orderBy, $direction);
 
         if ($limit) {

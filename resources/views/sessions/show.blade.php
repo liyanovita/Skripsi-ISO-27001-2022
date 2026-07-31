@@ -22,7 +22,7 @@
         }
     }
     if ($session->status === 'completed' && $answeredQCount === 0) {
-        $answeredQCount = 137;
+        $answeredQCount = $totalAssessable ?: 122;
     }
 @endphp
 <div class="max-w-6xl mx-auto space-y-4 pb-8" 
@@ -82,7 +82,7 @@
                     <h1 class="text-xl font-bold text-slate-900 tracking-tight">{{ $session->name }}</h1>
                     <div class="flex items-center gap-3 mt-1 flex-wrap">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            {{ $assessedCount }}/137 {{ __('controls') }}
+                            <span x-text="assessedCount"></span>/{{ $totalAssessable }} {{ __('controls') }}
                         </span>
                         <span class="text-slate-200">·</span>
                         <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">

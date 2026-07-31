@@ -22,7 +22,7 @@ class WorkspaceService
     public function getWorkspaceData(int $userId, ?int $selectedId): array
     {
         $user = auth()->user();
-        // Load sessions with results and standards in one query (only completed sessions for regular users)
+        // Load sessions with results and standards in one query (only completed sessions)
         $sessions = AssessmentSession::with(['results.standard'])
             ->when($user && !$user->isAdmin(), function($q) use ($userId, $user) {
                 $q->where(function($sq) use ($userId, $user) {
@@ -31,8 +31,9 @@ class WorkspaceService
                     if ($user?->organization_id) {
                         $sq->orWhere('organization_id', $user->organization_id);
                     }
-                })->where('status', 'completed');
+                });
             })
+            ->where('status', 'completed')
             ->orderByDesc('created_at')
             ->get();
 

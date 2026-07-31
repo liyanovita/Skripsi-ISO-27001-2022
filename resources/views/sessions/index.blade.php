@@ -158,13 +158,13 @@
                             <td class="px-6 py-5">
                                 @php
                                     $completedControls = $session->status === 'completed'
-                                        ? 137
+                                        ? 122
                                         : ($session->results ? $session->results->filter(fn($r) => !$r->is_applicable || $r->status === 'completed')->count() : 0);
-                                    $prog = min(100, round(($completedControls / 137) * 100));
+                                    $prog = min(100, round(($completedControls / 122) * 100));
                                 @endphp
                                 <div class="flex flex-col gap-1.5 w-32">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">{{ $completedControls }} / 137</span>
+                                        <span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">{{ $completedControls }} / 122</span>
                                         <span class="text-[10px] font-black text-slate-700">{{ $prog }}%</span>
                                     </div>
                                     <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden flex items-center">

@@ -193,10 +193,10 @@
                         {{-- Progress Bar --}}
                         <td class="px-4 py-4">
                             @php
-                                $totalControls = 137;
+                                $totalControls = 122;
                                 $completedControls = $session->status === 'completed'
-                                    ? 137
-                                    : ($session->results ? $session->results->filter(fn($r) => !$r->is_applicable || $r->status === 'completed' || $r->maturity_rating !== null)->count() : 0);
+                                    ? 122
+                                    : ($session->results ? $session->results->filter(fn($r) => !$r->is_applicable || $r->status === 'completed')->count() : 0);
                                 $prog = min(100, round(($completedControls / $totalControls) * 100));
                             @endphp
                             <div class="flex flex-col gap-1.5 w-32">

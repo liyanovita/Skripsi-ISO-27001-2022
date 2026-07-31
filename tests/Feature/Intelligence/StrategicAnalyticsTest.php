@@ -97,7 +97,7 @@ class StrategicAnalyticsTest extends TestCase
         $session = AssessmentSession::create([
             'user_id' => $user->id,
             'name' => 'Domain Boundary Audit',
-            'status' => 'in_progress',
+            'status' => 'completed',
             'overall_maturity_score' => 0.00,
         ]);
 
@@ -197,7 +197,7 @@ class StrategicAnalyticsTest extends TestCase
         $session = AssessmentSession::create(array_merge([
             'user_id' => $user->id,
             'name' => 'Strategic Audit 2026',
-            'status' => 'in_progress',
+            'status' => 'completed',
             'overall_maturity_score' => 0.00,
         ], $sessionOverrides));
 
