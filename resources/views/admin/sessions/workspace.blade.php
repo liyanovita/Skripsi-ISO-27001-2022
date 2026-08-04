@@ -87,8 +87,8 @@
     </div>
     @endif
 
-    {{-- Horizontal Icon-Accented KPI Stat Cards Grid (4 Cards) --}}
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    {{-- Horizontal Icon-Accented KPI Stat Cards Grid (3 Cards) --}}
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {{-- Total Controls --}}
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3.5 hover:border-slate-300 hover:shadow-md transition-all">
             <div class="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200/80 flex items-center justify-center text-base shrink-0 font-bold">
@@ -96,18 +96,8 @@
             </div>
             <div class="min-w-0">
                 <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">{{ __('Total Controls') }}</div>
-                <div class="text-xl font-black text-slate-900 mt-0.5">{{ $stats['total_controls'] }}</div>
-            </div>
-        </div>
-
-        {{-- Total Questions --}}
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3.5 hover:border-blue-200 hover:shadow-md transition-all">
-            <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 border border-blue-100/80 flex items-center justify-center text-base shrink-0 font-bold">
-                <i class="fa-solid fa-clipboard-list"></i>
-            </div>
-            <div class="min-w-0">
-                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">{{ __('Total Questions') }}</div>
-                <div class="text-xl font-black text-slate-900 mt-0.5">126</div>
+                <div class="text-xl font-black text-slate-900 mt-0.5">122</div>
+                <div class="text-[9px] font-medium text-slate-400 mt-0.5">{{ __('Controls with questionnaire') }}</div>
             </div>
         </div>
 
@@ -118,7 +108,8 @@
             </div>
             <div class="min-w-0">
                 <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">{{ __('Applicable') }}</div>
-                <div class="text-xl font-black text-slate-900 mt-0.5">{{ $stats['applicable'] }} / {{ $stats['total_controls'] ?? 122 }}</div>
+                <div class="text-xl font-black text-slate-900 mt-0.5">{{ $stats['applicable'] }} / 122</div>
+                <div class="text-[9px] font-medium text-slate-400 mt-0.5">{{ __('Active in-scope controls') }} ({{ $stats['excluded'] ?? 0 }} {{ __('excluded') }})</div>
             </div>
         </div>
 
@@ -129,7 +120,8 @@
             </div>
             <div class="min-w-0">
                 <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">{{ __('Assessed') }}</div>
-                <div class="text-xl font-black text-slate-900 mt-0.5">{{ $stats['completed'] }} / {{ $stats['completed_target'] ?? $stats['applicable'] }}</div>
+                <div class="text-xl font-black text-slate-900 mt-0.5">{{ $stats['completed'] }} / 122</div>
+                <div class="text-[9px] font-medium text-slate-400 mt-0.5">{{ __('Evaluated & answered') }}</div>
             </div>
         </div>
     </div>

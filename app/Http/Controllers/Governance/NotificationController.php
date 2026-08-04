@@ -16,6 +16,7 @@ class NotificationController extends Controller
     {
         $user = auth()->user();
         $filter = $request->input('filter');
+        $isAdminView = $request->is('admin/*') || $request->routeIs('admin.*') || $user->isAdmin();
 
         $query = $user->notifications();
 
@@ -27,21 +28,34 @@ class NotificationController extends Controller
 
         $notifications = $query->paginate(15)->withQueryString();
 
-        $baseTaskQuery = \App\Models\AssessmentResult::with('standard')
-            ->whereHas('session', fn($q) => $q->where('user_id', $user->id))
-            ->whereNotNull('treatment_due_date')
-            ->whereBetween('maturity_rating', [1, 3]);
+        if ($isAdminView) {
+            $baseTaskQuery = \App\Models\AssessmentResult::with(['standard', 'session.organization'])
+                ->whereNotNull('treatment_due_date')
+                ->whereBetween('maturity_rating', [1, 3]);
 
-        $overdueTasks = (clone $baseTaskQuery)->whereDate('treatment_due_date', '<', now())->get();
-        $upcomingTasks = (clone $baseTaskQuery)->whereBetween('treatment_due_date', [now(), now()->addDays(3)])->get();
-        $stagnantSessions = \App\Models\AssessmentSession::where('user_id', $user->id)
-            ->where('status', '!=', 'completed')
-            ->where('updated_at', '<', now()->subDays(7))
-            ->get();
+            $overdueTasks = (clone $baseTaskQuery)->whereDate('treatment_due_date', '<', now())->get();
+            $upcomingTasks = (clone $baseTaskQuery)->whereBetween('treatment_due_date', [now(), now()->addDays(3)])->get();
+            $stagnantSessions = \App\Models\AssessmentSession::with('organization')
+                ->where('status', '!=', 'completed')
+                ->where('updated_at', '<', now()->subDays(7))
+                ->get();
+        } else {
+            $baseTaskQuery = \App\Models\AssessmentResult::with(['standard', 'session'])
+                ->whereHas('session', fn($q) => $q->where('user_id', $user->id))
+                ->whereNotNull('treatment_due_date')
+                ->whereBetween('maturity_rating', [1, 3]);
+
+            $overdueTasks = (clone $baseTaskQuery)->whereDate('treatment_due_date', '<', now())->get();
+            $upcomingTasks = (clone $baseTaskQuery)->whereBetween('treatment_due_date', [now(), now()->addDays(3)])->get();
+            $stagnantSessions = \App\Models\AssessmentSession::where('user_id', $user->id)
+                ->where('status', '!=', 'completed')
+                ->where('updated_at', '<', now()->subDays(7))
+                ->get();
+        }
 
         $viewData = compact('notifications', 'filter', 'overdueTasks', 'upcomingTasks', 'stagnantSessions');
 
-        if ($request->is('admin/*') || $request->routeIs('admin.*')) {
+        if ($isAdminView) {
             return view('admin.notifications.index', $viewData);
         }
 

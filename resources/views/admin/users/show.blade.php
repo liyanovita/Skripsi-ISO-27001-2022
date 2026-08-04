@@ -106,31 +106,41 @@
                         <i class="fa-solid fa-pen text-xs"></i> Edit Profile
                     </a>
                     @if($user->id !== auth()->id())
-                    <div x-data="{ showConfirm: false }">
-                        <button type="button" @click="showConfirm = true" x-show="!showConfirm"
-                            class="w-full px-4 py-2.5 rounded-xl text-sm font-bold transition-colors text-center flex items-center justify-center gap-2
-                                {{ $user->isActive() ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-100' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-100' }}">
+                    <form method="POST" action="{{ route('admin.users.toggle-status', $user) }}"
+                        x-data
+                        @submit.prevent="
+                            const isActive = {{ $user->isActive() ? 'true' : 'false' }};
+                            const userName = '{{ addslashes($user->name) }}';
+                            Swal.fire({
+                                title: isActive ? 'Confirm User Suspension' : 'Confirm User Activation',
+                                text: isActive 
+                                    ? 'Are you sure you want to suspend user &quot;' + userName + '&quot;? This user will not be able to log in to the platform.' 
+                                    : 'Are you sure you want to activate user &quot;' + userName + '&quot;? This user will regain platform access.',
+                                icon: isActive ? 'warning' : 'question',
+                                showCancelButton: true,
+                                confirmButtonColor: isActive ? '#f59e0b' : '#10b981',
+                                cancelButtonColor: '#64748b',
+                                confirmButtonText: isActive ? 'Yes, Suspend Account!' : 'Yes, Activate Account!',
+                                cancelButtonText: 'Cancel',
+                                width: '24rem',
+                                customClass: {
+                                    title: 'text-base font-extrabold text-slate-800',
+                                    htmlContainer: 'text-xs text-slate-500 font-medium mt-1',
+                                    confirmButton: 'text-xs px-4 py-2.5 rounded-xl font-bold shadow-sm',
+                                    cancelButton: 'text-xs px-4 py-2.5 rounded-xl font-bold'
+                                }
+                            }).then((result) => {
+                                if (result.isConfirmed) { $el.submit(); }
+                            });
+                        ">
+                        @csrf @method('PATCH')
+                        <button type="submit"
+                            class="w-full px-4 py-2.5 rounded-xl text-sm font-bold transition-colors text-center flex items-center justify-center gap-2 shadow-sm
+                                {{ $user->isActive() ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200' }}">
                             <i class="fa-solid {{ $user->isActive() ? 'fa-ban' : 'fa-check' }} text-xs"></i>
                             {{ $user->isActive() ? 'Suspend User' : 'Activate User' }}
                         </button>
-                        <div x-show="showConfirm" x-cloak
-                            class="rounded-xl border p-3 {{ $user->isActive() ? 'border-amber-200 bg-amber-50' : 'border-emerald-200 bg-emerald-50' }}">
-                            <p class="text-xs font-bold {{ $user->isActive() ? 'text-amber-700' : 'text-emerald-700' }} mb-2 text-center">
-                                {{ $user->isActive() ? 'Suspend this user?' : 'Activate this user?' }}
-                            </p>
-                            <form method="POST" action="{{ route('admin.users.toggle-status', $user) }}" class="flex gap-2">
-                                @csrf @method('PATCH')
-                                <button type="submit"
-                                    class="flex-1 px-3 py-1.5 text-xs font-bold rounded-lg {{ $user->isActive() ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white' }}">
-                                    Yes, Confirm
-                                </button>
-                                <button type="button" @click="showConfirm = false"
-                                    class="flex-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50">
-                                    Cancel
-                                </button>
-                            </form>
-                        </div>
-                    </div>
+                    </form>
                     @endif
                 </div>
             </div>
@@ -188,7 +198,7 @@
                         </div>
                         <div class="flex items-center justify-between text-[10px] text-slate-400">
                             <span>Created {{ $session->created_at->format('M d, Y') }}</span>
-                            <a href="{{ route('admin.sessions.show', $session) }}"
+                            <a href="{{ $session->status === 'completed' ? route('admin.sessions.show', $session) : route('admin.sessions.workspace', $session) }}"
                                 class="text-blue-500 hover:text-blue-700 font-bold flex items-center gap-1 transition-colors">
                                 View <i class="fa-solid fa-arrow-right text-[9px]"></i>
                             </a>

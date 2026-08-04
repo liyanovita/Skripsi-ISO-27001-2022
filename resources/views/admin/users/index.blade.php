@@ -193,7 +193,33 @@
                                     class="w-8 h-8 rounded-xl flex items-center justify-center text-blue-600 hover:bg-blue-50 border border-blue-100 bg-white transition-colors" title="Edit">
                                     <i class="fa-solid fa-pen text-xs"></i>
                                 </a>
-                                <form method="POST" action="{{ route('admin.users.toggle-status', $user) }}">
+                                <form method="POST" action="{{ route('admin.users.toggle-status', $user) }}"
+                                    x-data
+                                    @submit.prevent="
+                                        const isActive = {{ $user->isActive() ? 'true' : 'false' }};
+                                        const userName = '{{ addslashes($user->name) }}';
+                                        Swal.fire({
+                                            title: isActive ? 'Confirm User Suspension' : 'Confirm User Activation',
+                                            text: isActive 
+                                                ? 'Are you sure you want to suspend user &quot;' + userName + '&quot;? This user will not be able to log in to the platform.' 
+                                                : 'Are you sure you want to activate user &quot;' + userName + '&quot;? This user will regain platform access.',
+                                            icon: isActive ? 'warning' : 'question',
+                                            showCancelButton: true,
+                                            confirmButtonColor: isActive ? '#f59e0b' : '#10b981',
+                                            cancelButtonColor: '#64748b',
+                                            confirmButtonText: isActive ? 'Yes, Suspend Account!' : 'Yes, Activate Account!',
+                                            cancelButtonText: 'Cancel',
+                                            width: '24rem',
+                                            customClass: {
+                                                title: 'text-base font-extrabold text-slate-800',
+                                                htmlContainer: 'text-xs text-slate-500 font-medium mt-1',
+                                                confirmButton: 'text-xs px-4 py-2.5 rounded-xl font-bold shadow-sm',
+                                                cancelButton: 'text-xs px-4 py-2.5 rounded-xl font-bold'
+                                            }
+                                        }).then((result) => {
+                                            if (result.isConfirmed) { $el.submit(); }
+                                        });
+                                    ">
                                     @csrf @method('PATCH')
                                     <button type="submit"
                                         class="w-8 h-8 rounded-xl flex items-center justify-center transition-colors {{ $user->isActive() ? 'text-amber-500 hover:bg-amber-50 border border-amber-100 bg-white' : 'text-emerald-600 hover:bg-emerald-50 border border-emerald-100 bg-white' }}"

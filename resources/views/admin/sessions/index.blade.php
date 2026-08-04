@@ -157,10 +157,17 @@
                     <tr class="hover:bg-slate-50/50 transition-colors">
                         {{-- Session Name & Metadata --}}
                         <td class="px-6 py-4">
-                            <a href="{{ route('admin.sessions.show', $session) }}"
-                               class="font-black text-slate-900 text-sm hover:text-blue-600 transition-colors block leading-tight">
-                                {{ $session->name }}
-                            </a>
+                            @if($session->status === 'completed')
+                                <a href="{{ route('admin.sessions.show', $session) }}"
+                                   class="font-black text-slate-900 text-sm hover:text-blue-600 transition-colors block leading-tight">
+                                    {{ $session->name }}
+                                </a>
+                            @else
+                                <a href="{{ route('admin.sessions.workspace', [$session, 'from' => 'index']) }}"
+                                   class="font-black text-slate-900 text-sm hover:text-blue-600 transition-colors block leading-tight">
+                                    {{ $session->name }}
+                                </a>
+                            @endif
                             <div class="flex items-center gap-2.5 mt-1.5 flex-wrap">
                                 <span class="text-[10px] font-medium text-slate-400">
                                     <i class="fa-solid fa-calendar text-[9px] text-slate-300 mr-0.5"></i>
@@ -261,11 +268,19 @@
                                    title="Open Assessment Workspace">
                                     <i class="fa-solid fa-clipboard-check text-xs"></i>
                                 </a>
-                                <a href="{{ route('admin.sessions.show', $session) }}"
-                                   class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-50 border border-slate-200 bg-white transition-all hover:scale-105"
-                                   title="View Session Analytics">
-                                    <i class="fa-solid fa-chart-line text-xs"></i>
-                                </a>
+                                @if($session->status === 'completed')
+                                    <a href="{{ route('admin.sessions.show', $session) }}"
+                                       class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-50 border border-slate-200 bg-white transition-all hover:scale-105"
+                                       title="{{ __('View Session Analytics') }}">
+                                        <i class="fa-solid fa-chart-line text-xs"></i>
+                                    </a>
+                                @else
+                                    <button type="button" disabled
+                                       class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-300 bg-slate-50 border border-slate-200/60 cursor-not-allowed opacity-50"
+                                       title="{{ __('Analytics available only for completed audit sessions') }}">
+                                        <i class="fa-solid fa-chart-line text-xs"></i>
+                                    </button>
+                                @endif
                                 <a href="{{ route('admin.sessions.edit', $session) }}"
                                    class="w-8 h-8 rounded-xl flex items-center justify-center text-emerald-600 hover:bg-emerald-50 border border-emerald-200 bg-white transition-all hover:scale-105"
                                    title="Edit Session">

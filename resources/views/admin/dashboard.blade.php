@@ -371,7 +371,7 @@
             </div>
             <div class="divide-y divide-slate-100 flex-1">
                 @forelse($recentSessions as $session)
-                <a href="{{ route('admin.sessions.show', $session) }}" class="p-4 hover:bg-slate-50/80 block transition-colors group">
+                <a href="{{ $session->status === 'completed' ? route('admin.sessions.show', $session) : route('admin.sessions.workspace', $session) }}" class="p-4 hover:bg-slate-50/80 block transition-colors group">
                     <div class="flex items-center justify-between mb-2">
                         <div class="font-bold text-sm text-slate-900 group-hover:text-emerald-600 transition-colors truncate max-w-[220px]">{{ $session->name }}</div>
                         <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest {{ $session->status === 'completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : ($session->status === 'in_progress' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-slate-100 text-slate-600 border border-slate-200') }}">

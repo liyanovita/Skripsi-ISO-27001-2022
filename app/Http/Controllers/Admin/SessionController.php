@@ -59,25 +59,27 @@ class SessionController extends Controller
 
     public function show(AssessmentSession $session)
     {
+        if ($session->status !== 'completed') {
+            return redirect()->route('admin.sessions.workspace', [$session, 'from' => 'index'])
+                ->with('info', __('Analytics dashboard is only accessible for completed audit sessions.'));
+        }
+
         $session->load(['user', 'organization', 'invitedUsers', 'results.standard']);
 
         // Calculate stats
         // $assessed = controls that have been rated (maturity_rating IS NOT NULL)
         // This matches the CAPA Kanban logic and produces consistent counts across the system
-        $results    = $session->results;
-        $assessable = $results->filter(fn($r) => is_array($r->standard?->questions) && count($r->standard->questions) > 0);
-        $applicable = $assessable->filter(fn($r) => $r->is_applicable);
-        $completed  = $applicable->where('status', 'completed');   // workflow-completed (for progress %)
-        $assessed   = $applicable->filter(fn($r) => $r->maturity_rating !== null); // actually rated
+        $results     = $session->results;
+        $assessable  = $results->filter(fn($r) => is_array($r->standard?->questions) && count($r->standard->questions) > 0)->unique('iso_standard_id');
+        $applicable  = $assessable->filter(fn($r) => $r->is_applicable);
+        $allExcluded = $assessable->filter(fn($r) => !$r->is_applicable);
+        $completed   = $applicable->where('status', 'completed');   // workflow-completed (for progress %)
+        $assessed    = $applicable->filter(fn($r) => $r->maturity_rating !== null); // actually rated
 
         $criticalFindings = $assessed
             ->filter(fn($r) => $r->maturity_rating < 5)
             ->sortByDesc(fn($r) => $r->gap)
             ->values();
-
-        $allApplicable = $results->where('is_applicable', true);
-        $allExcluded   = $results->where('is_applicable', false);
-        $assessed      = $allApplicable->filter(fn($r) => $r->maturity_rating !== null);
 
         // Total questions and answered questions count across assessable controls
         $totalQuestionsCount = 0;
@@ -100,7 +102,7 @@ class SessionController extends Controller
             : 0;
 
         $stats = [
-            'total_controls'     => $results->count(),                      // 137
+            'total_controls'     => $assessable->count(),                   // 122 assessable controls with questions
             'total_questions'    => $totalQuestionsCount,                   // 151
             'answered_questions' => $answeredQuestionsCount,                // 148 KPK / 96 BI
             'applicable'         => $applicable->count(),                   // 119 KPK (assessable + applicable)

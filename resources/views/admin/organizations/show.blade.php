@@ -250,7 +250,7 @@
                         @foreach($sessions as $session)
                         <tr class="session-row">
                             <td class="px-5 py-4">
-                                <a href="{{ route('admin.sessions.show', $session) }}"
+                                <a href="{{ $session->status === 'completed' ? route('admin.sessions.show', $session) : route('admin.sessions.workspace', $session) }}"
                                     class="font-bold text-slate-900 hover:text-blue-600 transition-colors text-sm">
                                     {{ $session->name }}
                                 </a>

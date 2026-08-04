@@ -113,4 +113,12 @@ class User extends Authenticatable implements MustVerifyEmailContract
                     ->withPivot('role')
                     ->withTimestamps();
     }
+
+    /**
+     * Send password reset notification using custom AuditGuard email template
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\ResetPasswordNotification($token));
+    }
 }

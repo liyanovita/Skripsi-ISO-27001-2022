@@ -426,6 +426,7 @@
                             elseif (request()->routeIs('reports.strategic')) $crumbs = [['label' => 'Intelligence & Reports', 'url' => null], ['label' => 'Assessment Result', 'url' => null]];
                             elseif (request()->routeIs('knowledge-base.*'))  $crumbs = [['label' => 'Resources & Governance', 'url' => null], ['label' => 'Knowledge Base', 'url' => null]];
                             elseif (request()->routeIs('audit-trail.*'))     $crumbs = [['label' => 'Resources & Governance', 'url' => null], ['label' => 'Audit Trail', 'url' => null]];
+                            elseif (request()->routeIs('notifications.*'))  $crumbs = [['label' => 'Resources & Governance', 'url' => null], ['label' => 'Notification Center', 'url' => null]];
                             elseif (request()->routeIs('profile.*'))         $crumbs = [['label' => 'Account', 'url' => null], ['label' => 'Profile', 'url' => null]];
                             else $crumbs = [['label' => 'Page', 'url' => null]];
                         @endphp
