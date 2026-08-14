@@ -25,16 +25,17 @@ class AuditSessionAssignedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $url = route('workspace.index', ['session_id' => $this->session->id]);
+        $deadlineFormatted = $this->session->deadline ? $this->session->deadline->format('d M Y') : '-';
 
         return (new MailMessage)
-            ->subject('Penugasan Sesi Audit Baru: ' . $this->session->name)
-            ->greeting('Halo ' . $notifiable->name . ',')
-            ->line('Anda telah ditugaskan ke sesi audit baru.')
-            ->line('Nama Sesi: ' . $this->session->name)
-            ->line('Ditugaskan oleh: ' . $this->assignedBy->name)
-            ->line('Batas Waktu (Deadline): ' . ($this->session->deadline ? $this->session->deadline->format('d M Y') : '-'))
-            ->action('Buka Sesi Audit', $url)
-            ->line('Terima kasih telah menggunakan AuditGuard!');
+            ->subject('[AuditGuard] New Audit Session Assignment: ' . $this->session->name)
+            ->view('emails.audit-session-assigned', [
+                'user' => $notifiable,
+                'session' => $this->session,
+                'assignedBy' => $this->assignedBy,
+                'deadline' => $deadlineFormatted,
+                'url' => $url,
+            ]);
     }
 
     public function toArray(object $notifiable): array
@@ -44,7 +45,7 @@ class AuditSessionAssignedNotification extends Notification
             'session_id' => $this->session->id,
             'session_name' => $this->session->name,
             'assigned_by' => $this->assignedBy->name,
-            'message' => 'Anda telah ditugaskan ke sesi audit baru: ' . $this->session->name,
+            'message' => 'You have been assigned to a new audit session: ' . $this->session->name,
         ];
     }
 }
