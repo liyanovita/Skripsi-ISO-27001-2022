@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin Panel') | AuditGuard — ISO 27001:2022 Compliance</title>
+    <title>@yield('title', 'Admin Panel') | Audira — ISO 27001:2022 Compliance</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -201,11 +201,8 @@
             }">
             
             <div class="h-20 flex items-center px-4 gap-3 shrink-0 border-b border-blue-800/50">
-                <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-10 h-10 rounded-xl shrink-0 shadow-lg object-contain bg-white p-0.5">
+                <img src="{{ asset('images/logo-audira.png') }}" alt="Audira" class="h-10 w-auto shrink-0 rounded-lg shadow-lg object-contain bg-white p-1">
                 <div x-show="sidebarOpen" x-transition.opacity.duration.500ms class="overflow-hidden flex-1">
-                    <p class="font-black text-base leading-none tracking-tight">
-                        <span style="color: #f8fafc;">Audit</span><span style="color: #38BDF8;">Guard</span>
-                    </p>
                     <p class="text-[8px] text-blue-300 font-bold mt-1 uppercase tracking-widest whitespace-nowrap">Admin Dashboard</p>
                 </div>
                 <button @click="toggleSidebar()" class="hidden lg:flex w-8 h-8 rounded-lg items-center justify-center text-blue-300 hover:bg-white/10 hover:text-white transition-all outline-none">

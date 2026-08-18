@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password - AuditGuard</title>
+    <title>Reset Password - Audira</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -102,12 +102,12 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🛡️ AuditGuard</h1>
+            <h1>🛡️ Audira</h1>
             <p>AI-Assisted ISO/IEC 27001:2022 Compliance Platform</p>
         </div>
         <div class="content">
             <div class="greeting">Hello, {{ $userName }}!</div>
-            <p>You are receiving this email because we received a password reset request for your account on the <strong>AuditGuard ISO/IEC 27001:2022</strong> platform.</p>
+            <p>You are receiving this email because we received a password reset request for your account on the <strong>Audira ISO/IEC 27001:2022</strong> platform.</p>
             <p>Please click the button below to proceed with setting up a new password:</p>
             
             <div class="btn-wrapper">
@@ -126,8 +126,8 @@
             </div>
         </div>
         <div class="footer">
-            <p>This email was sent automatically by the AuditGuard system.</p>
-            <p>&copy; {{ date('Y') }} AuditGuard Enterprise. All rights reserved.</p>
+            <p>This email was sent automatically by the Audira system.</p>
+            <p>&copy; {{ date('Y') }} Audira Enterprise. All rights reserved.</p>
         </div>
     </div>
 </body>

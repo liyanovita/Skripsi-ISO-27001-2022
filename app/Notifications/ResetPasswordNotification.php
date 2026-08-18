@@ -27,7 +27,7 @@ class ResetPasswordNotification extends Notification
         ]);
 
         return (new MailMessage)
-            ->subject('[AuditGuard] Password Reset Request for Your Account')
+            ->subject('[Audira] Password Reset Request for Your Account')
             ->view('emails.reset-password', [
                 'userName' => $notifiable->name ?? 'User',
                 'resetUrl' => $resetUrl,

@@ -34,7 +34,7 @@ class AuditSessionAssignedNotification extends Notification
             ->line('Ditugaskan oleh: ' . $this->assignedBy->name)
             ->line('Batas Waktu (Deadline): ' . ($this->session->deadline ? $this->session->deadline->format('d M Y') : '-'))
             ->action('Buka Sesi Audit', $url)
-            ->line('Terima kasih telah menggunakan AuditGuard!');
+            ->line('Terima kasih telah menggunakan Audira!');
     }
 
     public function toArray(object $notifiable): array

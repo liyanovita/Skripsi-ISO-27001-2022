@@ -222,7 +222,7 @@ class SessionService
             ->findOrFail($id);
         
         return [
-            'app' => 'AuditGuard',
+            'app' => 'Audira',
             'version' => '1.0.0',
             'exported_at' => now()->toIso8601String(),
             'session' => [
@@ -256,7 +256,7 @@ class SessionService
     public function importSessionFromJson(array $data, int $userId, ?string $name = null): AssessmentSession
     {
         if (!isset($data['session'])) {
-            throw new \Exception('Invalid JSON file format or not an AuditGuard export.');
+            throw new \Exception('Invalid JSON file format or not an Audira export.');
         }
 
         return DB::transaction(function () use ($data, $userId, $name) {
