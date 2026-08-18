@@ -252,16 +252,19 @@
             class="bg-gradient-to-b from-blue-900 to-blue-950 flex flex-col transition-all duration-500 z-50 fixed lg:sticky top-0 left-0 h-screen shadow-2xl shrink-0 overflow-hidden"
             :class="{
                 'w-60 translate-x-0': sidebarOpen,
-                'w-24 translate-x-0': !sidebarOpen && window.innerWidth >= 1024,
+                'w-28 translate-x-0': !sidebarOpen && window.innerWidth >= 1024,
                 '-translate-x-full': !sidebarOpen && window.innerWidth < 1024
             }">
-            
-            <div class="h-20 flex items-center px-4 gap-3 shrink-0 border-b border-blue-800/50">
-                <img src="{{ asset('images/logo-audira.png') }}" alt="Audira" class="h-10 w-auto shrink-0 rounded-lg shadow-lg object-contain bg-white p-1">
+
+            <div class="h-20 flex flex-row items-center shrink-0 border-b border-blue-800/50 transition-all duration-300"
+                 :class="sidebarOpen ? 'px-4 gap-3 justify-start' : 'px-2 gap-2 justify-center'">
+                <img src="{{ asset('images/logo-audira.png') }}" alt="Audira"
+                     class="rounded-lg shadow-lg object-contain bg-white p-2 shrink-0 transition-all duration-100"
+                     :class="sidebarOpen ? 'h-10 w-auto' : 'w-12 h-auto'">
                 <div x-show="sidebarOpen" x-transition.opacity.duration.500ms class="overflow-hidden flex-1">
                     <p class="text-[8px] text-blue-300 font-bold mt-1 uppercase tracking-widest whitespace-nowrap">{{ __('ISO 27001:2022') }}</p>
                 </div>
-                <button @click="toggleSidebar()" class="hidden lg:flex w-8 h-8 rounded-lg items-center justify-center text-blue-300 hover:bg-white/10 hover:text-white transition-all outline-none">
+                <button @click="toggleSidebar()" class="hidden lg:flex w-8 h-8 rounded-lg items-center justify-center text-blue-300 hover:bg-white/10 hover:text-white transition-all outline-none shrink-0">
                     <i class="fa-solid" :class="sidebarOpen ? 'fa-angle-left' : 'fa-angle-right'"></i>
                 </button>
             </div>
