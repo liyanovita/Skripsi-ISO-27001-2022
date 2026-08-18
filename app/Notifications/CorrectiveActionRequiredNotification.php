@@ -37,7 +37,7 @@ class CorrectiveActionRequiredNotification extends Notification
             ->line('Batas Waktu (Due Date): ' . ($this->capa->treatment_due_date ? $this->capa->treatment_due_date->format('d M Y') : '-'))
             ->line('Rencana Tindakan: ' . $actionText)
             ->action('Buka Tindakan Perbaikan', $url)
-            ->line('Terima kasih telah menggunakan AuditGuard!');
+            ->line('Terima kasih telah menggunakan Audira!');
     }
 
     public function toArray(object $notifiable): array

@@ -69,7 +69,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>AuditGuard</h1>
+            <h1>Audira</h1>
             <p>ISMS Compliance Platform</p>
         </div>
         <div class="content">
@@ -78,8 +78,8 @@
             </div>
         </div>
         <div class="footer">
-            <p>This email was sent automatically by the AuditGuard platform.</p>
-            <p>&copy; {{ date('Y') }} AuditGuard. All rights reserved.</p>
+            <p>This email was sent automatically by the Audira platform.</p>
+            <p>&copy; {{ date('Y') }} Audira. All rights reserved.</p>
         </div>
     </div>
 </body>

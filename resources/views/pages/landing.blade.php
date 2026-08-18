@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="canonical" href="{{ url('/') }}">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232563eb'/><text y='.9em' font-size='55' font-family='sans-serif' font-weight='bold' fill='white' x='50%' text-anchor='middle'>AG</text></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232563eb'/><text y='.9em' font-size='55' font-family='sans-serif' font-weight='bold' fill='white' x='50%' text-anchor='middle'>AU</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" as="style">
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
-    <meta name="description" content="AuditGuard — Internal ISO 27001:2022 Compliance Assessment & ISMS Portal.">
-    <meta name="keywords" content="AuditGuard, ISO 27001:2022, compliance, ISMS, security assessment, AI audit, gap analysis">
+    <meta name="description" content="Audira — Internal ISO 27001:2022 Compliance Assessment & ISMS Portal.">
+    <meta name="keywords" content="Audira, ISO 27001:2022, compliance, ISMS, security assessment, AI audit, gap analysis">
     <meta name="robots" content="noindex, nofollow">
-    <title>{{ __('AuditGuard | ISO 27001:2022 Internal ISMS Portal') }}</title>
+    <title>{{ __('Audira | ISO 27001:2022 Internal ISMS Portal') }}</title>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -46,11 +46,8 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-2">
-                    <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-9 h-9 rounded-lg shrink-0 shadow-md object-contain bg-white p-0.5">
+                    <img src="{{ asset('images/logo-audira.png') }}" alt="Audira" class="h-9 w-auto shrink-0 object-contain">
                     <div>
-                        <div class="font-bold text-base leading-none">
-                            <span style="color: #2563eb;">Audit</span><span style="color: #0284c7;">Guard</span>
-                        </div>
                         <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">{{ __('ISMS INTERNAL PORTAL') }}</div>
                     </div>
                 </div>
@@ -101,7 +98,7 @@
 
         <!-- Subheadline -->
         <p class="text-sm md:text-base text-slate-500 max-w-2xl mx-auto mb-8 leading-relaxed animate-fade-in-up delay-2 font-medium">
-            {{ __('Welcome to the central security management system. AuditGuard facilitates organization-wide ISMS self-assessment, gap analysis, corrective action plans (CAPA), and real-time security posture tracking.') }}
+            {{ __('Welcome to the central security management system. Audira facilitates organization-wide ISMS self-assessment, gap analysis, corrective action plans (CAPA), and real-time security posture tracking.') }}
         </p>
 
         <!-- CTA Buttons -->
@@ -150,8 +147,8 @@
                             <div class="h-4 w-40 bg-slate-300 rounded-md mb-2 animate-pulse"></div>
                             <div class="h-2.5 w-24 bg-slate-200 rounded-md animate-pulse"></div>
                         </div>
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black shadow overflow-hidden bg-white p-0.5 border border-slate-100">
-                            <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-full h-full object-contain">
+                        <div class="h-10 px-1.5 rounded-xl flex items-center justify-center text-xs font-black shadow bg-white border border-slate-100">
+                            <img src="{{ asset('images/logo-audira.png') }}" alt="Audira" class="h-full w-auto object-contain">
                         </div>
                     </div>
                     <div class="grid grid-cols-3 gap-4 mb-5">
@@ -407,12 +404,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-left">
                 <div>
                     <div class="flex items-center gap-2 mb-3">
-                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-sky-600 rounded-lg overflow-hidden border border-slate-800">
-                            <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-full h-full object-contain bg-white p-0.5">
-                        </div>
-                        <span class="font-bold text-lg text-white">
-                            <span>Audit</span><span style="color: #38bdf8;">Guard</span>
-                        </span>
+                        <img src="{{ asset('images/logo-audira.png') }}" alt="Audira" class="h-8 w-auto object-contain bg-white rounded-lg p-1 border border-slate-800">
                     </div>
                     <p class="text-xs leading-relaxed font-medium">{{ __('AI-powered audit decision support system for ISO 27001:2022 compliance & information security governance.') }}</p>
                 </div>
@@ -437,7 +429,7 @@
             </div>
             <div class="border-t border-slate-900 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-left">
                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                    &copy; {{ date('Y') }} AuditGuard &mdash; {{ __('ISO 27001:2022 Compliance Assessment Platform.') }}
+                    &copy; {{ date('Y') }} Audira &mdash; {{ __('ISO 27001:2022 Compliance Assessment Platform.') }}
                 </p>
                 <p class="text-[10px] text-slate-600 font-bold uppercase tracking-wider">{{ __('Authorized Use Only') }}</p>
             </div>
