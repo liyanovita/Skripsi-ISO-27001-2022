@@ -12,7 +12,7 @@ class AssessmentSession extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['user_id', 'organization_id', 'name', 'status', 'overall_maturity_score', 'ai_summary', 'ai_summary_hash', 'deadline'];
+    protected $fillable = ['user_id', 'organization_id', 'name', 'status', 'overall_maturity_score', 'ai_summary', 'ai_summary_hash', 'deadline', 'ai_summary_locale', 'ai_summary_translations'];
 
     protected $casts = [
         'overall_maturity_score' => 'float',
@@ -20,7 +20,39 @@ class AssessmentSession extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
         'deadline' => 'date',
+        'ai_summary_translations' => 'array',
     ];
+
+    /**
+     * Resolve the executive summary content for a given locale.
+     * Falls back to the primary (originally generated) content while a
+     * translation is pending — `available` tells the caller whether the
+     * returned text natively matches the requested locale.
+     */
+    public function getSummaryForLocale(string $locale): array
+    {
+        $primaryLocale = $this->ai_summary_locale ?: config('app.locale');
+
+        if ($locale === $primaryLocale) {
+            return [
+                'ai_summary' => $this->ai_summary,
+                'available'  => true,
+            ];
+        }
+
+        $translations = is_array($this->ai_summary_translations) ? $this->ai_summary_translations : [];
+        if (isset($translations[$locale]['ai_summary'])) {
+            return [
+                'ai_summary' => $translations[$locale]['ai_summary'],
+                'available'  => true,
+            ];
+        }
+
+        return [
+            'ai_summary' => $this->ai_summary,
+            'available'  => false,
+        ];
+    }
 
     /**
      * Get the user that owns this session

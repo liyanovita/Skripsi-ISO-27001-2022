@@ -1,0 +1,358 @@
+{
+  "name": "ai summary (v2)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "audit-summary",
+        "options": {}
+      },
+      "id": "da5ce447-c18d-4777-9bc4-af71481cefb3",
+      "name": "Webhook: Audit Summary",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        1488,
+        688
+      ],
+      "webhookId": "311229a9-18e6-47f7-b3ec-211389a007ed"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Gerbang masuk: pastikan payload minimal ada sebelum apa pun dikerjakan.\nconst body = $json.body || {};\nconst results = body.results;\n\nconst sessionId = body.session_id || null;\nconst isArray = Array.isArray(results);\nconst count = isArray ? results.length : 0;\n\nlet valid = true;\nlet reason = null;\n\nif (!sessionId) { valid = false; reason = 'session_id_missing'; }\nelse if (!isArray) { valid = false; reason = 'results_not_an_array'; }\nelse if (count === 0) { valid = false; reason = 'results_empty'; }\n\nreturn [{ json: {\n  valid,\n  invalid_reason: reason,\n  session_id: sessionId,\n  control_count: count,\n  results: isArray ? results : [],\n  locale: body.locale === 'id' ? 'id' : 'en',\n}}];\n"
+      },
+      "id": "560df725-5f02-4ab5-a5ee-c610efdf6915",
+      "name": "Validate Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1712,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "26bd59be-8cc1-44a1-9c44-f66aff665828",
+              "leftValue": "={{ $json.valid === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "e7964987-8b9e-40dd-8fcd-54cd2cde34b8",
+      "name": "Payload Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1936,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Ringkas hasil asesmen menjadi statistik agregat.\n// Tujuan: LLM tidak perlu membaca data mentah, cukup gambaran menyeluruh.\n// Efeknya: token turun drastis, dan hasilnya jauh lebih konsisten.\n\nconst src = $json;\nconst rows = src.results || [];\n\n// Skema hasil asesmen bisa berbeda-beda penamaannya.\n// Fungsi ini mencoba beberapa nama kolom yang umum dipakai.\nfunction pick(obj, keys) {\n  for (const k of keys) {\n    if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];\n  }\n  return null;\n}\n\nconst K_MATURITY = ['maturity_level', 'maturity_rating', 'maturity', 'level', 'score'];\nconst K_STATUS   = ['compliance_status', 'compliance', 'status'];\nconst K_CONTROL  = ['control_code', 'control_id', 'code', 'clause', 'clausa', 'control'];\nconst K_DOMAIN   = ['domain', 'category', 'theme', 'annex', 'group'];\nconst K_NOTES    = ['assessment_notes', 'notes', 'note', 'catatan', 'description'];\nconst K_EVIDENCE = ['evidence_file', 'evidence', 'bukti', 'attachment'];\n\nfunction hasEvidence(v) {\n  if (v === null || v === undefined) return false;\n  if (Array.isArray(v)) return v.length > 0;\n  if (typeof v === 'string') return v.trim().length > 0;\n  if (typeof v === 'object') return Object.keys(v).length > 0;\n  return Boolean(v);\n}\n\nconst maturityCount = {};\nconst statusCount = {};\nconst domainStats = {};\nconst lowMaturity = [];\n\nlet withNotes = 0;\nlet withEvidence = 0;\nlet withEither = 0;\nlet maturitySum = 0;\nlet maturityNumeric = 0;\n\nconst detected = { maturity: null, status: null, control: null, domain: null };\n\nfor (const r of rows) {\n  const mRaw = pick(r, K_MATURITY);\n  const sRaw = pick(r, K_STATUS);\n  const cRaw = pick(r, K_CONTROL);\n  const dRaw = pick(r, K_DOMAIN);\n  const nRaw = pick(r, K_NOTES);\n  const eRaw = pick(r, K_EVIDENCE);\n\n  if (!detected.maturity) detected.maturity = K_MATURITY.find(k => r[k] !== undefined) || null;\n  if (!detected.status)   detected.status   = K_STATUS.find(k => r[k] !== undefined) || null;\n  if (!detected.control)  detected.control  = K_CONTROL.find(k => r[k] !== undefined) || null;\n  if (!detected.domain)   detected.domain   = K_DOMAIN.find(k => r[k] !== undefined) || null;\n\n  const mKey = mRaw === null ? 'unrated' : String(mRaw);\n  const sKey = sRaw === null ? 'unknown' : String(sRaw);\n\n  maturityCount[mKey] = (maturityCount[mKey] || 0) + 1;\n  statusCount[sKey] = (statusCount[sKey] || 0) + 1;\n\n  const mNum = Number(mRaw);\n  if (!Number.isNaN(mNum) && mRaw !== null && mRaw !== '') {\n    maturitySum += mNum;\n    maturityNumeric += 1;\n  }\n\n  const dKey = dRaw ? String(dRaw) : 'uncategorized';\n  if (!domainStats[dKey]) domainStats[dKey] = { total: 0, low: 0, sum: 0, numeric: 0 };\n  domainStats[dKey].total += 1;\n  if (!Number.isNaN(mNum) && mRaw !== null && mRaw !== '') {\n    domainStats[dKey].sum += mNum;\n    domainStats[dKey].numeric += 1;\n    if (mNum <= 2) domainStats[dKey].low += 1;\n  }\n\n  if (!Number.isNaN(mNum) && mNum <= 2) {\n    lowMaturity.push({\n      control: cRaw ? String(cRaw) : '(tanpa kode)',\n      domain: dKey,\n      maturity: mNum,\n      status: sKey,\n    });\n  }\n\n  const n = nRaw && String(nRaw).trim().length > 0;\n  const e = hasEvidence(eRaw);\n  if (n) withNotes += 1;\n  if (e) withEvidence += 1;\n  if (n || e) withEither += 1;\n}\n\nconst total = rows.length;\nconst pct = v => total === 0 ? 0 : Math.round((v / total) * 1000) / 10;\n\n// Tingkat keyakinan dihitung DETERMINISTIK di sini, bukan oleh LLM.\n// Ini aritmetika, bukan penilaian — tidak boleh diserahkan ke model.\nconst supportPct = pct(withEither);\nlet confidenceLevel;\nif (supportPct >= 70) confidenceLevel = 'well_supported';\nelse if (supportPct >= 30) confidenceLevel = 'partially_supported';\nelse confidenceLevel = 'limited';\n\nconst domainSummary = Object.entries(domainStats)\n  .map(([name, s]) => ({\n    domain: name,\n    total: s.total,\n    low_maturity_count: s.low,\n    avg_maturity: s.numeric ? Math.round((s.sum / s.numeric) * 100) / 100 : null,\n  }))\n  .sort((a, b) => b.low_maturity_count - a.low_maturity_count);\n\nreturn [{ json: {\n  session_id: src.session_id,\n  locale: src.locale || 'en',\n  aggregate: {\n    total_controls: total,\n    average_maturity: maturityNumeric ? Math.round((maturitySum / maturityNumeric) * 100) / 100 : null,\n    maturity_distribution: maturityCount,\n    compliance_distribution: statusCount,\n    domain_summary: domainSummary,\n    low_maturity_controls: lowMaturity.slice(0, 40),\n    low_maturity_total: lowMaturity.length,\n    supporting_info: {\n      controls_with_notes: withNotes,\n      controls_with_evidence: withEvidence,\n      controls_with_either: withEither,\n      support_coverage_percent: supportPct,\n      confidence_level: confidenceLevel,\n    },\n  },\n  _schema_detected: detected,\n}}];\n"
+      },
+      "id": "78a7bcd9-f310-4ce5-ba1e-46b6409b355d",
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://inference.baseten.co/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.baseten_payload) }}",
+        "options": {
+          "timeout": 240000
+        }
+      },
+      "id": "56621bb8-0591-4d96-b49f-8851421bcf1b",
+      "name": "Baseten Summarize",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2592,
+        592
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "V74XWvu3VRsezO8U",
+          "name": "Auth Baseten"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Bersihkan, parse, lalu susun DUA versi bahasa sekaligus dari satu respons model.\nconst prep = $('Prepare LLM Request1').first().json;\n\nlet raw = '';\ntry { raw = $json.choices[0].message.content || ''; } catch (e) { raw = ''; }\n\n// Buang blok penalaran dan pagar kode kalau model tetap menambahkannya.\nlet clean = raw\n  .replace(/<think>[\\s\\S]*?<\\/think>/gi, '')\n  .replace(/^\\s*```(?:json)?/i, '')\n  .replace(/```\\s*$/i, '')\n  .trim();\n\n// Ambil objek JSON pertama kalau masih ada teks pembungkus.\nfunction extractJson(s) {\n  const start = s.indexOf('{');\n  const end = s.lastIndexOf('}');\n  if (start === -1 || end === -1 || end <= start) return null;\n  try { return JSON.parse(s.slice(start, end + 1)); } catch (e) { return null; }\n}\n\nconst parsed = extractJson(clean);\nconst parseOk = parsed !== null;\n\nconst LABELS = {\n  en: { conclusion: 'Overall Assessment Conclusion', risk: 'Overall Risk Areas', recs: 'Executive Strategic Recommendations', confidence: 'Assessment Confidence', failed: 'Failed to generate AI summary.' },\n  id: { conclusion: 'Kesimpulan Asesmen Keseluruhan', risk: 'Area Risiko Utama', recs: 'Rekomendasi Strategis Eksekutif', confidence: 'Tingkat Keyakinan Asesmen', failed: 'Gagal menghasilkan ringkasan AI.' },\n};\n\nfunction pick(field, lang) {\n  if (!field) return null;\n  if (typeof field === 'string') return field;\n  return field[lang] ?? null;\n}\n\nfunction section(title, body) {\n  if (!body) return '';\n  return '## ' + title + '\\n\\n' + String(body).trim() + '\\n\\n';\n}\n\nfunction buildPretty(lang) {\n  if (!parseOk) return clean;\n  const labels = LABELS[lang];\n  const recsField = pick(parsed.executive_strategic_recommendations, lang);\n  const recs = Array.isArray(recsField) ? recsField : (recsField ? [recsField] : []);\n  let pretty =\n    section(labels.conclusion, pick(parsed.overall_assessment_conclusion, lang)) +\n    section(labels.risk, pick(parsed.overall_risk_areas, lang)) +\n    (recs.length\n      ? '## ' + labels.recs + '\\n\\n' +\n        recs.map((r, i) => (i + 1) + '. ' + String(r).trim()).join('\\n') + '\\n\\n'\n      : '') +\n    section(labels.confidence, pick(parsed.assessment_confidence, lang));\n  return pretty.trim();\n}\n\nconst prettyEn = buildPretty('en');\nconst prettyId = buildPretty('id');\n\nconst usableEn = prettyEn && prettyEn.length >= 50;\nconst usableId = prettyId && prettyId.length >= 50;\n\nreturn [{ json: {\n  session_id: prep.session_id,\n  status: (usableEn || usableId) ? 'ok' : 'failed',\n  ai_summary_en: usableEn ? prettyEn : LABELS.en.failed,\n  ai_summary_id: usableId ? prettyId : LABELS.id.failed,\n  ai_summary_json: parseOk ? JSON.stringify(parsed) : null,\n  parse_ok: parseOk,\n  confidence_level: prep.aggregate.supporting_info.confidence_level,\n  support_coverage_percent: prep.aggregate.supporting_info.support_coverage_percent,\n  total_controls: prep.aggregate.total_controls,\n  error_reason: (usableEn || usableId) ? null : (parseOk ? 'summary_too_short' : 'model_output_unparseable'),\n}}];\n"
+      },
+      "id": "8f06990f-9631-4af1-b047-a4b6fdf9f179",
+      "name": "Parse Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2832,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Jalur gagal. Yang penting: Laravel TETAP menerima callback,\n// supaya sesi tidak menggantung selamanya di status \"sedang diproses\".\nlet sessionId = null;\ntry { sessionId = $('Validate Payload').first().json.session_id; } catch (e) {}\nif (!sessionId) {\n  try { sessionId = $('Webhook: Audit Summary').first().json.body.session_id; } catch (e) {}\n}\n\nconst j = $json || {};\nlet reason = j.invalid_reason\n  || (j.error && j.error.message)\n  || j.message\n  || 'unknown_error';\n\nreturn [{ json: {\n  session_id: sessionId,\n  status: 'failed',\n  ai_summary_en: 'Failed to generate AI summary.',\n  ai_summary_id: 'Gagal menghasilkan ringkasan AI.',\n  ai_summary_json: null,\n  parse_ok: false,\n  confidence_level: null,\n  support_coverage_percent: null,\n  total_controls: null,\n  error_reason: String(reason).slice(0, 300),\n}}];\n"
+      },
+      "id": "c120da68-0e96-4381-a7b2-2911322ac04f",
+      "name": "Build Error Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2832,
+        816
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "2091d05b-764c-4eaa-a1ca-f17915b1d2de",
+      "name": "Merge Outcome",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        3072,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://skripsi-iso-27001-2022.test/api/webhook/n8n/ai-summary",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Webhook-Secret",
+              "value": "GANTI_DENGAN_SECRET_BARU"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "session_id",
+              "value": "={{ $json.session_id }}"
+            },
+            {
+              "name": "ai_summary_en",
+              "value": "={{ $json.ai_summary_en }}"
+            },
+            {
+              "name": "ai_summary_id",
+              "value": "={{ $json.ai_summary_id }}"
+            },
+            {
+              "name": "status",
+              "value": "={{ $json.status }}"
+            },
+            {
+              "name": "error_reason",
+              "value": "={{ $json.error_reason }}"
+            },
+            {
+              "name": "confidence_level",
+              "value": "={{ $json.confidence_level }}"
+            },
+            {
+              "name": "support_coverage_percent",
+              "value": "={{ $json.support_coverage_percent }}"
+            },
+            {
+              "name": "ai_summary_json",
+              "value": "={{ $json.ai_summary_json }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "9c87bf3d-b212-43b9-9946-be7b1ace93f9",
+      "name": "Callback to Laravel",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3296,
+        656
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Satu panggilan menghasilkan DUA bahasa sekaligus (en + id) — lebih hemat\n// token & waktu dibanding generate lalu translate terpisah belakangan.\nconst MODEL = 'zai-org/GLM-5.2';\nconst agg = $json.aggregate;\n\nconst SYSTEM = [\n  'You are an ISO/IEC 27001:2022 assessment analyst writing an executive management summary.',\n  '',\n  'Output rules:',\n  '- Respond with a single valid JSON object and nothing else.',\n  '- No markdown, no code fences, no commentary before or after.',\n  '- Write every text value in BOTH English (\"en\") and Indonesian (\"id\") at once. Do not translate word-for-word between the two — write each so it reads naturally and professionally in its own language, while conveying the exact same analysis and conclusions.',\n  '',\n  'Analytical rules:',\n  '- The maturity ratings and compliance statuses provided are final. Never re-score, revise, or contradict them.',\n  '- Base every statement on the aggregate figures given. Do not invent organizational facts.',\n  '- The confidence level has already been calculated. Explain what it means; do not recalculate it.',\n  '- Write at portfolio level. Do not walk through individual controls.',\n].join('\\n');\n\nconst USER = [\n  'Aggregate assessment results for this session:',\n  '',\n  JSON.stringify(agg, null, 2),\n  '',\n  'Produce an executive management summary covering four areas, each written in both English and Indonesian.',\n  '',\n  '1. overall_assessment_conclusion',\n  '   Executive summary of overall ISMS maturity and compliance posture.',\n  '   State the organization-wide strengths and the primary improvement areas.',\n  '',\n  '2. overall_risk_areas',\n  '   The most significant risk areas, based on recurring weaknesses and',\n  '   clusters of low-maturity or non-compliant controls.',\n  '   Explain potential impact on governance, operational effectiveness,',\n  '   business continuity, regulatory compliance, and resilience.',\n  '',\n  '3. executive_strategic_recommendations',\n  '   Exactly three organization-level priorities for management.',\n  '   Practical, realistic, aligned with the current maturity level.',\n  '   Avoid deep technical implementation detail.',\n  '',\n  '4. assessment_confidence',\n  '   The calculated confidence level is: ' + agg.supporting_info.confidence_level,\n  '   Supporting information covers ' + agg.supporting_info.support_coverage_percent + '% of assessed controls.',\n  '   Explain what this means for how much weight management should place on',\n  '   these conclusions, and state the limitation on independent validation.',\n  '',\n  'Return exactly this JSON shape:',\n  '{',\n  '  \"overall_assessment_conclusion\": { \"en\": \"string\", \"id\": \"string\" },',\n  '  \"overall_risk_areas\": { \"en\": \"string\", \"id\": \"string\" },',\n  '  \"executive_strategic_recommendations\": { \"en\": [\"string\", \"string\", \"string\"], \"id\": [\"string\", \"string\", \"string\"] },',\n  '  \"assessment_confidence\": { \"en\": \"string\", \"id\": \"string\" }',\n  '}',\n].join('\\n');\n\nreturn [{ json: {\n  session_id: $json.session_id,\n  aggregate: agg,\n  baseten_payload: {\n    model: MODEL,\n    temperature: 0.2,\n    max_tokens: 6000,\n    messages: [\n      { role: 'system', content: SYSTEM },\n      { role: 'user', content: USER },\n    ],\n  },\n}}];\n"
+      },
+      "id": "f834f07d-a1c9-4171-9bd5-a3ca33d3fd96",
+      "name": "Prepare LLM Request1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2368,
+        592
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook: Audit Summary": {
+      "main": [
+        [
+          {
+            "node": "Validate Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Payload": {
+      "main": [
+        [
+          {
+            "node": "Payload Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payload Valid?": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Results": {
+      "main": [
+        [
+          {
+            "node": "Prepare LLM Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Baseten Summarize": {
+      "main": [
+        [
+          {
+            "node": "Parse Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Summary": {
+      "main": [
+        [
+          {
+            "node": "Merge Outcome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error Payload": {
+      "main": [
+        [
+          {
+            "node": "Merge Outcome",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Outcome": {
+      "main": [
+        [
+          {
+            "node": "Callback to Laravel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare LLM Request1": {
+      "main": [
+        [
+          {
+            "node": "Baseten Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "e36c71cf-8469-473a-8131-f51035f79f8f",
+  "meta": {
+    "instanceId": "99bfdc33f90478a9ccccfaad5977aeabf94b9479ca0be3c4558b22b12cc325a4"
+  },
+  "id": "rM7wJMofTe5vuzpQ",
+  "tags": []
+}

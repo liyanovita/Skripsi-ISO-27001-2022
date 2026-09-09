@@ -209,11 +209,12 @@
         </div>
 
         {{-- Mobile Toggle Button --}}
-        <button 
+        <button
+            x-show="!sidebarOpen"
             @click="toggleSidebar()"
             class="lg:hidden fixed top-4 left-4 z-[60] w-10 h-10 bg-white rounded-xl shadow-2xl flex items-center justify-center text-slate-600 border border-slate-100 transition-all active:scale-90"
         >
-            <i class="fa-solid transition-transform duration-300" :class="sidebarOpen ? 'fa-xmark scale-110' : 'fa-bars-staggered'"></i>
+            <i class="fa-solid fa-bars-staggered"></i>
         </button>
 
         {{-- Global Toast Container --}}
@@ -259,13 +260,16 @@
             <div class="h-20 flex flex-row items-center shrink-0 border-b border-blue-800/50 transition-all duration-300"
                  :class="sidebarOpen ? 'px-4 gap-3 justify-start' : 'px-2 gap-2 justify-center'">
                 <img src="{{ asset('images/logo-audira.png') }}" alt="Audira"
-                     class="rounded-lg shadow-lg object-contain bg-white p-2 shrink-0 transition-all duration-100"
+                     class="max-h-10 rounded-lg shadow-lg object-contain bg-white p-2 shrink-0 transition-all duration-100"
                      :class="sidebarOpen ? 'h-10 w-auto' : 'w-12 h-auto'">
                 <div x-show="sidebarOpen" x-transition.opacity.duration.500ms class="overflow-hidden flex-1">
                     <p class="text-[8px] text-blue-300 font-bold mt-1 uppercase tracking-widest whitespace-nowrap">{{ __('ISO 27001:2022') }}</p>
                 </div>
                 <button @click="toggleSidebar()" class="hidden lg:flex w-8 h-8 rounded-lg items-center justify-center text-blue-300 hover:bg-white/10 hover:text-white transition-all outline-none shrink-0">
                     <i class="fa-solid" :class="sidebarOpen ? 'fa-angle-left' : 'fa-angle-right'"></i>
+                </button>
+                <button @click="toggleSidebar()" class="lg:hidden flex w-8 h-8 rounded-lg items-center justify-center text-blue-300 hover:bg-white/10 hover:text-white transition-all outline-none shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
@@ -407,7 +411,7 @@
 
         </aside>
 
-        <main class="flex-1 flex flex-col min-w-0 bg-[#F8FAFC] overflow-hidden transition-all duration-300">
+        <main class="flex-1 flex flex-col min-w-0 bg-[#F8FAFC] overflow-hidden transition-all duration-100">
             
             <header class="h-16 border-b border-slate-200 flex items-center justify-between px-6 z-40 bg-white shrink-0">
                 {{-- Breadcrumb --}}
@@ -426,7 +430,7 @@
                             elseif (request()->routeIs('reports.strategic')) $crumbs = [['label' => 'Intelligence & Reports', 'url' => null], ['label' => 'Assessment Result', 'url' => null]];
                             elseif (request()->routeIs('knowledge-base.*'))  $crumbs = [['label' => 'Resources & Governance', 'url' => null], ['label' => 'Knowledge Base', 'url' => null]];
                             elseif (request()->routeIs('audit-trail.*'))     $crumbs = [['label' => 'Resources & Governance', 'url' => null], ['label' => 'Audit Trail', 'url' => null]];
-                            elseif (request()->routeIs('notifications.*'))  $crumbs = [['label' => 'Resources & Governance', 'url' => null], ['label' => 'Notification Center', 'url' => null]];
+                            elseif (request()->routeIs('notifications.*'))   $crumbs = [['label' => 'Resources & Governance', 'url' => null], ['label' => 'Notification Center', 'url' => null]];
                             elseif (request()->routeIs('profile.*'))         $crumbs = [['label' => 'Account', 'url' => null], ['label' => 'Profile', 'url' => null]];
                             else $crumbs = [['label' => 'Page', 'url' => null]];
                         @endphp
@@ -860,7 +864,10 @@
                 </div>
             </div>
         </main>
-    </div>
+    {{-- NOTE: the root x-data div opened above (~line 87) is intentionally left
+         open here — it's closed at the very end, right before </body>, so that
+         the modals below (Welcome Guide, Help Panel, etc.) stay inside its
+         Alpine scope instead of rendering as detached siblings of <body>. --}}
 
     {{-- ============================================================ --}}
     {{-- LAYER 1: WELCOME GUIDE MODAL                                 --}}
@@ -1537,5 +1544,6 @@
     </script>
 
     @stack('scripts')
+    </div>
 </body>
 </html>

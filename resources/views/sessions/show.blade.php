@@ -39,7 +39,7 @@
         get isReadyToFinalize() {
             return this.assessedCount >= this.totalAssessable;
         },
-        activeAiDetails: { code: '', title: '', rec: '', plan: '', insight: '', priority: '', validation: '', impact: '' },
+        activeAiDetails: { code: '', title: '', rec: '', plan: '', insight: '', priority: '', validation: '', impact: '', resultId: null },
         openAiDetails(dataset) {
             this.activeAiDetails = {
                 code: dataset.code || '',
@@ -49,7 +49,8 @@
                 insight: dataset.insight || '',
                 priority: dataset.priority || '',
                 validation: dataset.validation || '',
-                impact: dataset.impact || ''
+                impact: dataset.impact || '',
+                resultId: dataset.resultId || null
             };
             this.showAiModal = true;
         },
@@ -245,7 +246,7 @@
                                     @result-updated.window="if($event.detail.id === {{ $result->id }}) { status = $event.detail.status; rating = $event.detail.rating; isApplicable = $event.detail.isApplicable; }"
                                     class="w-full text-left px-4 py-3 rounded-xl border transition-all flex items-center justify-between group ml-2 mt-1"
                                     :class="!isApplicable ? 'bg-slate-50 border-slate-100 text-slate-400' : (status === 'completed' && rating < 5 ? 'bg-rose-50 border-rose-100 text-rose-700' : (status === 'completed' ? 'bg-blue-50 border-blue-100 text-blue-700' : 'bg-white border-slate-100 text-slate-500 hover:border-blue-300'))"
-                                    :aria-label="'Open control ' + '{{ $item->code }} + ': ' + '{{ __($item->title) }}'">
+                                    :aria-label="'Open control ' + '{{ $item->code }}' + ': ' + '{{ __($item->title) }}'">
                                     <div class="min-w-0 pr-2">
                                         <p class="text-[10px] font-bold tracking-tight">{{ $item->code }}</p>
                                         <p class="text-[9px] font-medium truncate opacity-60">{{ __($item->title) }}</p>
@@ -283,7 +284,7 @@
                                     @result-updated.window="if($event.detail.id === {{ $result->id }}) { status = $event.detail.status; rating = $event.detail.rating; isApplicable = $event.detail.isApplicable; }"
                                     class="w-full text-left px-4 py-3 rounded-xl border transition-all flex items-center justify-between group ml-2 mt-1"
                                     :class="!isApplicable ? 'bg-slate-50 border-slate-100 text-slate-400' : (status === 'completed' && rating < 5 ? 'bg-rose-50 border-rose-100 text-rose-700' : (status === 'completed' ? 'bg-blue-50 border-blue-100 text-blue-700' : 'bg-white border-slate-100 text-slate-500 hover:border-blue-300'))"
-                                    :aria-label="'Open control ' + '{{ $item->code }} + ': ' + '{{ __($item->title) }}'">
+                                    :aria-label="'Open control ' + '{{ $item->code }}' + ': ' + '{{ __($item->title) }}'">
                                     <div class="min-w-0 pr-2">
                                         <p class="text-[10px] font-bold tracking-tight">{{ $item->code }}</p>
                                         <p class="text-[9px] font-medium truncate opacity-60">{{ __($item->title) }}</p>

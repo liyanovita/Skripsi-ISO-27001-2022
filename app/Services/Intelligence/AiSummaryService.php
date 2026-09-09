@@ -119,6 +119,12 @@ class AiSummaryService
             throw new \Exception('Session not found');
         }
 
+        // New bilingual format: n8n generates both language versions in a single
+        // AI call (ai_summary_en + ai_summary_id) instead of one locale per call.
+        if (array_key_exists('ai_summary_en', $data) || array_key_exists('ai_summary_id', $data)) {
+            return $this->receiveBilingualSummaryWebhook($session, $data);
+        }
+
         // Support new structured JSON format from n8n
         if (
             isset($data['overall_assessment_conclusion']) ||
@@ -175,12 +181,57 @@ class AiSummaryService
             }
         }
 
-        $session->update(['ai_summary' => $aiSummary]);
+        $requestedLocale = $data['locale'] ?? null;
+        $locale = in_array($requestedLocale, ['en', 'id'], true) ? $requestedLocale : config('app.locale');
+
+        $session->update([
+            'ai_summary' => $aiSummary,
+            'ai_summary_locale' => $locale,
+            'ai_summary_translations' => null,
+        ]);
         Cache::forget("session_{$sessionId}_summary_status");
 
         \Illuminate\Support\Facades\Log::info("AiSummaryService: Webhook successfully committed to database", [
             'session_id' => $sessionId,
             'summary_length' => strlen($aiSummary),
+        ]);
+
+        return $session->fresh();
+    }
+
+    /**
+     * Handle the bilingual n8n payload: both "en" and "id" versions of the
+     * executive summary arrive in one webhook call, so no separate lazy-translate
+     * round trip is needed for the common case.
+     */
+    protected function receiveBilingualSummaryWebhook(AssessmentSession $session, array $data): AssessmentSession
+    {
+        $sessionId = $session->id;
+        $sumEn = trim((string) ($data['ai_summary_en'] ?? ''));
+        $sumId = trim((string) ($data['ai_summary_id'] ?? ''));
+
+        if ($sumEn === '' && $sumId === '') {
+            \Illuminate\Support\Facades\Log::error("AiSummaryService: Bilingual webhook processing failed - empty summary payload", ['session_id' => $sessionId]);
+            throw new \Exception('Missing required data: summary payload is empty.');
+        }
+
+        $primaryLocale = $sumEn !== '' ? 'en' : 'id';
+        $primarySummary = $primaryLocale === 'en' ? $sumEn : $sumId;
+        $secondaryLocale = $primaryLocale === 'en' ? 'id' : 'en';
+        $secondarySummary = $primaryLocale === 'en' ? $sumId : $sumEn;
+
+        $session->update([
+            'ai_summary' => $primarySummary,
+            'ai_summary_locale' => $primaryLocale,
+            'ai_summary_translations' => $secondarySummary !== '' ? [
+                $secondaryLocale => ['ai_summary' => $secondarySummary, 'translated_at' => now()->toDateTimeString()],
+            ] : null,
+        ]);
+        Cache::forget("session_{$sessionId}_summary_status");
+
+        \Illuminate\Support\Facades\Log::info("AiSummaryService: Bilingual webhook successfully committed to database", [
+            'session_id' => $sessionId,
+            'primary_locale' => $primaryLocale,
         ]);
 
         return $session->fresh();

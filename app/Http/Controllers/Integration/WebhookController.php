@@ -51,6 +51,23 @@ class WebhookController extends Controller
     }
 
     /**
+     * Handle evidence extraction result from n8n
+     */
+    public function handleEvidenceExtraction(Request $request): JsonResponse
+    {
+        try {
+            app(\App\Services\Assessment\ResultService::class)->receiveEvidenceExtractionWebhook($request->all());
+
+            return ApiResponse::success(
+                null,
+                'Evidence extraction result updated successfully'
+            );
+        } catch (\Exception $e) {
+            throw ApiException::internalError($e->getMessage());
+        }
+    }
+
+    /**
      * Handle session summary from n8n
      */
     public function handleSessionSummary(Request $request): JsonResponse

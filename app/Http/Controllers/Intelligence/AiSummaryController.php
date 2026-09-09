@@ -56,20 +56,23 @@ class AiSummaryController extends Controller
                     'summary'      => null,
                     'summary_html' => null,
                     'structured'   => null,
+                    'available_in_current_locale' => false,
                 ], 'AI summary is being generated.');
             }
 
             if ($session->ai_summary) {
-                $parsed = AiSummaryService::parseSummary($session->ai_summary);
+                $localized = $session->getSummaryForLocale(app()->getLocale());
+                $parsed = AiSummaryService::parseSummary($localized['ai_summary']);
 
                 // Build HTML from structured data
                 $summaryHtml = $this->buildSummaryHtml($parsed);
 
                 return ApiResponse::success([
                     'status'       => 'completed',
-                    'summary'      => $session->ai_summary,
+                    'summary'      => $localized['ai_summary'],
                     'summary_html' => $summaryHtml,
                     'structured'   => $parsed,
+                    'available_in_current_locale' => $localized['available'],
                 ], 'Summary status retrieved.');
             }
 
@@ -78,6 +81,7 @@ class AiSummaryController extends Controller
                 'summary'      => null,
                 'summary_html' => null,
                 'structured'   => null,
+                'available_in_current_locale' => true,
             ], 'No summary generated yet.');
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -115,21 +119,21 @@ class AiSummaryController extends Controller
 
         if (!empty($parsed['overall_assessment_summary'])) {
             $html .= '<div class="summary-section">'
-                   . '<div class="summary-section-title"><i class="fa-solid fa-chart-line"></i> Overall Assessment Summary</div>'
+                   . '<div class="summary-section-title"><i class="fa-solid fa-chart-line"></i> ' . __('Overall Assessment Summary') . '</div>'
                    . '<div class="summary-section-body">' . Str::markdown(e($parsed['overall_assessment_summary'])) . '</div>'
                    . '</div>';
         }
 
         if (!empty($parsed['control_insight'])) {
             $html .= '<div class="summary-section">'
-                   . '<div class="summary-section-title"><i class="fa-solid fa-lightbulb"></i> Control Insight</div>'
+                   . '<div class="summary-section-title"><i class="fa-solid fa-lightbulb"></i> ' . __('Control Insight') . '</div>'
                    . '<div class="summary-section-body">' . Str::markdown(e($parsed['control_insight'])) . '</div>'
                    . '</div>';
         }
 
         if (!empty($parsed['impact_interpretation'])) {
             $html .= '<div class="summary-section">'
-                   . '<div class="summary-section-title"><i class="fa-solid fa-circle-nodes"></i> Impact Interpretation</div>'
+                   . '<div class="summary-section-title"><i class="fa-solid fa-circle-nodes"></i> ' . __('Impact Interpretation') . '</div>'
                    . '<div class="summary-section-body">' . Str::markdown(e($parsed['impact_interpretation'])) . '</div>'
                    . '</div>';
         }
@@ -138,7 +142,7 @@ class AiSummaryController extends Controller
             $recs = $parsed['strategic_recommendation'];
             if (is_string($recs)) $recs = [$recs];
             $html .= '<div class="summary-section">'
-                   . '<div class="summary-section-title"><i class="fa-solid fa-bullseye"></i> Strategic Recommendation</div>'
+                   . '<div class="summary-section-title"><i class="fa-solid fa-bullseye"></i> ' . __('Strategic Recommendation') . '</div>'
                    . '<ol class="summary-recs-list">';
             foreach ($recs as $rec) {
                 $html .= '<li>' . Str::markdown(e($rec)) . '</li>';
@@ -148,7 +152,7 @@ class AiSummaryController extends Controller
 
         if (!empty($parsed['action_plan'])) {
             $html .= '<div class="summary-section">'
-                   . '<div class="summary-section-title"><i class="fa-solid fa-circle-check"></i> Action Plan</div>'
+                   . '<div class="summary-section-title"><i class="fa-solid fa-circle-check"></i> ' . __('Action Plan') . '</div>'
                    . '<div class="summary-section-body">' . Str::markdown(e($parsed['action_plan'])) . '</div>'
                    . '</div>';
         }
@@ -156,3 +160,4 @@ class AiSummaryController extends Controller
         return $html ?: null;
     }
 }
+

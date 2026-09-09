@@ -48,8 +48,9 @@ return [
     ],
 
     'n8n' => [
-        'webhook_url'         => env('N8N_WEBHOOK_URL', ''),
-        'webhook_summary_url' => env('N8N_WEBHOOK_SUMMARY_URL', ''),
+        'webhook_url'            => env('N8N_WEBHOOK_URL', ''),
+        'webhook_summary_url'    => env('N8N_WEBHOOK_SUMMARY_URL', ''),
+        'webhook_extraction_url' => env('N8N_WEBHOOK_EXTRACTION_URL', ''),
     ],
 
     'webhook' => [

@@ -127,12 +127,6 @@ class ResultService
 
         $result->update($updateData);
 
-        // Always keep ai_data_hash in sync with current data so that
-        // the NO_DATA_CHANGE guard works correctly even after plain saves.
-        if (!isset($data['trigger_ai']) || $data['trigger_ai'] != '1') {
-            $result->updateQuietly(['ai_data_hash' => $newHash]);
-        }
-
         if (isset($data['trigger_ai']) && $data['trigger_ai'] == '1') {
             Cache::put("result_{$id}_ai_status", 'processing', 300);
             $result->update([
@@ -230,7 +224,14 @@ class ResultService
         }
 
         $resultId = $data['result_id'] ?? $data['id'] ?? null;
-        
+
+        // New format: n8n generates both language versions in a single AI call
+        // (e.g. ai_recommendation_en + ai_recommendation_id) instead of one locale
+        // per call. Detect and handle it separately — no lazy translate needed after.
+        if (array_key_exists('ai_recommendation_en', $data) || array_key_exists('ai_recommendation_id', $data)) {
+            return $this->receiveBilingualN8nWebhook($resultId, $data);
+        }
+
         $strategicRecommendation = $data['strategic_recommendation'] ?? null;
         $aiRecommendation = $data['ai_recommendation'] ?? null;
         $recommendation = $data['recommendation'] ?? null;
@@ -280,12 +281,12 @@ class ResultService
 
         if ($targetPriority !== null) {
             if (is_array($targetPriority)) {
-                $updateData['risk_priority'] = $targetPriority['level'] ?? null;
+                $updateData['risk_priority'] = $this->normalizeRiskPriority($targetPriority['level'] ?? null);
                 if (!empty($targetPriority['justification'])) {
                     $updateData['control_insight'] = ['gap' => $targetPriority['justification']];
                 }
             } else {
-                $updateData['risk_priority'] = $targetPriority;
+                $updateData['risk_priority'] = $this->normalizeRiskPriority($targetPriority);
             }
         }
 
@@ -303,6 +304,12 @@ class ResultService
         // 6. Evidence Validation — always maps to evidence_validation column (Disabled as AI no longer handles this)
         $updateData['evidence_validation'] = null;
 
+        // 7. Track which locale this primary content was generated in, and invalidate
+        // any previously cached translations — they described the old content.
+        $requestedLocale = $data['locale'] ?? null;
+        $updateData['ai_locale'] = in_array($requestedLocale, ['en', 'id'], true) ? $requestedLocale : config('app.locale');
+        $updateData['ai_translations'] = null;
+
         Log::info("n8n webhook — updateData to be saved", array_merge(
             ['result_id' => $resultId],
             array_map(fn($v) => is_array($v) ? json_encode($v) : $v, $updateData)
@@ -313,6 +320,267 @@ class ResultService
         Cache::forget("result_{$resultId}_ai_status");
 
         return true;
+    }
+
+    /**
+     * Handle the bilingual n8n payload: both "en" and "id" versions of every
+     * field arrive in one webhook call, so no separate lazy-translate round trip
+     * is needed for the common case. Whichever language actually came back non-empty
+     * becomes the primary (canonical) content; the other is stored straight into the
+     * translations sidecar, available immediately.
+     */
+    protected function receiveBilingualN8nWebhook($resultId, array $data): bool
+    {
+        $recEn = trim((string) ($data['ai_recommendation_en'] ?? ''));
+        $recId = trim((string) ($data['ai_recommendation_id'] ?? ''));
+
+        if (!$resultId || ($recEn === '' && $recId === '')) {
+            $receivedKeys = implode(', ', array_keys($data));
+            throw new \Exception("Missing result_id or recommendation in payload. Received keys: [{$receivedKeys}]");
+        }
+
+        $result = AssessmentResult::find($resultId);
+        if (!$result) {
+            throw new \Exception('AssessmentResult not found');
+        }
+
+        $field = fn(string $base, string $locale) => $data["{$base}_{$locale}"] ?? null;
+
+        $buildContent = function (string $locale) use ($field) {
+            $rec = trim((string) ($field('ai_recommendation', $locale) ?? ''));
+            if ($rec === '') return null;
+
+            return [
+                'ai_recommendation'      => $rec,
+                'corrective_action_plan' => !empty($field('action_plan', $locale)) ? ['action' => $field('action_plan', $locale)] : null,
+                'control_insight'        => !empty($field('control_insight', $locale)) ? ['gap' => $field('control_insight', $locale)] : null,
+                'impact_interpretation'  => $field('impact_interpretation', $locale),
+            ];
+        };
+
+        $primaryLocale = $recEn !== '' ? 'en' : 'id';
+        $secondaryLocale = $primaryLocale === 'en' ? 'id' : 'en';
+
+        $primaryContent = $buildContent($primaryLocale);
+        $secondaryContent = $buildContent($secondaryLocale);
+
+        $updateData = array_merge($primaryContent, [
+            'risk_priority'       => $this->normalizeRiskPriority($data['prioritization_level'] ?? null),
+            'evidence_validation' => null,
+            'ai_locale'           => $primaryLocale,
+            'ai_translations'     => $secondaryContent ? [
+                $secondaryLocale => $secondaryContent + ['translated_at' => now()->toDateTimeString()],
+            ] : null,
+        ]);
+
+        Log::info("n8n webhook (bilingual) — updateData to be saved", ['result_id' => $resultId, 'primary_locale' => $primaryLocale]);
+
+        $result->update($updateData);
+        Cache::forget("result_{$resultId}_ai_status");
+
+        return true;
+    }
+
+    /**
+     * Normalize an AI-returned risk priority into the fixed English enum
+     * ("High"/"Medium"/"Low") this codebase relies on for filtering, exports,
+     * and badge coloring. The AI may respond in the assessment's active locale
+     * (e.g. "Tinggi"), which must never be stored verbatim — callers elsewhere
+     * match this column against literal English strings.
+     */
+    protected function normalizeRiskPriority(?string $raw): ?string
+    {
+        if ($raw === null) return null;
+
+        $normalized = strtolower(trim($raw));
+        $map = [
+            'high' => 'High', 'tinggi' => 'High',
+            'medium' => 'Medium', 'sedang' => 'Medium', 'menengah' => 'Medium',
+            'low' => 'Low', 'rendah' => 'Low',
+        ];
+
+        return $map[$normalized] ?? null;
+    }
+
+    public function triggerEvidenceExtraction(int $resultId, string $filePath): void
+    {
+        $result = AssessmentResult::with(['session', 'standard'])->findOrFail($resultId);
+
+        $user = auth()->user();
+        $isAdmin = $user && $user->isAdmin();
+        $isInvited = $result->session->invitedUsers()->where('user_id', auth()->id())->exists();
+        if (!$isAdmin && $result->session->user_id !== auth()->id() && !$isInvited) {
+            throw new \Exception('Unauthorized: You do not have permission to extract evidence for this assessment.');
+        }
+
+        if ($result->session->isLockedForUser($user)) {
+            throw new \Exception(__('This audit session is closed/locked (past deadline or completed). Only administrators can reopen or extend it.'));
+        }
+
+        $files = is_array($result->evidence_file) ? $result->evidence_file : (empty($result->evidence_file) ? [] : [$result->evidence_file]);
+        if (!in_array($filePath, $files)) {
+            throw new \Exception('Evidence file not found for this control.');
+        }
+
+        // Scoped per file (not just per result) so extracting one evidence file doesn't
+        // block extracting another file attached to the same control at the same time.
+        $lockKey = "evidence_{$resultId}_" . md5($filePath) . "_extraction_status";
+
+        if (Cache::get($lockKey) === 'processing') {
+            throw new \Exception('PROCESSING');
+        }
+
+        $webhookUrl = config('services.n8n.webhook_extraction_url');
+        if (!$webhookUrl) {
+            throw new \Exception('Evidence extraction is not configured.');
+        }
+
+        if (!Storage::disk('public')->exists($filePath)) {
+            throw new \Exception('Evidence file not found on disk.');
+        }
+
+        Cache::put($lockKey, 'processing', 600);
+
+        try {
+            $fileContents = Storage::disk('public')->get($filePath);
+
+            $requirementText = trim(
+                ($result->standard->description ?? '')
+                . ' ' . implode(' ', is_array($result->standard->questions) ? $result->standard->questions : [])
+            );
+
+            $response = Http::timeout(60)
+                ->attach('file', $fileContents, basename($filePath))
+                ->post($webhookUrl, [
+                    'result_id'           => $resultId,
+                    'file_path'           => $filePath,
+                    'locale'              => app()->getLocale(),
+                    'control_code'        => $result->standard->code,
+                    'control_title'       => $result->standard->title,
+                    'control_requirement' => $requirementText,
+                ]);
+
+            if ($response->failed()) {
+                Log::error("n8n evidence extraction webhook failed for Result ID: {$resultId}");
+                Cache::forget($lockKey);
+                throw new \Exception('Failed to reach the evidence extraction service.');
+            }
+        } catch (\Exception $e) {
+            Cache::forget($lockKey);
+            Log::error("n8n evidence extraction connection error: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function receiveEvidenceExtractionWebhook(array $data): bool
+    {
+        Log::info("Incoming evidence extraction webhook from n8n: ", $data);
+
+        if (isset($data[0]) && is_array($data[0])) {
+            $data = $data[0];
+        }
+
+        $resultId = $data['result_id'] ?? null;
+        $filePath = $data['file_path'] ?? null;
+
+        if (!$resultId || !$filePath) {
+            throw new \Exception('Missing result_id or file_path in payload.');
+        }
+
+        $result = AssessmentResult::find($resultId);
+        if (!$result) {
+            throw new \Exception('AssessmentResult not found');
+        }
+
+        $status = $data['status'] ?? 'failed';
+
+        // n8n now generates both language versions of the summary in a single AI
+        // call (content_summary + content_summary_id). Whichever came back non-empty
+        // becomes primary; the other is stored straight into the translations sidecar —
+        // no separate lazy-translate round trip needed for the common case.
+        $summaryEn = trim((string) ($data['content_summary'] ?? ''));
+        $summaryId = trim((string) ($data['content_summary_id'] ?? ''));
+        $isLanguageAgnostic = false;
+        if ($status === 'ok' && $summaryEn === '' && $summaryId === '') {
+            // Short text that skipped summarization, or an image description — this is
+            // raw/OCR'd document content, not an AI-composed summary in a specific
+            // language, so it has no translated counterpart and must never be gated
+            // behind a locale match (there's no translate workflow to produce one).
+            $summaryEn = trim((string) ($data['text'] ?? ''));
+            $isLanguageAgnostic = true;
+        }
+
+        // Relevance-to-control note, generated in the same bilingual AI call as the
+        // summary — reuses the same primary/secondary locale decision as the summary
+        // above so the two stay paired per language rather than being decided separately.
+        $relevanceEn = trim((string) ($data['content_relevance'] ?? ''));
+        $relevanceId = trim((string) ($data['content_relevance_id'] ?? ''));
+
+        $requestedLocale = $data['locale'] ?? null;
+        $fallbackLocale = in_array($requestedLocale, ['en', 'id'], true) ? $requestedLocale : config('app.locale');
+        $primaryLocale = $isLanguageAgnostic ? $fallbackLocale : ($summaryEn !== '' ? 'en' : ($summaryId !== '' ? 'id' : $fallbackLocale));
+        $primarySummary = $isLanguageAgnostic ? $summaryEn : ($primaryLocale === 'en' ? $summaryEn : $summaryId);
+        $secondaryLocale = $primaryLocale === 'en' ? 'id' : 'en';
+        $secondarySummary = $isLanguageAgnostic ? '' : ($primaryLocale === 'en' ? $summaryId : $summaryEn);
+        $primaryRelevance = $isLanguageAgnostic ? '' : ($primaryLocale === 'en' ? $relevanceEn : $relevanceId);
+        $secondaryRelevance = $isLanguageAgnostic ? '' : ($primaryLocale === 'en' ? $relevanceId : $relevanceEn);
+
+        $extractions = is_array($result->evidence_extractions) ? $result->evidence_extractions : [];
+        $extractions[$filePath] = [
+            'status'             => $status,
+            'summary'            => $status === 'ok' ? $primarySummary : null,
+            'relevance'          => $status === 'ok' && $primaryRelevance !== '' ? $primaryRelevance : null,
+            'error_reason'       => $status !== 'ok' ? ($data['error_reason'] ?? 'unknown_error') : null,
+            'extracted_at'       => now()->toDateTimeString(),
+            'locale'             => $primaryLocale,
+            'language_agnostic'  => $isLanguageAgnostic,
+            'translations'       => ($status === 'ok' && $secondarySummary !== '') ? [
+                $secondaryLocale => [
+                    'summary'       => $secondarySummary,
+                    'relevance'     => $secondaryRelevance !== '' ? $secondaryRelevance : null,
+                    'translated_at' => now()->toDateTimeString(),
+                ],
+            ] : null,
+        ];
+
+        $result->update(['evidence_extractions' => $extractions]);
+
+        Cache::forget("evidence_{$resultId}_" . md5($filePath) . "_extraction_status");
+
+        return true;
+    }
+
+    /**
+     * Resolve the extraction summary for a given file/locale, mirroring
+     * AssessmentResult::getAiContentForLocale()'s fallback behavior.
+     */
+    public function getExtractionForLocale(AssessmentResult $result, string $filePath, string $locale): ?array
+    {
+        $extractions = is_array($result->evidence_extractions) ? $result->evidence_extractions : [];
+        $entry = $extractions[$filePath] ?? null;
+        if (!$entry) return null;
+
+        // Raw/OCR'd text with no AI-composed summary has no translated counterpart —
+        // always show it as-is rather than gating it behind a locale match.
+        if (!empty($entry['language_agnostic'])) {
+            return $entry + ['available' => true];
+        }
+
+        $primaryLocale = $entry['locale'] ?? config('app.locale');
+        if ($locale === $primaryLocale || ($entry['status'] ?? null) !== 'ok') {
+            return $entry + ['available' => true];
+        }
+
+        $translations = is_array($entry['translations'] ?? null) ? $entry['translations'] : [];
+        if (isset($translations[$locale]['summary'])) {
+            return array_merge($entry, [
+                'summary'   => $translations[$locale]['summary'],
+                'relevance' => $translations[$locale]['relevance'] ?? null,
+                'available' => true,
+            ]);
+        }
+
+        return $entry + ['available' => false];
     }
 
     protected function calculateMaturityRating(array $data): int

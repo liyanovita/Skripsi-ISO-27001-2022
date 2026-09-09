@@ -163,7 +163,13 @@
             @endif
 
             {{-- AI Recommendations & Synthesis (All 4 Indicators) --}}
-            @if(!empty($result->ai_recommendation) || !empty($result->corrective_action_plan) || !empty($result->control_insight) || !empty($result->impact_interpretation))
+            @php
+                $aiRecText = $aiLocalized['ai_recommendation'] ?? null;
+                $aiPlanRaw = $aiLocalized['corrective_action_plan'] ?? null;
+                $aiInsightRaw = $aiLocalized['control_insight'] ?? null;
+                $aiImpactText = $aiLocalized['impact_interpretation'] ?? null;
+            @endphp
+            @if(!empty($aiRecText) || !empty($aiPlanRaw) || !empty($aiInsightRaw) || !empty($aiImpactText))
             <div class="bg-gradient-to-br from-indigo-50/80 via-slate-50 to-white p-6 rounded-3xl border border-indigo-100 shadow-sm space-y-4">
                 <div class="flex items-center gap-3 border-b border-indigo-100 pb-3">
                     <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm shadow-xs">
@@ -173,11 +179,16 @@
                         <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">{{ __('AI Audit Recommendations & Synthesis') }}</h3>
                         <p class="text-[8px] font-bold text-indigo-500 uppercase tracking-widest mt-0.5">{{ __('ISO 27001 Implementation Guidance') }}</p>
                     </div>
+                    @if(!($aiLocalized['available'] ?? true))
+                    <a href="{{ route('sessions.show', $result->session_id) }}?focus={{ $result->id }}" class="ml-auto shrink-0 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-amber-100 transition-colors" title="{{ __('This content has not been translated into the current language yet. Open the assessment card to translate it.') }}">
+                        <i class="fa-solid fa-language mr-1"></i>{{ __('Shown in original language') }}
+                    </a>
+                    @endif
                 </div>
 
                 <div class="space-y-3">
                     {{-- 1. Strategic Recommendation --}}
-                    @if(!empty($result->ai_recommendation))
+                    @if(!empty($aiRecText))
                     <div class="bg-white p-4 rounded-2xl border border-indigo-100 shadow-2xs">
                         <div class="flex items-center gap-2 mb-1.5">
                             <div class="w-5 h-5 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] shrink-0 font-bold">
@@ -185,12 +196,12 @@
                             </div>
                             <span class="text-[9px] font-black text-indigo-600 uppercase tracking-widest">{{ __('Strategic Recommendation') }}</span>
                         </div>
-                        <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{{ $result->ai_recommendation }}</p>
+                        <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{{ $aiRecText }}</p>
                     </div>
                     @endif
 
                     {{-- 2. Corrective Action Roadmap (CAPA) --}}
-                    @if(!empty($result->corrective_action_plan))
+                    @if(!empty($aiPlanRaw))
                     <div class="bg-white p-4 rounded-2xl border border-indigo-100 shadow-2xs">
                         <div class="flex items-center gap-2 mb-1.5">
                             <div class="w-5 h-5 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] shrink-0 font-bold">
@@ -198,12 +209,12 @@
                             </div>
                             <span class="text-[9px] font-black text-indigo-600 uppercase tracking-widest">{{ __('Corrective Action Roadmap (CAPA)') }}</span>
                         </div>
-                        <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{{ is_array($result->corrective_action_plan) ? implode("\n", array_map(fn($i) => is_array($i) ? implode(' ', $i) : (string)$i, $result->corrective_action_plan)) : $result->corrective_action_plan }}</p>
+                        <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{{ is_array($aiPlanRaw) ? implode("\n", array_map(fn($i) => is_array($i) ? implode(' ', $i) : (string)$i, $aiPlanRaw)) : $aiPlanRaw }}</p>
                     </div>
                     @endif
 
                     {{-- 3. Control Insight (GAP) --}}
-                    @if(!empty($result->control_insight))
+                    @if(!empty($aiInsightRaw))
                     <div class="bg-white p-4 rounded-2xl border border-indigo-100 shadow-2xs">
                         <div class="flex items-center gap-2 mb-1.5">
                             <div class="w-5 h-5 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] shrink-0 font-bold">
@@ -211,12 +222,12 @@
                             </div>
                             <span class="text-[9px] font-black text-indigo-600 uppercase tracking-widest">{{ __('Control Insight & GAP Analysis') }}</span>
                         </div>
-                        <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{{ is_array($result->control_insight) ? implode("\n", array_map(fn($i) => is_array($i) ? implode(' ', $i) : (string)$i, $result->control_insight)) : $result->control_insight }}</p>
+                        <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{{ is_array($aiInsightRaw) ? implode("\n", array_map(fn($i) => is_array($i) ? implode(' ', $i) : (string)$i, $aiInsightRaw)) : $aiInsightRaw }}</p>
                     </div>
                     @endif
 
                     {{-- 4. Impact & Risk Interpretation --}}
-                    @if(!empty($result->impact_interpretation))
+                    @if(!empty($aiImpactText))
                     <div class="bg-white p-4 rounded-2xl border border-indigo-100 shadow-2xs">
                         <div class="flex items-center gap-2 mb-1.5">
                             <div class="w-5 h-5 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] shrink-0 font-bold">
@@ -224,7 +235,7 @@
                             </div>
                             <span class="text-[9px] font-black text-indigo-600 uppercase tracking-widest">{{ __('Impact & Risk Interpretation') }}</span>
                         </div>
-                        <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{{ is_array($result->impact_interpretation) ? implode("\n", array_map(fn($i) => is_array($i) ? implode(' ', $i) : (string)$i, $result->impact_interpretation)) : $result->impact_interpretation }}</p>
+                        <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{{ $aiImpactText }}</p>
                     </div>
                     @endif
                 </div>

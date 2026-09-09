@@ -23,7 +23,7 @@ class UpdateResultRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'evidence_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx,xlsx|max:10240',
+            'evidence_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx,xlsx|max:10240',
             'maturity_rating' => 'nullable|integer|min:0|max:5',
             'notes' => 'nullable|string|max:5000',
             'answers' => 'nullable|array',
@@ -71,7 +71,7 @@ class UpdateResultRequest extends FormRequest
     {
         return [
             'evidence_file.file' => 'The uploaded item must be a valid file.',
-            'evidence_file.mimes' => 'Only PDF, JPG, PNG, DOCX, and XLSX files are allowed.',
+            'evidence_file.mimes' => 'Only PDF, JPG, PNG, DOC, DOCX, and XLSX files are allowed.',
             'evidence_file.max' => 'File size cannot exceed 10MB.',
             'maturity_rating.integer' => 'Maturity rating must be a number.',
             'maturity_rating.min' => 'Maturity rating must be at least 0.',

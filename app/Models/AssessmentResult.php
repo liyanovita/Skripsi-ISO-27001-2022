@@ -13,7 +13,7 @@ class AssessmentResult extends Model
         'corrective_action_plan', 'risk_priority', 'control_insight',
         'evidence_validation', 'impact_interpretation', 'is_applicable', 'soa_justification', 'implementation_status',
         'treatment_due_date', 'treatment_pic', 'treatment_status', 'treatment_progress', 'evidence_after_improvement',
-        'ai_data_hash',
+        'ai_data_hash', 'evidence_extractions', 'ai_locale', 'ai_translations',
     ];
 
     protected $casts = [
@@ -21,6 +21,8 @@ class AssessmentResult extends Model
         'corrective_action_plan' => 'array',
         'control_insight' => 'array',
         'evidence_file' => 'array',
+        'evidence_extractions' => 'array',
+        'ai_translations' => 'array',
         'evidence_after_improvement' => 'array',
         'is_applicable' => 'boolean',
         'treatment_due_date' => 'date',
@@ -78,6 +80,43 @@ class AssessmentResult extends Model
     public function session(): BelongsTo
     {
         return $this->belongsTo(AssessmentSession::class, 'session_id');
+    }
+
+    /**
+     * Resolve the per-clause AI content for a given locale.
+     * Falls back to the primary (originally generated) content while a
+     * translation is pending — `available` tells the caller whether the
+     * returned text natively matches the requested locale. `risk_priority`
+     * is intentionally excluded: it is a fixed English enum, never translated.
+     */
+    public function getAiContentForLocale(string $locale): array
+    {
+        $primaryLocale = $this->ai_locale ?: config('app.locale');
+
+        $primary = [
+            'ai_recommendation'      => $this->ai_recommendation,
+            'corrective_action_plan' => $this->corrective_action_plan,
+            'control_insight'        => $this->control_insight,
+            'impact_interpretation'  => $this->impact_interpretation,
+        ];
+
+        if ($locale === $primaryLocale) {
+            return $primary + ['available' => true];
+        }
+
+        $translations = is_array($this->ai_translations) ? $this->ai_translations : [];
+        if (isset($translations[$locale]) && is_array($translations[$locale])) {
+            $t = $translations[$locale];
+            return [
+                'ai_recommendation'      => $t['ai_recommendation'] ?? $primary['ai_recommendation'],
+                'corrective_action_plan' => $t['corrective_action_plan'] ?? $primary['corrective_action_plan'],
+                'control_insight'        => $t['control_insight'] ?? $primary['control_insight'],
+                'impact_interpretation'  => $t['impact_interpretation'] ?? $primary['impact_interpretation'],
+                'available'              => true,
+            ];
+        }
+
+        return $primary + ['available' => false];
     }
 
     /**

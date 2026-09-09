@@ -153,20 +153,106 @@ class ResultController extends Controller
         }
     }
 
+    /**
+     * Render the expandable detail block (notes, evidence, AI synthesis) for a single
+     * control row on the Assessment Result page. Fetched on demand instead of being
+     * rendered inline for every control up front, to keep the initial page payload light.
+     */
+    public function rowDetail(int $id)
+    {
+        $result = $this->resultService->getResultById($id);
+
+        return response(
+            view('pages.intelligence._result_detail_row', ['result' => $result])->render()
+        )->header('Content-Type', 'text/html');
+    }
+
+    /**
+     * Render the interactive body (rating form, notes, evidence, AI status) for a single
+     * control card on the session assessment page. Fetched on demand the first time a
+     * card is expanded, instead of being rendered inline for every control up front.
+     */
+    public function cardBody(int $id)
+    {
+        $result = $this->resultService->getResultById($id);
+
+        return response(
+            view('sessions._result_card_body', ['result' => $result])->render()
+        )->header('Content-Type', 'text/html');
+    }
+
     public function checkAiStatus(int $id): JsonResponse
     {
         try {
             $result = $this->resultService->getResultById($id);
 
+            $localized = $result->getAiContentForLocale(app()->getLocale());
+
             return ApiResponse::success([
-                'id'                    => $result->id,
-                'has_ai'                => !empty($result->ai_recommendation),
-                'ai_recommendation'     => $result->ai_recommendation,
-                'corrective_action_plan'=> $result->corrective_action_plan,
-                'control_insight'       => $result->control_insight,
-                'risk_priority'         => $result->risk_priority,
-                'evidence_validation'   => $result->evidence_validation,
-                'impact_interpretation' => $result->impact_interpretation
+                'id'                          => $result->id,
+                'has_ai'                      => !empty($result->ai_recommendation),
+                'ai_recommendation'           => $localized['ai_recommendation'],
+                'corrective_action_plan'      => $localized['corrective_action_plan'],
+                'control_insight'             => $localized['control_insight'],
+                'risk_priority'               => $result->risk_priority,
+                'evidence_validation'         => $result->evidence_validation,
+                'impact_interpretation'       => $localized['impact_interpretation'],
+                'available_in_current_locale' => $localized['available'],
+            ]);
+        } catch (\Exception $e) {
+            throw ApiException::notFound(__('Assessment result not found'));
+        }
+    }
+
+    public function extractEvidence(\Illuminate\Http\Request $request, int $id): JsonResponse
+    {
+        try {
+            $existing = AssessmentResult::with('session')->findOrFail($id);
+            if ($existing->session->status === 'completed' || $existing->session->status === 'closed') {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('This assessment session is completed and read-only.'),
+                ], 403);
+            }
+
+            $filePath = $request->input('file_path');
+            if (!$filePath) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('No evidence file specified.'),
+                ], 422);
+            }
+
+            $this->resultService->triggerEvidenceExtraction($id, $filePath);
+
+            return ApiResponse::success(null, __('Evidence extraction triggered successfully.'));
+        } catch (\Exception $e) {
+            if ($e->getMessage() === 'PROCESSING') {
+                return response()->json([
+                    'success'       => false,
+                    'is_processing' => true,
+                    'message'       => __('Evidence extraction is currently processing.'),
+                ], 429);
+            }
+            throw ApiException::internalError($e->getMessage());
+        }
+    }
+
+    public function checkExtractionStatus(int $id): JsonResponse
+    {
+        try {
+            $result = $this->resultService->getResultById($id);
+            $locale = app()->getLocale();
+
+            $extractions = is_array($result->evidence_extractions) ? $result->evidence_extractions : [];
+            $resolved = [];
+            foreach (array_keys($extractions) as $filePath) {
+                $resolved[$filePath] = $this->resultService->getExtractionForLocale($result, $filePath, $locale);
+            }
+
+            return ApiResponse::success([
+                'id'                   => $result->id,
+                'evidence_extractions' => $resolved,
             ]);
         } catch (\Exception $e) {
             throw ApiException::notFound(__('Assessment result not found'));
