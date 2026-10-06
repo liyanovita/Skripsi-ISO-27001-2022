@@ -181,14 +181,57 @@
                                :title="file.split('/').pop()"
                                x-text="file.split('/').pop()"></a>
                             <div class="flex items-center gap-2 shrink-0">
-                                <button type="button" @click="viewSummaryEvidence(file)" :disabled="!evidenceExtractions[file]"
-                                        class="text-[8px] font-black text-slate-500 uppercase hover:underline disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:no-underline">
-                                    <i class="fa-solid fa-file-lines text-[9px]"></i> {{ __('View Summary') }}
-                                </button>
                                 <template x-if="extractingFiles.includes(file)">
-                                    <span class="text-[8px] font-black text-blue-500 uppercase flex items-center gap-1">
+                                    <span class="text-[8px] font-black text-blue-600 uppercase flex items-center gap-1 bg-blue-100/60 px-2 py-0.5 rounded-md">
                                         <i class="fa-solid fa-spinner fa-spin text-[9px]"></i> {{ __('Extracting...') }}
                                     </span>
+                                </template>
+
+                                <template x-if="!extractingFiles.includes(file)">
+                                    <div class="flex items-center gap-1.5">
+                                        <!-- Case A: Not extracted yet -->
+                                        <template x-if="!evidenceExtractions[file]">
+                                            <button type="button" @click="extractEvidence(file)"
+                                                    class="text-[8px] font-black text-blue-600 hover:text-blue-700 uppercase flex items-center gap-1 hover:underline">
+                                                <i class="fa-solid fa-wand-magic-sparkles text-[8px]"></i> {{ __('Extract') }}
+                                            </button>
+                                        </template>
+
+                                        <!-- Case B: Extraction failed -->
+                                        <template x-if="evidenceExtractions[file] && evidenceExtractions[file].status === 'failed'">
+                                            <div class="flex items-center gap-1.5">
+                                                <button type="button" @click="viewSummaryEvidence(file)"
+                                                        class="text-[8px] font-black text-rose-500 hover:text-rose-600 uppercase flex items-center gap-1 hover:underline"
+                                                        title="{{ __('Document Could Not Be Read') }}">
+                                                    <i class="fa-solid fa-triangle-exclamation text-[9px]"></i> {{ __('Failed') }}
+                                                </button>
+                                                @if($session->status !== 'completed' && !$session->isLockedForUser(auth()->user()))
+                                                <button type="button" @click="reExtractEvidence(file)"
+                                                        class="text-[8px] font-black text-blue-600 hover:text-blue-700 uppercase flex items-center gap-1 hover:underline"
+                                                        title="{{ __('Retry Extraction') }}">
+                                                    <i class="fa-solid fa-rotate-right text-[8px]"></i> {{ __('Retry') }}
+                                                </button>
+                                                @endif
+                                            </div>
+                                        </template>
+
+                                        <!-- Case C: Extraction OK -->
+                                        <template x-if="evidenceExtractions[file] && evidenceExtractions[file].status === 'ok'">
+                                            <div class="flex items-center gap-1.5">
+                                                <button type="button" @click="viewSummaryEvidence(file)"
+                                                        class="text-[8px] font-black text-slate-600 hover:text-blue-600 uppercase hover:underline flex items-center gap-1">
+                                                    <i class="fa-solid fa-file-lines text-[9px] text-blue-500"></i> {{ __('View Summary') }}
+                                                </button>
+                                                @if($session->status !== 'completed' && !$session->isLockedForUser(auth()->user()))
+                                                <button type="button" @click="reExtractEvidence(file)"
+                                                        class="text-[8px] font-bold text-slate-400 hover:text-blue-600 p-0.5 rounded transition-colors"
+                                                        title="{{ __('Re-extract Evidence') }}">
+                                                    <i class="fa-solid fa-rotate text-[8px]"></i>
+                                                </button>
+                                                @endif
+                                            </div>
+                                        </template>
+                                    </div>
                                 </template>
                                 @if($session->status !== 'completed' && !$session->isLockedForUser(auth()->user()))
                                 <button type="button"

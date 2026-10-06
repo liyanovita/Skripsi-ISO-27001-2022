@@ -394,10 +394,13 @@
                 }
             },
 
-            async extractEvidence(filePath) {
+            async extractEvidence(filePath, force = false) {
                 if (sessionLocked) return;
                 if (this.extractingFiles.includes(filePath)) return;
                 this.extractingFiles.push(filePath);
+                if (force) {
+                    delete this.evidenceExtractions[filePath];
+                }
                 const self = this;
 
                 const stopTracking = () => {
@@ -414,11 +417,15 @@
                             let payload = statusData.data || statusData;
                             let extractions = payload.evidence_extractions || {};
 
-                            if (extractions[filePath]) {
+                            if (extractions[filePath] && extractions[filePath].status !== 'processing') {
                                 clearInterval(pollInterval);
                                 self.evidenceExtractions[filePath] = extractions[filePath];
                                 stopTracking();
-                                window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Evidence extraction completed!') }}', type: 'success' } }));
+                                if (extractions[filePath].status === 'ok') {
+                                    window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Evidence extraction completed!') }}', type: 'success' } }));
+                                } else {
+                                    window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Evidence extraction could not read the document.') }}', type: 'warning' } }));
+                                }
                             } else if (pollCount > 200) { // Timeout after ~6-7 minutes
                                 clearInterval(pollInterval);
                                 stopTracking();
@@ -442,7 +449,7 @@
                             'Content-Type': 'application/json',
                             'X-Requested-With': 'XMLHttpRequest'
                         },
-                        body: JSON.stringify({ file_path: filePath })
+                        body: JSON.stringify({ file_path: filePath, force: force })
                     });
                     const data = await res.json();
 
@@ -462,6 +469,33 @@
                     stopTracking();
                     window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Failed to trigger evidence extraction.') }}', type: 'error' } }));
                 }
+            },
+
+            reExtractEvidence(filePath) {
+                if (sessionLocked) return;
+                const fileName = filePath.split('/').pop();
+                Swal.fire({
+                    title: '{{ addslashes(__('Re-extract this evidence document?')) }}',
+                    text: '{{ addslashes(__('This will regenerate the AI summary with the latest analysis. Continue?')) }}',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#2563eb',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: '{{ addslashes(__('Yes, Re-extract!')) }}',
+                    cancelButtonText: '{{ addslashes(__('Cancel')) }}',
+                    width: '24rem',
+                    customClass: {
+                        popup: 'rounded-2xl',
+                        title: 'text-sm font-bold text-slate-800',
+                        htmlContainer: 'text-xs text-slate-500',
+                        confirmButton: 'text-xs px-4 py-2 rounded-lg font-semibold',
+                        cancelButton: 'text-xs px-4 py-2 rounded-lg font-semibold'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.extractEvidence(filePath, true);
+                    }
+                });
             },
 
             escapeHtml(str) {
@@ -497,7 +531,12 @@
                 }
 
                 return lines.map(line => {
-                    let escaped = this.escapeHtml(line);
+                    let text = line.replace(/^[\s•]*([-*]\s+|\d+[\.\)]\s+|•\s*)/, '').trim();
+                    // Strip any leading bold key or category label prefix (e.g., "**Key:** Content" -> "Content")
+                    text = text.replace(/^\*\*[^*]+:\*\*\s*/, '');
+                    text = text.replace(/^[A-Za-z0-9\s&/()_-]{3,35}:\s+(?=[A-Z0-9])/, '');
+
+                    let escaped = this.escapeHtml(text);
                     escaped = escaped.replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-slate-800">$1</strong>');
                     return `
                         <li class="flex items-start gap-2.5 text-left group/item py-1 px-2.5 rounded-lg hover:bg-slate-100/70 transition-colors">
@@ -531,9 +570,29 @@
                     const summaryHtml = this.formatSummaryPoints(rawSummary);
                     let relevanceText = extraction.relevance ? this.escapeHtml(extraction.relevance) : '';
                     if (relevanceText) {
-                        relevanceText = relevanceText.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-indigo-950">$1</strong>');
+                        relevanceText = relevanceText.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-slate-900">$1</strong>');
                     }
                     const extractedAt = extraction.extracted_at ? this.escapeHtml(extraction.extracted_at) : '';
+
+                    // Relevance status: explicit relevance_status ('RELEVANT' vs 'NOT_RELEVANT'),
+                    // falling back to is_relevant flag, or comprehensive text pattern matching
+                    const negativePattern = /\b(tidak (tampak |secara langsung |memiliki )?(relevan|berhubungan|berkaitan|mencakup|memenuhi|sesuai|kaitan)|bukan (merupakan )?bukti|kurang relevan|not (directly |clearly )?relevant|does not (appear |seem )?(to be )?relat(e|ed)|is not related|unrelated|irrelevant|not related|has no relevance|does not satisfy|does not demonstrate|does not align)\b/i;
+                    const isRelevant = (extraction.relevance_status !== undefined && extraction.relevance_status !== null && extraction.relevance_status !== '')
+                        ? extraction.relevance_status === 'RELEVANT'
+                        : (extraction.is_relevant !== undefined && extraction.is_relevant !== null
+                            ? Boolean(extraction.is_relevant)
+                            : !negativePattern.test(relevanceText));
+
+                    const relevanceBoxClass = isRelevant
+                        ? 'border-l-4 border-l-emerald-500 bg-emerald-50/40 border border-emerald-200/80'
+                        : 'border-l-4 border-l-amber-500 bg-amber-50/40 border border-amber-200/80';
+                    const relevanceHeaderColor = isRelevant ? 'text-emerald-800' : 'text-amber-800';
+                    const relevanceHeaderIcon = isRelevant ? 'fa-solid fa-circle-check text-emerald-600' : 'fa-solid fa-triangle-exclamation text-amber-600';
+                    const relevanceBadgeClass = isRelevant
+                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                        : 'bg-amber-100 text-amber-800 border-amber-300';
+                    const relevanceBadgeIcon = isRelevant ? 'fa-solid fa-check text-[8px]' : 'fa-solid fa-exclamation text-[8px]';
+                    const relevanceBadgeLabel = isRelevant ? '{{ addslashes(__('Relevant')) }}' : '{{ addslashes(__('Not Relevant')) }}';
 
                     Swal.fire({
                         title: '{{ addslashes(__('Evidence Summary')) }}',
@@ -556,11 +615,11 @@
                                 </div>` : ''}
                             </div>
                             <div class='flex items-center justify-between mb-1.5 px-0.5 text-left'>
-                                <span class='text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5'>
-                                    <i class='fa-solid fa-list-check text-blue-500'></i>{{ addslashes(__('Key Extraction Points')) }}
+                                <span class='text-[10px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5'>
+                                    <i class='fa-solid fa-circle-info text-blue-500'></i>{{ addslashes(__('Document Summary')) }}
                                 </span>
                                 <span class='text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full'>
-                                    {{ addslashes(__('Structured Summary')) }}
+                                    {{ addslashes(__('AI Summary')) }}
                                 </span>
                             </div>
                             <div class='bg-slate-50/75 border border-slate-200/80 rounded-xl p-2 sm:p-2.5 text-left max-h-[58vh] overflow-y-auto custom-scrollbar shadow-inner'>
@@ -569,9 +628,16 @@
                                 </ul>
                             </div>
                             ${relevanceText ? `
-                            <div class='mt-2.5 bg-indigo-50/60 border border-indigo-100/90 rounded-xl px-3.5 py-2.5 text-left'>
-                                <p class='text-[9px] font-black text-indigo-500 uppercase tracking-widest leading-none mb-1 flex items-center gap-1.5'><i class='fa-solid fa-link text-indigo-400'></i>{{ addslashes(__('Relevance to Control')) }}</p>
-                                <p class='text-[12.5px] text-indigo-950/85 font-medium leading-relaxed whitespace-pre-line'>${relevanceText}</p>
+                            <div class='mt-2.5 rounded-xl px-3.5 py-2.5 text-left shadow-2xs ${relevanceBoxClass}'>
+                                <div class='flex items-center justify-between gap-2 mb-1.5'>
+                                    <p class='text-[9px] font-black uppercase tracking-widest leading-none flex items-center gap-1.5 ${relevanceHeaderColor}'>
+                                        <i class='${relevanceHeaderIcon}'></i>{{ addslashes(__('Relevance to Control')) }}
+                                    </p>
+                                    <span class='text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md border flex items-center gap-1 shadow-2xs ${relevanceBadgeClass}'>
+                                        <i class='${relevanceBadgeIcon}'></i>${relevanceBadgeLabel}
+                                    </span>
+                                </div>
+                                <p class='text-[12px] text-slate-800 font-medium leading-relaxed whitespace-pre-line'>${relevanceText}</p>
                             </div>
                             ` : ''}
                         `,
@@ -604,14 +670,22 @@
                                 <p class='text-[13px] text-rose-700 font-medium leading-relaxed'>${errorText}</p>
                             </div>
                         `,
-                        confirmButtonText: '{{ addslashes(__('Close')) }}',
-                        confirmButtonColor: '#ef4444',
+                        showCancelButton: !sessionLocked,
+                        confirmButtonText: sessionLocked ? '{{ addslashes(__('Close')) }}' : '<i class="fa-solid fa-rotate-right mr-1"></i> {{ addslashes(__('Retry Extraction')) }}',
+                        confirmButtonColor: '#2563eb',
+                        cancelButtonText: '{{ addslashes(__('Close')) }}',
+                        cancelButtonColor: '#64748b',
                         width: '30rem',
                         customClass: {
                             popup: 'rounded-2xl',
                             title: 'text-base font-black text-slate-900',
                             htmlContainer: 'px-1',
-                            confirmButton: 'text-[10px] font-black uppercase tracking-widest px-5 py-2.5 rounded-lg'
+                            confirmButton: 'text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-lg',
+                            cancelButton: 'text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-lg'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed && !sessionLocked) {
+                            this.extractEvidence(filePath, true);
                         }
                     });
                 }

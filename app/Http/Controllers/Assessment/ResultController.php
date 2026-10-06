@@ -223,7 +223,8 @@ class ResultController extends Controller
                 ], 422);
             }
 
-            $this->resultService->triggerEvidenceExtraction($id, $filePath);
+            $force = filter_var($request->input('force', false), FILTER_VALIDATE_BOOLEAN);
+            $this->resultService->triggerEvidenceExtraction($id, $filePath, $force);
 
             return ApiResponse::success(null, __('Evidence extraction triggered successfully.'));
         } catch (\Exception $e) {

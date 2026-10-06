@@ -402,7 +402,7 @@ class ResultService
         return $map[$normalized] ?? null;
     }
 
-    public function triggerEvidenceExtraction(int $resultId, string $filePath): void
+    public function triggerEvidenceExtraction(int $resultId, string $filePath, bool $force = false): void
     {
         $result = AssessmentResult::with(['session', 'standard'])->findOrFail($resultId);
 
@@ -426,7 +426,9 @@ class ResultService
         // block extracting another file attached to the same control at the same time.
         $lockKey = "evidence_{$resultId}_" . md5($filePath) . "_extraction_status";
 
-        if (Cache::get($lockKey) === 'processing') {
+        if ($force) {
+            Cache::forget($lockKey);
+        } elseif (Cache::get($lockKey) === 'processing') {
             throw new \Exception('PROCESSING');
         }
 
@@ -440,6 +442,13 @@ class ResultService
         }
 
         Cache::put($lockKey, 'processing', 600);
+
+        // Mark existing extraction status as processing so polling waits for new extraction
+        $extractions = is_array($result->evidence_extractions) ? $result->evidence_extractions : [];
+        if (isset($extractions[$filePath])) {
+            $extractions[$filePath]['status'] = 'processing';
+            $result->update(['evidence_extractions' => $extractions]);
+        }
 
         try {
             $fileContents = Storage::disk('public')->get($filePath);
@@ -463,10 +472,18 @@ class ResultService
             if ($response->failed()) {
                 Log::error("n8n evidence extraction webhook failed for Result ID: {$resultId}");
                 Cache::forget($lockKey);
+                if (isset($extractions[$filePath])) {
+                    $extractions[$filePath]['status'] = 'failed';
+                    $result->update(['evidence_extractions' => $extractions]);
+                }
                 throw new \Exception('Failed to reach the evidence extraction service.');
             }
         } catch (\Exception $e) {
             Cache::forget($lockKey);
+            if (isset($extractions[$filePath])) {
+                $extractions[$filePath]['status'] = 'failed';
+                $result->update(['evidence_extractions' => $extractions]);
+            }
             Log::error("n8n evidence extraction connection error: " . $e->getMessage());
             throw $e;
         }
@@ -515,6 +532,13 @@ class ResultService
         // above so the two stay paired per language rather than being decided separately.
         $relevanceEn = trim((string) ($data['content_relevance'] ?? ''));
         $relevanceId = trim((string) ($data['content_relevance_id'] ?? ''));
+        $relevanceStatus = strtoupper(trim((string) ($data['relevance_status'] ?? $data['content_relevance_status'] ?? '')));
+
+        if ($relevanceStatus === '' && ($relevanceEn !== '' || $relevanceId !== '')) {
+            $combined = strtolower($relevanceId . ' ' . $relevanceEn);
+            $negPattern = '/\b(tidak (tampak |secara langsung |memiliki )?(relevan|berhubungan|berkaitan|mencakup|memenuhi|sesuai|kaitan)|bukan (merupakan )?bukti|kurang relevan|not (directly |clearly )?relevant|does not (appear |seem )?(to be )?relat(e|ed)|is not related|unrelated|irrelevant|not related|has no relevance|does not satisfy|does not demonstrate|does not align)\b/i';
+            $relevanceStatus = preg_match($negPattern, $combined) ? 'NOT_RELEVANT' : 'RELEVANT';
+        }
 
         $requestedLocale = $data['locale'] ?? null;
         $fallbackLocale = in_array($requestedLocale, ['en', 'id'], true) ? $requestedLocale : config('app.locale');
@@ -530,15 +554,17 @@ class ResultService
             'status'             => $status,
             'summary'            => $status === 'ok' ? $primarySummary : null,
             'relevance'          => $status === 'ok' && $primaryRelevance !== '' ? $primaryRelevance : null,
+            'relevance_status'   => $status === 'ok' && $relevanceStatus !== '' ? $relevanceStatus : null,
             'error_reason'       => $status !== 'ok' ? ($data['error_reason'] ?? 'unknown_error') : null,
             'extracted_at'       => now()->toDateTimeString(),
             'locale'             => $primaryLocale,
             'language_agnostic'  => $isLanguageAgnostic,
             'translations'       => ($status === 'ok' && $secondarySummary !== '') ? [
                 $secondaryLocale => [
-                    'summary'       => $secondarySummary,
-                    'relevance'     => $secondaryRelevance !== '' ? $secondaryRelevance : null,
-                    'translated_at' => now()->toDateTimeString(),
+                    'summary'          => $secondarySummary,
+                    'relevance'        => $secondaryRelevance !== '' ? $secondaryRelevance : null,
+                    'relevance_status' => $relevanceStatus !== '' ? $relevanceStatus : null,
+                    'translated_at'    => now()->toDateTimeString(),
                 ],
             ] : null,
         ];
@@ -575,7 +601,7 @@ class ResultService
         if (isset($translations[$locale]['summary'])) {
             return array_merge($entry, [
                 'summary'   => $translations[$locale]['summary'],
-                'relevance' => $translations[$locale]['relevance'] ?? null,
+                'relevance' => $translations[$locale]['relevance'] ?? $entry['relevance'] ?? null,
                 'available' => true,
             ]);
         }

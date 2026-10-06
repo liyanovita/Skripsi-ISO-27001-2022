@@ -22,4 +22,11 @@ node_modules
 _ide_helper.php
 Homestead.json
 Homestead.yaml
-Thumbs.db
+
+# Testing, Excel, and Scratch Assets (Excluded from Git)
+/md/
+/dokumen testing/
+/sample_evidence_testing/
+/scratch/
+*.xlsx
+~$*.xlsx
