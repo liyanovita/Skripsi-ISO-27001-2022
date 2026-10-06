@@ -950,9 +950,6 @@
             </div>
         </div>
     </div>
-            </div>
-        </div>
-    </div>
 
     {{-- Evidence & Notes Detail Modal --}}
     <div x-show="showEvidenceModal"
@@ -1303,7 +1300,7 @@
                                 <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
                             </div>
                             <span class="text-xs font-bold text-slate-700 group-hover:text-blue-600 transition-colors">{{ __('Choose remediation evidence file') }}</span>
-                            <span class="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('PDF, PNG, JPG, DOCX, XLSX, ZIP (Max: 10MB)') }}</span>
+                            <span class="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('PDF, PNG, JPG, DOC, DOCX, XLSX, ZIP (Max: 10MB)') }}</span>
                         </label>
                     </div>
                 </div>

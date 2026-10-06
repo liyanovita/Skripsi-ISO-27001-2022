@@ -32,7 +32,7 @@ class TaskAssignedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '[' . config('app.name', 'AuditGuard') . '] ' . __('New Compliance Task Assigned') . ': ' . ($this->result->standard->code ?? ''),
+            subject: '[' . config('app.name', 'Audira') . '] ' . __('New Compliance Task Assigned') . ': ' . ($this->result->standard->code ?? ''),
         );
     }
 

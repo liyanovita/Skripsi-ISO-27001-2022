@@ -62,8 +62,9 @@ class WorkspaceController extends Controller
         $id = $resultId instanceof \App\Models\AssessmentResult ? $resultId->id : (int) $resultId;
         $result = \App\Models\AssessmentResult::with(['standard', 'session'])->findOrFail($id);
         $users = \App\Models\User::orderBy('name')->get(['id', 'name', 'email']);
+        $aiLocalized = $result->getAiContentForLocale(app()->getLocale());
 
-        return view('pages.workspace.remediate', compact('result', 'users'));
+        return view('pages.workspace.remediate', compact('result', 'users', 'aiLocalized'));
     }
 
     public function updateSingle(UpdateWorkspaceEntryRequest $request, $resultId)

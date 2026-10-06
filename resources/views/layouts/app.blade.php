@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'AuditGuard') | ISO 27001:2022 Compliance</title>
+    <title>@yield('title', 'Audira') | ISO 27001:2022 Compliance</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -209,11 +209,12 @@
         </div>
 
         {{-- Mobile Toggle Button --}}
-        <button 
+        <button
+            x-show="!sidebarOpen"
             @click="toggleSidebar()"
             class="lg:hidden fixed top-4 left-4 z-[60] w-10 h-10 bg-white rounded-xl shadow-2xl flex items-center justify-center text-slate-600 border border-slate-100 transition-all active:scale-90"
         >
-            <i class="fa-solid transition-transform duration-300" :class="sidebarOpen ? 'fa-xmark scale-110' : 'fa-bars-staggered'"></i>
+            <i class="fa-solid fa-bars-staggered"></i>
         </button>
 
         {{-- Global Toast Container --}}
@@ -252,20 +253,23 @@
             class="bg-gradient-to-b from-blue-900 to-blue-950 flex flex-col transition-all duration-500 z-50 fixed lg:sticky top-0 left-0 h-screen shadow-2xl shrink-0 overflow-hidden"
             :class="{
                 'w-60 translate-x-0': sidebarOpen,
-                'w-24 translate-x-0': !sidebarOpen && window.innerWidth >= 1024,
+                'w-28 translate-x-0': !sidebarOpen && window.innerWidth >= 1024,
                 '-translate-x-full': !sidebarOpen && window.innerWidth < 1024
             }">
-            
-            <div class="h-20 flex items-center px-4 gap-3 shrink-0 border-b border-blue-800/50">
-                <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-10 h-10 rounded-xl shrink-0 shadow-lg object-contain bg-white p-0.5">
+
+            <div class="h-20 flex flex-row items-center shrink-0 border-b border-blue-800/50 transition-all duration-300"
+                 :class="sidebarOpen ? 'px-4 gap-3 justify-start' : 'px-2 gap-2 justify-center'">
+                <img src="{{ asset('images/logo-audira.png') }}" alt="Audira"
+                     class="max-h-10 rounded-lg shadow-lg object-contain bg-white p-2 shrink-0 transition-all duration-100"
+                     :class="sidebarOpen ? 'h-10 w-auto' : 'w-12 h-auto'">
                 <div x-show="sidebarOpen" x-transition.opacity.duration.500ms class="overflow-hidden flex-1">
-                    <p class="font-black text-base leading-none tracking-tight">
-                        <span style="color: #f8fafc;">Audit</span><span style="color: #38BDF8;">Guard</span>
-                    </p>
                     <p class="text-[8px] text-blue-300 font-bold mt-1 uppercase tracking-widest whitespace-nowrap">{{ __('ISO 27001:2022') }}</p>
                 </div>
-                <button @click="toggleSidebar()" class="hidden lg:flex w-8 h-8 rounded-lg items-center justify-center text-blue-300 hover:bg-white/10 hover:text-white transition-all outline-none">
+                <button @click="toggleSidebar()" class="hidden lg:flex w-8 h-8 rounded-lg items-center justify-center text-blue-300 hover:bg-white/10 hover:text-white transition-all outline-none shrink-0">
                     <i class="fa-solid" :class="sidebarOpen ? 'fa-angle-left' : 'fa-angle-right'"></i>
+                </button>
+                <button @click="toggleSidebar()" class="lg:hidden flex w-8 h-8 rounded-lg items-center justify-center text-blue-300 hover:bg-white/10 hover:text-white transition-all outline-none shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
@@ -407,7 +411,7 @@
 
         </aside>
 
-        <main class="flex-1 flex flex-col min-w-0 bg-[#F8FAFC] overflow-hidden transition-all duration-300">
+        <main class="flex-1 flex flex-col min-w-0 bg-[#F8FAFC] overflow-hidden transition-all duration-100">
             
             <header class="h-16 border-b border-slate-200 flex items-center justify-between px-6 z-40 bg-white shrink-0">
                 {{-- Breadcrumb --}}
@@ -426,7 +430,7 @@
                             elseif (request()->routeIs('reports.strategic')) $crumbs = [['label' => 'Intelligence & Reports', 'url' => null], ['label' => 'Assessment Result', 'url' => null]];
                             elseif (request()->routeIs('knowledge-base.*'))  $crumbs = [['label' => 'Resources & Governance', 'url' => null], ['label' => 'Knowledge Base', 'url' => null]];
                             elseif (request()->routeIs('audit-trail.*'))     $crumbs = [['label' => 'Resources & Governance', 'url' => null], ['label' => 'Audit Trail', 'url' => null]];
-                            elseif (request()->routeIs('notifications.*'))  $crumbs = [['label' => 'Resources & Governance', 'url' => null], ['label' => 'Notification Center', 'url' => null]];
+                            elseif (request()->routeIs('notifications.*'))   $crumbs = [['label' => 'Resources & Governance', 'url' => null], ['label' => 'Notification Center', 'url' => null]];
                             elseif (request()->routeIs('profile.*'))         $crumbs = [['label' => 'Account', 'url' => null], ['label' => 'Profile', 'url' => null]];
                             else $crumbs = [['label' => 'Page', 'url' => null]];
                         @endphp
@@ -860,7 +864,10 @@
                 </div>
             </div>
         </main>
-    </div>
+    {{-- NOTE: the root x-data div opened above (~line 87) is intentionally left
+         open here — it's closed at the very end, right before </body>, so that
+         the modals below (Welcome Guide, Help Panel, etc.) stay inside its
+         Alpine scope instead of rendering as detached siblings of <body>. --}}
 
     {{-- ============================================================ --}}
     {{-- LAYER 1: WELCOME GUIDE MODAL                                 --}}
@@ -892,7 +899,7 @@
                         <div class="flex items-center gap-2 mb-2">
                             <span class="px-2 py-0.5 bg-white/20 text-white text-[9px] font-black uppercase tracking-widest rounded-lg border border-white/20">{{ __('Platform Guide') }}</span>
                         </div>
-                        <h2 class="text-xl font-black text-white tracking-tight">{{ __('Welcome to AuditGuard!') }}</h2>
+                        <h2 class="text-xl font-black text-white tracking-tight">{{ __('Welcome to Audira!') }}</h2>
                         <p class="text-blue-100 text-xs font-medium mt-1">{{ __('Here is a quick overview of the key modules to help you get started.') }}</p>
                     </div>
                     <button @click="dismissGuide()" class="w-8 h-8 bg-white/10 hover:bg-white/20 text-white rounded-xl flex items-center justify-center shrink-0 transition-all border border-white/20">
@@ -1537,5 +1544,6 @@
     </script>
 
     @stack('scripts')
+    </div>
 </body>
 </html>

@@ -113,13 +113,13 @@
                 <tr>
                     <td style="vertical-align: middle; padding-right: 10px;">
                         @if(isset($message) && file_exists(public_path('images/logo.jpg')))
-                            <img src="{{ $message->embed(public_path('images/logo.jpg')) }}" alt="AuditGuard Logo" style="height: 42px; width: 42px; object-fit: contain; border-radius: 10px; background-color: #ffffff; padding: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); vertical-align: middle;">
+                            <img src="{{ $message->embed(public_path('images/logo.jpg')) }}" alt="Audira Logo" style="height: 42px; width: 42px; object-fit: contain; border-radius: 10px; background-color: #ffffff; padding: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); vertical-align: middle;">
                         @else
-                            <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard Logo" style="height: 42px; width: 42px; object-fit: contain; border-radius: 10px; background-color: #ffffff; padding: 2px; vertical-align: middle;">
+                            <img src="{{ asset('images/logo.jpg') }}" alt="Audira Logo" style="height: 42px; width: 42px; object-fit: contain; border-radius: 10px; background-color: #ffffff; padding: 2px; vertical-align: middle;">
                         @endif
                     </td>
                     <td style="vertical-align: middle;">
-                        <h1 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0; letter-spacing: 0.5px;">AuditGuard</h1>
+                        <h1 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0; letter-spacing: 0.5px;">Audira</h1>
                     </td>
                 </tr>
             </table>
@@ -169,8 +169,8 @@
             </div>
         </div>
         <div class="footer">
-            <p>{{ __('This email was sent automatically by the AuditGuard platform.') }}</p>
-            <p>&copy; {{ date('Y') }} AuditGuard. All rights reserved.</p>
+            <p>{{ __('This email was sent automatically by the Audira platform.') }}</p>
+            <p>&copy; {{ date('Y') }} Audira. All rights reserved.</p>
         </div>
     </div>
 </body>

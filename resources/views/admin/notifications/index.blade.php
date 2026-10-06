@@ -69,7 +69,7 @@
                     {{ __('Read') }}
                 </a>
             </div>
-            <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">AuditGuard Enterprise</span>
+            <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Audira Enterprise</span>
         </div>
 
         {{-- Notifications List (Compact Rows) --}}

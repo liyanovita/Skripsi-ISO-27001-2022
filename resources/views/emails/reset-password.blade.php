@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password - AuditGuard</title>
+    <title>Reset Password - Audira</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -106,13 +106,13 @@
                 <tr>
                     <td style="vertical-align: middle; padding-right: 10px;">
                         @if(isset($message) && file_exists(public_path('images/logo.jpg')))
-                            <img src="{{ $message->embed(public_path('images/logo.jpg')) }}" alt="AuditGuard Logo" style="height: 42px; width: 42px; object-fit: contain; border-radius: 10px; background-color: #ffffff; padding: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); vertical-align: middle;">
+                            <img src="{{ $message->embed(public_path('images/logo.jpg')) }}" alt="Audira Logo" style="height: 42px; width: 42px; object-fit: contain; border-radius: 10px; background-color: #ffffff; padding: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); vertical-align: middle;">
                         @else
-                            <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard Logo" style="height: 42px; width: 42px; object-fit: contain; border-radius: 10px; background-color: #ffffff; padding: 2px; vertical-align: middle;">
+                            <img src="{{ asset('images/logo.jpg') }}" alt="Audira Logo" style="height: 42px; width: 42px; object-fit: contain; border-radius: 10px; background-color: #ffffff; padding: 2px; vertical-align: middle;">
                         @endif
                     </td>
                     <td style="vertical-align: middle;">
-                        <h1 style="color: #ffffff; font-size: 26px; font-weight: 800; margin: 0; letter-spacing: 0.5px;">AuditGuard</h1>
+                        <h1 style="color: #ffffff; font-size: 26px; font-weight: 800; margin: 0; letter-spacing: 0.5px;">Audira</h1>
                     </td>
                 </tr>
             </table>
@@ -120,7 +120,7 @@
         </div>
         <div class="content">
             <div class="greeting">Hello, {{ $userName }}!</div>
-            <p>You are receiving this email because we received a password reset request for your account on the <strong>AuditGuard ISO/IEC 27001:2022</strong> platform.</p>
+            <p>You are receiving this email because we received a password reset request for your account on the <strong>Audira ISO/IEC 27001:2022</strong> platform.</p>
             <p>Please click the button below to proceed with setting up a new password:</p>
             
             <div class="btn-wrapper">
@@ -144,8 +144,8 @@
             </div>
         </div>
         <div class="footer">
-            <p>This email was sent automatically by the AuditGuard system.</p>
-            <p>&copy; {{ date('Y') }} AuditGuard Enterprise. All rights reserved.</p>
+            <p>This email was sent automatically by the Audira system.</p>
+            <p>&copy; {{ date('Y') }} Audira Enterprise. All rights reserved.</p>
         </div>
     </div>
 </body>

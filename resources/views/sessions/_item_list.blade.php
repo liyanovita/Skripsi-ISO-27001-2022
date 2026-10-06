@@ -75,13 +75,53 @@
 @endif
 
 <div class="space-y-4 p-6">
+    @php
+        $sessionLocked = $session->status === 'completed' || $session->isLockedForUser(auth()->user());
+        $extractionService = app(\App\Services\Assessment\ResultService::class);
+        $locale = app()->getLocale();
+    @endphp
     @forelse($items->values() as $index => $result)
     @php
         $isClause = in_array($result->standard->type, ['clause', 'clausa']);
         $hasQuestions = is_array($result->standard->questions) && count($result->standard->questions) > 0;
-        
+
         $nextResult = $items->values()->get($index + 1);
         $nextId = $nextResult ? $nextResult->id : null;
+
+        $aiLocalized = $result->getAiContentForLocale($locale);
+
+        $resolvedExtractions = [];
+        if (is_array($result->evidence_extractions)) {
+            foreach (array_keys($result->evidence_extractions) as $filePath) {
+                $resolvedExtractions[$filePath] = $extractionService->getExtractionForLocale($result, $filePath, $locale);
+            }
+        }
+
+        $initialCardData = [
+            'open'                => ($wizard ?? false) || session('last_updated_id') == $result->id || request('focus') == $result->id,
+            'isAssessed'          => $result->status == 'completed',
+            'isCompleted'         => $result->status == 'completed',
+            'rating'              => $result->maturity_rating,
+            'status'              => $result->status,
+            'complianceStatus'    => $result->compliance_status,
+            'risk'                => $result->risk_level,
+            'code'                => $result->standard->code,
+            'title'               => __($result->standard->title),
+            'isApplicable'        => $isClause ? true : (bool) $result->is_applicable,
+            'soaJustification'    => $result->soa_justification ?? '',
+            'aiRec'               => $aiLocalized['ai_recommendation'] ?? '',
+            'aiPlan'              => is_array($aiLocalized['corrective_action_plan'])
+                                        ? ($aiLocalized['corrective_action_plan']['action'] ?? implode("\n", $aiLocalized['corrective_action_plan']))
+                                        : ($aiLocalized['corrective_action_plan'] ?? ''),
+            'aiInsight'           => is_array($aiLocalized['control_insight'])
+                                        ? ($aiLocalized['control_insight']['gap'] ?? implode("\n", $aiLocalized['control_insight']))
+                                        : ($aiLocalized['control_insight'] ?? ''),
+            'aiPriority'          => $result->risk_priority ?? '',
+            'aiImpact'            => $aiLocalized['impact_interpretation'] ?? '',
+            'nextId'              => $nextId,
+            'evidenceFiles'       => is_array($result->evidence_file) ? $result->evidence_file : (empty($result->evidence_file) ? [] : [$result->evidence_file]),
+            'evidenceExtractions' => $resolvedExtractions,
+        ];
     @endphp
 
     @if(!$hasQuestions)
@@ -97,254 +137,10 @@
     @else
         {{-- Interactive Card --}}
         <div id="result-{{ $result->id }}" 
-             x-data="{ 
-                open: {{ ($wizard ?? false) ? 'true' : ((session('last_updated_id') == $result->id || request('focus') == $result->id) ? 'true' : 'false') }},
-                isAssessed: {{ $result->status == 'completed' ? 'true' : 'false' }},
-                isCompleted: {{ $result->status == 'completed' ? 'true' : 'false' }},
-                rating: {{ $result->maturity_rating === null ? 'null' : $result->maturity_rating }},
-                status: '{{ $result->status }}',
-                 complianceStatus: '{{ $result->compliance_status }}',
-                risk: '{{ $result->risk_level }}',
-                loading: false,
-                aiLoading: false,
-                code: @js($result->standard->code),
-                title: @js(__($result->standard->title)),
-                isApplicable: {{ $isClause ? 'true' : ($result->is_applicable ? 'true' : 'false') }},
-                soaJustification: @js($result->soa_justification ?? ''),
-                aiRec: @js($result->ai_recommendation ?? ''),
-                aiPlan: @js(is_array($result->corrective_action_plan) ? ($result->corrective_action_plan['action'] ?? (implode("\n", $result->corrective_action_plan))) : ($result->corrective_action_plan ?? '')),
-                aiInsight: @js(is_array($result->control_insight) ? ($result->control_insight['gap'] ?? (implode("\n", $result->control_insight))) : ($result->control_insight ?? '')),
-                aiPriority: @js($result->risk_priority ?? ''),
-                aiValidation: '',
-                aiImpact: @js($result->impact_interpretation ?? ''),
-                nextId: {{ $nextId ?? 'null' }},
-                evidenceFiles: @js(is_array($result->evidence_file) ? $result->evidence_file : (empty($result->evidence_file) ? [] : [$result->evidence_file])),
-                
-                get ratingInfo() {
-                    if (!this.isApplicable) {
-                        return { title: '{{ __('Not Applicable') }}', color: 'bg-slate-100 text-slate-400 border-slate-200' };
-                    }
-                    if (this.rating === null) {
-                        return { title: '{{ __('Unscored') }}', color: 'bg-amber-50 text-amber-500 border-amber-100' };
-                    }
-                    const info = {
-                        0: { title: '{{ __('Non-existent') }}', color: 'bg-slate-100 text-slate-400 border-slate-200' },
-                        1: { title: '{{ __('Initial') }}', color: 'bg-blue-50 text-blue-400 border-blue-100' },
-                        2: { title: '{{ __('Limited/Repeatable') }}', color: 'bg-blue-100 text-blue-600 border-blue-200' },
-                        3: { title: '{{ __('Defined') }}', color: 'bg-blue-500 text-white border-blue-400 shadow-md' },
-                        4: { title: '{{ __('Managed') }}', color: 'bg-blue-700 text-white border-blue-600 shadow-md' },
-                        5: { title: '{{ __('Optimized') }}', color: 'bg-slate-900 text-white border-slate-900 shadow-md' }
-                    };
-                    return info[this.rating] || info[0];
-                },
-
-                get complianceColorInfo() {
-                    const info = {
-                        'compliant': 'bg-emerald-100 text-emerald-800 border-emerald-200',
-                        'partially compliant': 'bg-amber-100 text-amber-800 border-amber-200',
-                        'non-compliant': 'bg-rose-100 text-rose-800 border-rose-200',
-                    };
-                    return info[this.complianceStatus?.toLowerCase()] || 'bg-slate-100 text-slate-700 border-slate-200';
-                },
-
-                get complianceTooltip() {
-                    const desc = {
-                        'compliant': '{{ __('Control is implemented according to ISO/IEC 27001:2022 standard requirements and demonstrates adequate implementation.') }}',
-                        'partially compliant': '{{ __('Control is partially implemented, but there are still gaps or aspects that need improvement to meet standard requirements.') }}',
-                        'non-compliant': '{{ __('Control is not implemented or its implementation does not meet the requirements specified in the ISO/IEC 27001:2022 standard.') }}',
-                    };
-                    return desc[this.complianceStatus?.toLowerCase()] || '';
-                },
-
-                get riskInfo() {
-                    const info = {
-                        'critical': 'bg-rose-100 text-rose-700',
-                        'high': 'bg-orange-100 text-orange-700',
-                        'medium': 'bg-amber-100 text-amber-700',
-                        'compliant': 'bg-emerald-100 text-emerald-700',
-                        'low': 'bg-emerald-100 text-emerald-700 border border-emerald-200',
-                    };
-                    return info[this.risk?.toLowerCase()] || 'bg-slate-100 text-slate-500';
-                },
-
-                async submitForm(finalize = false) {
-                    if ({{ ($session->status === 'completed' || $session->isLockedForUser(auth()->user())) ? 'true' : 'false' }}) {
-                        return;
-                    }
-                    this.loading = true;
-                    try {
-                        const form = this.$refs.form;
-                        const formData = new FormData(form);
-                        if(finalize) formData.append('status', 'completed');
-
-                        const response = await fetch(form.action, {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Accept': 'application/json'
-                            }
-                        });
-                        const data = await response.json();
-                        
-                        if (data.success) {
-                            const result = data.result || data.data || {};
-                            const wasCompleted = this.isCompleted;
-                            this.isAssessed = true;
-                            this.rating = result.maturity_rating;
-                            this.status = result.compliance_status || '';
-                            this.risk = result.risk_level || '';
-                            this.isCompleted = result.status === 'completed';
-                            this.isApplicable = Boolean(result.is_applicable);
-                            this.evidenceFiles = result.evidence_file || [];
-                            this.complianceStatus = result.compliance_status || '';
-                            
-                            window.dispatchEvent(new CustomEvent('result-updated', { 
-                                detail: { 
-                                    id: {{ $result->id }}, 
-                                    status: result.status, 
-                                    rating: result.maturity_rating, 
-                                    isApplicable: Boolean(result.is_applicable), 
-                                    wasCompleted 
-                                } 
-                            }));
-                            
-                            if(typeof updateProgress === 'function') updateProgress();
-
-                            if(finalize) {
-                                window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Control Verified!') }}', type: 'success' } }));
-                            }
-                        }
-                    } finally { this.loading = false; }
-                },
-
-                async generateAi() {
-                    if ({{ ($session->status === 'completed' || $session->isLockedForUser(auth()->user())) ? 'true' : 'false' }}) {
-                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('This assessment session is completed and read-only.') }}', type: 'info' } }));
-                        return;
-                    }
-                    this.aiLoading = true;
-                    this.aiRec = '';
-                    this.aiPlan = '';
-                    this.aiInsight = '';
-                    this.aiPriority = '';
-                    this.aiValidation = '';
-                    this.aiImpact = '';
-                    const self = this;
-
-                    // Helper to start polling
-                    const startPolling = () => {
-                        let pollCount = 0;
-                        let pollInterval = setInterval(async () => {
-                            pollCount++;
-                            try {
-                                let statusRes = await fetch('{{ route('results.ai-status', $result->id) }}');
-                                let statusData = await statusRes.json();
-                                let aiResult = statusData.data || statusData.result || statusData;
-                                
-                                if (aiResult.has_ai) {
-                                    clearInterval(pollInterval);
-                                    self.aiRec        = aiResult.ai_recommendation;
-                                    self.aiPlan       = (typeof aiResult.corrective_action_plan === 'object' && aiResult.corrective_action_plan !== null)
-                                                         ? (aiResult.corrective_action_plan.action || (Array.isArray(aiResult.corrective_action_plan) ? aiResult.corrective_action_plan.join('\n') : JSON.stringify(aiResult.corrective_action_plan)))
-                                                         : (aiResult.corrective_action_plan || '');
-                                    self.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null)
-                                                         ? (aiResult.control_insight.gap || (Array.isArray(aiResult.control_insight) ? aiResult.control_insight.join('\n') : JSON.stringify(aiResult.control_insight)))
-                                                         : (aiResult.control_insight || '');
-                                    self.aiPriority   = aiResult.risk_priority || '';
-                                    self.aiValidation = '';
-                                    self.aiImpact     = aiResult.impact_interpretation || '';
-                                    self.aiLoading    = false;
-                                    window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('AI analysis received successfully!') }}', type: 'success' } }));
-                                } else if (pollCount > 24) { // Timeout after ~60 seconds (24 * 2.5s)
-                                    clearInterval(pollInterval);
-                                    self.aiLoading = false;
-                                    window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Timeout waiting for AI response.') }}', type: 'error' } }));
-                                }
-                            } catch(e) {
-                                console.error('Polling error', e);
-                                clearInterval(pollInterval);
-                                self.aiLoading = false;
-                                window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Error retrieving AI status.') }}', type: 'error' } }));
-                            }
-                        }, 2500);
-                    };
-
-                    try {
-                        const form = this.$refs.form;
-                        const formData = new FormData(form);
-                        formData.append('trigger_ai', '1');
-
-                        const res = await fetch(form.action, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Accept': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest'
-                            },
-                            body: formData
-                        });
-                        const data = await res.json();
-
-                        // Guard: already processing
-                        if (res.status === 429 || (data && data.is_processing)) {
-                            window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('AI is currently analyzing this control.') }}', type: 'info' } }));
-                            startPolling();
-                            return;
-                        }
-
-                        // Guard: no data change since last AI generation
-                        if (res.status === 409 && data.no_change) {
-                            self.aiLoading = false;
-                            // Restore existing AI data since we aborted
-                            const statusRes = await fetch('{{ route('results.ai-status', $result->id) }}');
-                            const statusData = await statusRes.json();
-                            const aiResult = statusData.data || statusData.result || statusData;
-                            if (aiResult.has_ai) {
-                                self.aiRec        = aiResult.ai_recommendation || '';
-                                self.aiPlan       = (typeof aiResult.corrective_action_plan === 'object' && aiResult.corrective_action_plan !== null)
-                                                     ? (aiResult.corrective_action_plan.action || (Array.isArray(aiResult.corrective_action_plan) ? aiResult.corrective_action_plan.join('\n') : JSON.stringify(aiResult.corrective_action_plan)))
-                                                     : (aiResult.corrective_action_plan || '');
-                                self.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null)
-                                                     ? (aiResult.control_insight.gap || (Array.isArray(aiResult.control_insight) ? aiResult.control_insight.join('\n') : JSON.stringify(aiResult.control_insight)))
-                                                     : (aiResult.control_insight || '');
-                                self.aiPriority   = aiResult.risk_priority || '';
-                                self.aiValidation = '';
-                                self.aiImpact     = aiResult.impact_interpretation || '';
-                            }
-                            Swal.fire({
-                                icon: 'warning',
-                                title: '{{ __('Warning: No Data Changes Detected') }}',
-                                html: '<p class=\'text-sm text-slate-600 font-medium leading-relaxed\'>{{ addslashes(__('Re-generation of AI recommendation is disabled because no maturity scores, notes, or applicability data have changed since the last AI generation.')) }}</p>' +
-                                      '<p class=\'text-xs text-amber-700 bg-amber-50 p-2.5 rounded-lg border border-amber-200 mt-3 font-semibold flex items-center gap-2\'><i class=\'fa-solid fa-triangle-exclamation text-amber-600\'></i> {{ addslashes(__('Please update the maturity score or remarks before attempting to re-generate AI recommendations.')) }}</p>',
-                                confirmButtonText: '{{ __('Understood') }}',
-                                confirmButtonColor: '#f59e0b',
-                                width: '27rem',
-                                customClass: {
-                                    title: 'text-base font-bold text-slate-800',
-                                    htmlContainer: 'text-left px-2',
-                                    confirmButton: 'text-xs font-bold uppercase tracking-widest px-5 py-2.5 rounded-lg'
-                                }
-                            });
-                            return;
-                        }
-
-                        if (data.success) {
-                            window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Connecting to n8n... Waiting for AI analysis.') }}', type: 'success' } }));
-                            startPolling();
-                        } else {
-                            self.aiLoading = false;
-                            window.dispatchEvent(new CustomEvent('notify', { detail: { message: data.message || '{{ __('Failed to trigger AI generation.') }}', type: 'error' } }));
-                        }
-                    } catch(e) { 
-                        console.error(e); 
-                        self.aiLoading = false;
-                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Failed to trigger AI generation.') }}', type: 'error' } }));
-                    }
-                }
-             }"
-             @open-control.window="if($event.detail.id === {{ $result->id }}) { 
-                open = true; 
+             x-data="resultCard({{ $result->id }}, @js($initialCardData), {{ $sessionLocked ? 'true' : 'false' }})"
+             @open-control.window="if($event.detail.id === {{ $result->id }}) {
+                open = true;
+                loadBody();
                 $nextTick(() => $el.scrollIntoView({ behavior: 'smooth', block: 'center' }));
              }"
              class="rounded-2xl border transition-all duration-500 scroll-mt-24 overflow-hidden shadow-sm bg-white mb-2"
@@ -353,7 +149,7 @@
              ]">
             
             {{-- Card Header --}}
-            <div @click="open = !open" class="p-5 cursor-pointer group flex items-center justify-between bg-slate-50/30">
+            <div @click="open = !open; if (open) loadBody();" class="p-5 cursor-pointer group flex items-center justify-between bg-slate-50/30">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-all duration-700 border shadow-sm"
                          :class="ratingInfo.color">
@@ -395,309 +191,15 @@
                 </div>
             </div>
 
-            {{-- Card Body --}}
+            {{-- Card Body — content is fetched lazily on first expand (see loadBody() in
+                 the resultCard component below) instead of being rendered inline for
+                 every one of the ~137 controls up front. --}}
             <div x-show="open" x-collapse>
-                <form x-ref="form" action="{{ route('results.update', $result->id) }}" method="POST" class="p-5 space-y-5 border-t border-slate-100">
-                    @csrf
-                    <fieldset @if($session->isLockedForUser(auth()->user()) || $session->status === 'completed') disabled class="opacity-80" @endif>
-
-                    @if(!$isClause)
-                    {{-- Statement of Applicability (SoA) - Annex A only --}}
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3">
-                        <div class="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-                            <div>
-                                <h4 class="text-[10px] font-bold text-slate-800 uppercase tracking-wider">{{ __('Statement of Applicability (SoA)') }}</h4>
-                                <p class="text-[9px] text-slate-500 font-medium leading-snug mt-0.5">{{ __('Is this control applicable to your organization?') }}</p>
-                            </div>
-                            <div class="flex items-center gap-2 @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) pointer-events-none select-none opacity-60 @endif">
-                                <label class="relative inline-flex items-center @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) cursor-not-allowed @else cursor-pointer @endif">
-                                    <input type="radio" name="is_applicable" value="1" :checked="isApplicable"
-                                        @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) disabled @endif
-                                        x-on:change="
-                                             isApplicable = true;
-                                             $nextTick(() => submitForm());
-                                         "
-                                        class="peer hidden">
-                                    <div class="px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-500 peer-checked:bg-slate-900 peer-checked:text-white peer-checked:border-slate-900 transition-all">
-                                        {{ __('Yes') }}
-                                    </div>
-                                </label>
-                                <label class="relative inline-flex items-center @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) cursor-not-allowed @else cursor-pointer @endif">
-                                    <input type="radio" name="is_applicable" value="0" :checked="!isApplicable"
-                                        @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) disabled @endif
-                                        x-on:change="
-                                             isApplicable = false;
-                                             rating = null;
-                                             $nextTick(() => submitForm());
-                                         "
-                                        class="peer hidden">
-                                    <div class="px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-500 peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-rose-600 transition-all">
-                                        {{ __('No') }}
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        {{-- SoA Justification (Shown only if NOT applicable) --}}
-                        <div x-show="!isApplicable" x-transition class="pt-3 border-t border-slate-200 @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) pointer-events-none select-none opacity-70 @endif">
-                            <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-2">{{ __('Exclusion Justification') }} <span class="text-rose-500">*</span></label>
-                            <textarea name="soa_justification" rows="2" x-model="soaJustification"
-                                @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) disabled readonly @endif
-                                x-on:blur="submitForm()"
-                                placeholder="{{ __('Enter explanation for excluding this control...') }}"
-                                class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-[10px] font-medium outline-none focus:border-blue-600 transition-all text-slate-800 leading-relaxed shadow-inner">{{ $result->soa_justification }}</textarea>
-                        </div>
-                    </div>
-                    @endif
-
-                    <div x-show="isApplicable" class="space-y-4">
-
-                    {{-- Collapsible: Control Details (Structural Requirements + Implementation Roadmap) --}}
-                    @if($result->standard->description || $result->standard->implementation_guidance)
-                    <div x-data="{ showDetails: false }" class="rounded-xl border border-slate-200/70 overflow-hidden pointer-events-auto">
-                        <button type="button" @click="showDetails = !showDetails"
-                            class="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50 hover:bg-slate-100 transition-colors text-left group">
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-book-open text-slate-400 text-[10px] group-hover:text-blue-500 transition-colors"></i>
-                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover:text-blue-600 transition-colors">{{ __('Control Details') }}</span>
-                                <span class="text-[8px] font-medium text-slate-400">&mdash; {{ __('Requirements & Implementation Guide') }}</span>
-                            </div>
-                            <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 transition-transform duration-300" :class="showDetails && 'rotate-180'"></i>
-                        </button>
-                        <div x-show="showDetails" x-collapse x-cloak class="border-t border-slate-200/60">
-                            <div class="p-4 space-y-3 bg-white">
-                                @if($result->standard->description)
-                                <div>
-                                    <h6 class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">{{ __('Structural Requirements') }}</h6>
-                                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/60 text-[10px] text-slate-700 leading-relaxed font-medium">
-                                        {{ __($result->standard->description) }}
-                                    </div>
-                                </div>
-                                @endif
-                                @if($result->standard->implementation_guidance)
-                                <div class="relative pl-4 border-l-2 border-blue-400/30">
-                                    <h6 class="text-[8px] font-bold text-blue-500 uppercase tracking-widest mb-1.5">{{ __('Implementation Roadmap') }}</h6>
-                                    <div class="p-3 bg-blue-50/40 rounded-xl border border-blue-100/60 text-[9px] text-blue-900 leading-relaxed font-medium italic">
-                                        {{ __($result->standard->implementation_guidance) }}
-                                    </div>
-                                </div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-
-                    {{-- Scoring Section — always visible, full width --}}
-                    <div class="space-y-3">
-                        <h5 class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{{ __('Score This Control') }}</h5>
-                        <div class="space-y-4 @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) pointer-events-none select-none opacity-80 @endif">
-                            @foreach($result->standard->questions as $qIndex => $q)
-                            <div class="space-y-2">
-                                <p class="text-slate-800 font-bold text-[11px] leading-relaxed">{{ __($q) }}</p>
-                                <div class="grid grid-cols-3 md:grid-cols-6 gap-1.5">
-                                    @php
-                                        $options = [
-                                            0 => ['title' => 'Non-existent', 'desc' => 'Control is not implemented', 'color' => 'bg-slate-100 text-slate-400 border-slate-200'],
-                                            1 => ['title' => 'Initial', 'desc' => 'Control is planned but not consistently implemented', 'color' => 'bg-blue-50 text-blue-400 border-blue-100'],
-                                            2 => ['title' => 'Limited/Repeatable', 'desc' => 'Control is partially implemented', 'color' => 'bg-blue-100 text-blue-600 border-blue-200'],
-                                            3 => ['title' => 'Defined', 'desc' => 'Control is implemented according to defined procedures', 'color' => 'bg-blue-500 text-white border-blue-400'],
-                                            4 => ['title' => 'Managed', 'desc' => 'Control is consistently implemented and its effectiveness is monitored', 'color' => 'bg-blue-700 text-white border-blue-600'],
-                                            5 => ['title' => 'Optimized', 'desc' => 'Control is optimally implemented and supported by continuous improvement', 'color' => 'bg-slate-900 text-white border-slate-900'],
-                                        ];
-                                    @endphp
-                                    @foreach($options as $val => $opt)
-                                    <label class="@if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) cursor-not-allowed @else cursor-pointer @endif group/btn" title="{{ __($opt['desc']) }}">
-                                        <input type="radio" name="answers[q{{ $qIndex }}]" value="{{ $val }}"
-                                               @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) disabled @endif
-                                               {{ isset($result->answers["q$qIndex"]) && $result->answers["q$qIndex"] == $val ? 'checked' : '' }}
-                                               @change="rating = {{ $val }}; submitForm()"
-                                               class="peer hidden">
-                                        <div class="py-1.5 px-0.5 text-center rounded-lg border-2 transition-all duration-300 {{ $opt['color'] }}
-                                                    opacity-40 saturate-50 peer-checked:opacity-100 peer-checked:saturate-100 peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-blue-500 peer-checked:border-blue-500 peer-checked:scale-105 peer-checked:shadow-md">
-                                            <div class="text-sm font-black mb-0.5">{{ $val }}</div>
-                                            <div class="text-[6px] font-bold uppercase tracking-widest opacity-90 leading-none">{{ __($opt['title']) }}</div>
-                                        </div>
-                                    </label>
-                                    @endforeach
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    {{-- Evidence & Notes --}}
-                    <div class="pt-4 border-t border-slate-100 grid grid-cols-1 lg:grid-cols-12 gap-6">
-                        {{-- User Findings (Left Side) --}}
-                        <div class="lg:col-span-6 @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) pointer-events-none select-none opacity-70 @endif">
-                            <h5 class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2">{{ __('User Findings') }}</h5>
-                            <textarea name="notes" rows="3" @input.debounce.2000ms="submitForm()"
-                                      @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) disabled readonly @endif
-                                      placeholder="{{ __('Enter findings...') }}" 
-                                      class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-[10px] font-medium outline-none focus:bg-white focus:border-blue-600 transition-all text-slate-800 leading-relaxed shadow-inner h-[86px] resize-none">{{ $result->notes }}</textarea>
-                        </div>
-
-                        {{-- Evidence Repository (Right Side) --}}
-                        <div class="lg:col-span-6 flex flex-col justify-between">
-                            <div>
-                                <h5 class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2">{{ __('Evidence Repository') }}</h5>
-                                <div class="relative group/up @if($session->status === 'completed' || $session->isLockedForUser(auth()->user())) pointer-events-none select-none opacity-60 @endif">
-                                    @if($session->status !== 'completed' && !$session->isLockedForUser(auth()->user()))
-                                    <input type="file" name="evidence_file" @change="submitForm().then(() => { $el.value = ''; window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Artifact uploaded!') }}', type: 'success' } })); });" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                                    @endif
-                                    <div class="w-full py-2 bg-white border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-1 @if($session->status !== 'completed' && !$session->isLockedForUser(auth()->user())) group-hover/up:border-blue-400 group-hover:bg-blue-50/50 @else opacity-50 cursor-not-allowed bg-slate-50 @endif transition-all">
-                                        <div class="flex items-center gap-2">
-                                            <i class="fa-solid fa-paperclip text-slate-300 group-hover/up:text-blue-600 text-xs"></i>
-                                            <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
-                                                <template x-if="evidenceFiles.length > 0">
-                                                    <span class="text-blue-600">{{ __('Upload More Artifact') }}</span>
-                                                </template>
-                                                <template x-if="evidenceFiles.length === 0">
-                                                    <span>{{ __('Attach Artifact') }}</span>
-                                                </template>
-                                            </span>
-                                        </div>
-                                        <span class="text-[7px] font-semibold text-slate-400/80 tracking-wider">
-                                            PDF, JPG, JPEG, PNG, DOCX, XLSX (Max 10MB)
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <template x-if="evidenceFiles.length > 0">
-                                <div class="mt-2 space-y-1">
-                                    <template x-for="file in evidenceFiles" :key="file">
-                                        <div class="px-3 py-1.5 bg-blue-50/70 border border-blue-100/50 rounded-lg flex items-center justify-between gap-2 hover:bg-blue-50 transition-colors"
-                                             x-data="{ deleting: false }">
-                                            <a :href="'/results/{{ $result->id }}/evidence?file=' + encodeURIComponent(file)" target="_blank" 
-                                               class="text-[8px] font-bold text-blue-700 hover:text-blue-800 hover:underline truncate flex-1 block"
-                                               :title="file.split('/').pop()" 
-                                               x-text="file.split('/').pop()"></a>
-                                            <div class="flex items-center gap-2 shrink-0">
-                                                @if($session->status !== 'completed' && !$session->isLockedForUser(auth()->user()))
-                                                <button type="button" 
-                                                        @click="
-                                                             Swal.fire({
-                                                                title: '{{ addslashes(__('Delete Attachment File?')) }}',
-                                                                text: '{{ addslashes(__('Are you sure you want to delete file "')) }}' + file.split('/').pop() + '{{ addslashes(__('"? This action cannot be undone.')) }}',
-                                                                icon: 'warning',
-                                                                showCancelButton: true,
-                                                                confirmButtonColor: '#ef4444',
-                                                                cancelButtonColor: '#64748b',
-                                                                confirmButtonText: '{{ addslashes(__('Yes, Delete!')) }}',
-                                                                cancelButtonText: '{{ addslashes(__('Cancel')) }}',
-                                                                width: '22rem',
-                                                                customClass: {
-                                                                    title: 'text-base font-bold text-slate-800',
-                                                                    htmlContainer: 'text-xs text-slate-500',
-                                                                    confirmButton: 'text-xs px-3 py-2 rounded-lg font-semibold',
-                                                                    cancelButton: 'text-xs px-3 py-2 rounded-lg font-semibold'
-                                                                }
-                                                            }).then((result) => {
-                                                                if (result.isConfirmed) {
-                                                                    deleting = true;
-                                                                    fetch('{{ route('results.evidence.delete', $result->id) }}', {
-                                                                        method: 'POST',
-                                                                        headers: {
-                                                                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                                                            'Accept': 'application/json',
-                                                                            'Content-Type': 'application/json'
-                                                                        },
-                                                                        body: JSON.stringify({ _method: 'DELETE', file_path: file })
-                                                                    })
-                                                                    .then(res => res.json())
-                                                                    .then(data => {
-                                                                        if(data.success) {
-                                                                            evidenceFiles = evidenceFiles.filter(f => f !== file);
-                                                                            window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('File deleted!') }}', type: 'success' } }));
-                                                                        }
-                                                                    })
-                                                                    .finally(() => deleting = false);
-                                                                }
-                                                            });
-                                                        "
-                                                        :disabled="deleting"
-                                                        class="text-[8px] font-black text-rose-600 uppercase hover:underline">
-                                                    <i class="fa-solid fa-trash-can text-[9px]" x-show="!deleting"></i>
-                                                    <i class="fa-solid fa-spinner fa-spin text-[9px]" x-show="deleting"></i>
-                                                </button>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </template>
-                                </div>
-                            </template>
-                            <template x-if="evidenceFiles.length === 0">
-                                <div class="mt-2 h-[26px]"></div>
-                            </template>
-                        </div>
-                    </div>
-
-                    </fieldset>
-
-                    {{-- Compact AI Status Indicator --}}
-                    <template x-if="rating < 5">
-                        <div class="pt-4 border-t border-slate-100 mt-2 flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all" 
-                                     :class="aiLoading ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20 animate-pulse' : (aiRec ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'bg-slate-200 text-slate-400')">
-                                    <i class="fa-solid" :class="aiLoading ? 'fa-spinner animate-spin text-xs' : 'fa-robot text-xs'"></i>
-                                </div>
-                                <div>
-                                    <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest leading-none">{{ __('AI Synthesis Status') }}</h4>
-                                    <template x-if="aiLoading">
-                                        <p class="text-[9px] font-bold text-blue-600 uppercase tracking-widest mt-1 animate-pulse"><i class="fa-solid fa-spinner animate-spin mr-1"></i>{{ __('Synthesizing...') }}</p>
-                                    </template>
-                                    <template x-if="!aiLoading && aiRec">
-                                        <p class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mt-1"><i class="fa-solid fa-check-circle mr-1"></i>{{ __('Analysis Ready') }}</p>
-                                    </template>
-                                    <template x-if="!aiLoading && !aiRec">
-                                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{{ __('Pending Generation') }}</p>
-                                    </template>
-                                </div>
-                            </div>
-
-                            <template x-if="aiRec">
-                                <div class="flex items-center gap-2">
-                                    <button type="button" 
-                                        @click="window.dispatchEvent(new CustomEvent('open-ai-details', { detail: {
-                                            code: code,
-                                            title: title,
-                                            rec: aiRec,
-                                            plan: aiPlan,
-                                            insight: aiInsight,
-                                            priority: aiPriority,
-                                            validation: '',
-                                            impact: aiImpact
-                                        }}))"
-                                        class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shadow-md shadow-blue-600/20 cursor-pointer">
-                                        <i class="fa-solid fa-eye mr-1"></i>{{ __('View Result') }}</button>
-                                    @if($session->status === 'completed')
-                                    <a href="{{ route('workspace.index', ['session_id' => $session->id, 'focus' => $result->id]) }}" class="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-lg text-[8px] font-black uppercase tracking-widest transition-all border border-blue-100 cursor-pointer">{{ __('Improvement') }}<i class="fa-solid fa-arrow-right ml-1"></i>
-                                    </a>
-                                    @endif
-                                    @if($session->status !== 'completed' && !$session->isLockedForUser(auth()->user()))
-                                    <template x-if="rating < 5">
-                                        <button type="button" @click="generateAi()" :disabled="aiLoading"
-                                                class="px-4 py-2 bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 text-slate-600">
-                                            <i class="fa-solid fa-arrows-rotate" :class="aiLoading && 'animate-spin text-blue-500'"></i>
-                                            <span x-text="aiLoading ? '{{ __('Regenerating...') }}' : '{{ __('Regenerate') }}'"></span>
-                                        </button>
-                                    </template>
-                                    @endif
-                                </div>
-                            </template>
-
-                            @if($session->status !== 'completed' && !$session->isLockedForUser(auth()->user()))
-                            <template x-if="isCompleted && rating < 5 && !aiRec">
-                                <button type="button" @click="generateAi()" :disabled="aiLoading"
-                                        class="px-4 py-2 bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 text-slate-600">
-                                    <i class="fa-solid fa-wand-magic-sparkles" :class="aiLoading && 'animate-spin text-blue-500'"></i>
-                                    <span x-text="aiLoading ? '{{ __('Synthesizing...') }}' : '{{ __('Generate AI') }}'"></span>
-                                </button>
-                            </template>
-                            @endif
-                        </div>
-                    </template>
-                </form>
+                <div x-show="bodyLoading" class="p-8 text-center text-slate-400">
+                    <i class="fa-solid fa-spinner fa-spin mr-2"></i>
+                    <span class="text-xs font-semibold">{{ __('Loading...') }}</span>
+                </div>
+                <div x-ref="bodyContainer"></div>
             </div>
         </div>
     @endif
@@ -710,4 +212,617 @@
     </div>
     @endforelse
 </div>
+
+<script>
+{{-- Registered once per page (not per control card) — previously this entire block was
+     duplicated inline inside every card's x-data, which for a ~137-control session meant
+     the same ~400 lines of JS were repeated 137 times in the HTML response. --}}
+(function() {
+    const EXTRACTION_STATUS_URL_TMPL = @js(route('results.extraction-status', ':id'));
+    const EXTRACT_EVIDENCE_URL_TMPL = @js(route('results.extract-evidence', ':id'));
+    const AI_STATUS_URL_TMPL = @js(route('results.ai-status', ':id'));
+    const CARD_BODY_URL_TMPL = @js(route('results.card-body', ':id'));
+
+    const registerResultCard = () => {
+        if (window.Alpine.data('resultCard')) return;
+
+        window.Alpine.data('resultCard', (resultId, initial, sessionLocked) => ({
+            open: initial.open,
+            isAssessed: initial.isAssessed,
+            isCompleted: initial.isCompleted,
+            rating: initial.rating,
+            status: initial.status,
+            complianceStatus: initial.complianceStatus,
+            risk: initial.risk,
+            loading: false,
+            aiLoading: false,
+            code: initial.code,
+            title: initial.title,
+            isApplicable: initial.isApplicable,
+            soaJustification: initial.soaJustification,
+            aiRec: initial.aiRec,
+            aiPlan: initial.aiPlan,
+            aiInsight: initial.aiInsight,
+            aiPriority: initial.aiPriority,
+            aiValidation: '',
+            aiImpact: initial.aiImpact,
+            nextId: initial.nextId,
+            evidenceFiles: initial.evidenceFiles,
+            evidenceExtractions: initial.evidenceExtractions,
+            extractingFiles: [],
+            bodyLoaded: false,
+            bodyLoading: false,
+
+            init() {
+                if (this.open) this.loadBody();
+            },
+
+            async loadBody() {
+                if (this.bodyLoaded || this.bodyLoading) return;
+                this.bodyLoading = true;
+                try {
+                    const res = await fetch(CARD_BODY_URL_TMPL.replace(':id', resultId));
+                    const html = await res.text();
+                    this.$refs.bodyContainer.innerHTML = html;
+                    window.Alpine.initTree(this.$refs.bodyContainer);
+                    this.bodyLoaded = true;
+                    this.autoExtractMissing();
+                } catch (e) {
+                    console.error('Failed to load card body', e);
+                    this.$refs.bodyContainer.innerHTML = '<p class=\'text-xs text-rose-600 font-semibold p-5\'>{{ addslashes(__('Failed to load control detail.')) }}</p>';
+                } finally {
+                    this.bodyLoading = false;
+                }
+            },
+
+            get ratingInfo() {
+                if (!this.isApplicable) {
+                    return { title: '{{ __('Not Applicable') }}', color: 'bg-slate-100 text-slate-400 border-slate-200' };
+                }
+                if (this.rating === null) {
+                    return { title: '{{ __('Unscored') }}', color: 'bg-amber-50 text-amber-500 border-amber-100' };
+                }
+                const info = {
+                    0: { title: '{{ __('Non-existent') }}', color: 'bg-slate-100 text-slate-400 border-slate-200' },
+                    1: { title: '{{ __('Initial') }}', color: 'bg-blue-50 text-blue-400 border-blue-100' },
+                    2: { title: '{{ __('Limited/Repeatable') }}', color: 'bg-blue-100 text-blue-600 border-blue-200' },
+                    3: { title: '{{ __('Defined') }}', color: 'bg-blue-500 text-white border-blue-400 shadow-md' },
+                    4: { title: '{{ __('Managed') }}', color: 'bg-blue-700 text-white border-blue-600 shadow-md' },
+                    5: { title: '{{ __('Optimized') }}', color: 'bg-slate-900 text-white border-slate-900 shadow-md' }
+                };
+                return info[this.rating] || info[0];
+            },
+
+            get complianceColorInfo() {
+                const info = {
+                    'compliant': 'bg-emerald-100 text-emerald-800 border-emerald-200',
+                    'partially compliant': 'bg-amber-100 text-amber-800 border-amber-200',
+                    'non-compliant': 'bg-rose-100 text-rose-800 border-rose-200',
+                };
+                return info[this.complianceStatus?.toLowerCase()] || 'bg-slate-100 text-slate-700 border-slate-200';
+            },
+
+            get complianceTooltip() {
+                const desc = {
+                    'compliant': '{{ __('Control is implemented according to ISO/IEC 27001:2022 standard requirements and demonstrates adequate implementation.') }}',
+                    'partially compliant': '{{ __('Control is partially implemented, but there are still gaps or aspects that need improvement to meet standard requirements.') }}',
+                    'non-compliant': '{{ __('Control is not implemented or its implementation does not meet the requirements specified in the ISO/IEC 27001:2022 standard.') }}',
+                };
+                return desc[this.complianceStatus?.toLowerCase()] || '';
+            },
+
+            get riskInfo() {
+                const info = {
+                    'critical': 'bg-rose-100 text-rose-700',
+                    'high': 'bg-orange-100 text-orange-700',
+                    'medium': 'bg-amber-100 text-amber-700',
+                    'compliant': 'bg-emerald-100 text-emerald-700',
+                    'low': 'bg-emerald-100 text-emerald-700 border border-emerald-200',
+                };
+                return info[this.risk?.toLowerCase()] || 'bg-slate-100 text-slate-500';
+            },
+
+            async submitForm(finalize = false) {
+                if (sessionLocked) {
+                    return { success: false };
+                }
+                this.loading = true;
+                try {
+                    const form = this.$refs.form;
+                    const formData = new FormData(form);
+                    if (finalize) formData.append('status', 'completed');
+
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        const result = data.result || data.data || {};
+                        const wasCompleted = this.isCompleted;
+                        this.isAssessed = true;
+                        this.rating = result.maturity_rating;
+                        this.status = result.compliance_status || '';
+                        this.risk = result.risk_level || '';
+                        this.isCompleted = result.status === 'completed';
+                        this.isApplicable = Boolean(result.is_applicable);
+                        this.evidenceFiles = result.evidence_file || [];
+                        this.complianceStatus = result.compliance_status || '';
+
+                        window.dispatchEvent(new CustomEvent('result-updated', {
+                            detail: {
+                                id: resultId,
+                                status: result.status,
+                                rating: result.maturity_rating,
+                                isApplicable: Boolean(result.is_applicable),
+                                wasCompleted
+                            }
+                        }));
+
+                        if (typeof updateProgress === 'function') updateProgress();
+
+                        if (finalize) {
+                            window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Control Verified!') }}', type: 'success' } }));
+                        }
+
+                        return { success: true, data };
+                    }
+
+                    window.dispatchEvent(new CustomEvent('notify', { detail: { message: data.message || '{{ __('Failed to save changes.') }}', type: 'error' } }));
+                    return { success: false, data };
+                } catch (e) {
+                    console.error(e);
+                    window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Failed to save changes. Please check your connection and try again.') }}', type: 'error' } }));
+                    return { success: false, error: e };
+                } finally { this.loading = false; }
+            },
+
+            // Called whenever the card body loads or a new file is uploaded — extracts
+            // every evidence file that doesn't have a result yet, all in parallel
+            // (the backend lock is now scoped per file, not per result, so this is safe).
+            autoExtractMissing() {
+                if (sessionLocked) return;
+                for (const file of this.evidenceFiles) {
+                    if (!this.evidenceExtractions[file] && !this.extractingFiles.includes(file)) {
+                        this.extractEvidence(file);
+                    }
+                }
+            },
+
+            async extractEvidence(filePath, force = false) {
+                if (sessionLocked) return;
+                if (this.extractingFiles.includes(filePath)) return;
+                this.extractingFiles.push(filePath);
+                if (force) {
+                    delete this.evidenceExtractions[filePath];
+                }
+                const self = this;
+
+                const stopTracking = () => {
+                    self.extractingFiles = self.extractingFiles.filter(f => f !== filePath);
+                };
+
+                const startPolling = () => {
+                    let pollCount = 0;
+                    let pollInterval = setInterval(async () => {
+                        pollCount++;
+                        try {
+                            let statusRes = await fetch(EXTRACTION_STATUS_URL_TMPL.replace(':id', resultId));
+                            let statusData = await statusRes.json();
+                            let payload = statusData.data || statusData;
+                            let extractions = payload.evidence_extractions || {};
+
+                            if (extractions[filePath] && extractions[filePath].status !== 'processing') {
+                                clearInterval(pollInterval);
+                                self.evidenceExtractions[filePath] = extractions[filePath];
+                                stopTracking();
+                                if (extractions[filePath].status === 'ok') {
+                                    window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Evidence extraction completed!') }}', type: 'success' } }));
+                                } else {
+                                    window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Evidence extraction could not read the document.') }}', type: 'warning' } }));
+                                }
+                            } else if (pollCount > 200) { // Timeout after ~6-7 minutes
+                                clearInterval(pollInterval);
+                                stopTracking();
+                                window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Timeout waiting for evidence extraction.') }}', type: 'error' } }));
+                            }
+                        } catch (e) {
+                            console.error('Extraction polling error', e);
+                            clearInterval(pollInterval);
+                            stopTracking();
+                            window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Error retrieving extraction status.') }}', type: 'error' } }));
+                        }
+                    }, 2000);
+                };
+
+                try {
+                    const res = await fetch(EXTRACT_EVIDENCE_URL_TMPL.replace(':id', resultId), {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ file_path: filePath, force: force })
+                    });
+                    const data = await res.json();
+
+                    if (res.status === 429 || (data && data.is_processing)) {
+                        startPolling();
+                        return;
+                    }
+
+                    if (data.success) {
+                        startPolling();
+                    } else {
+                        stopTracking();
+                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: data.message || '{{ __('Failed to trigger evidence extraction.') }}', type: 'error' } }));
+                    }
+                } catch (e) {
+                    console.error(e);
+                    stopTracking();
+                    window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Failed to trigger evidence extraction.') }}', type: 'error' } }));
+                }
+            },
+
+            reExtractEvidence(filePath) {
+                if (sessionLocked) return;
+                const fileName = filePath.split('/').pop();
+                Swal.fire({
+                    title: '{{ addslashes(__('Re-extract this evidence document?')) }}',
+                    text: '{{ addslashes(__('This will regenerate the AI summary with the latest analysis. Continue?')) }}',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#2563eb',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: '{{ addslashes(__('Yes, Re-extract!')) }}',
+                    cancelButtonText: '{{ addslashes(__('Cancel')) }}',
+                    width: '24rem',
+                    customClass: {
+                        popup: 'rounded-2xl',
+                        title: 'text-sm font-bold text-slate-800',
+                        htmlContainer: 'text-xs text-slate-500',
+                        confirmButton: 'text-xs px-4 py-2 rounded-lg font-semibold',
+                        cancelButton: 'text-xs px-4 py-2 rounded-lg font-semibold'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.extractEvidence(filePath, true);
+                    }
+                });
+            },
+
+            escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str ?? '';
+                return div.innerHTML;
+            },
+
+            formatSummaryPoints(rawText) {
+                if (!rawText) return '';
+                const text = String(rawText).trim();
+                let lines = [];
+
+                // Check if text already has newline breaks or bullet characters
+                if (text.includes('\n') || text.includes('•') || /(?:^|\n)\s*[-*•]\s+/m.test(text)) {
+                    lines = text.split(/\r?\n/)
+                        .map(l => l.replace(/^[\s•]*([-*]\s+|\d+[\.\)]\s+|•\s*)/, '').trim())
+                        .filter(l => l.length > 0);
+                } else {
+                    // Continuous paragraph: split by sentence ending (. ! ?) followed by whitespace and uppercase/number
+                    // while preserving decimal/version numbers like 2.0 or v1.1
+                    const sentenceRegex = /((?:[^\s.!?]|\.(?!\s+[A-Z0-9])|!(?!\s+[A-Z0-9])|\?(?!\s+[A-Z0-9])|\s)+[.!?]+)(?:\s+(?=[A-Z0-9])|$)|([^.!?]+$)/g;
+                    let match;
+                    while ((match = sentenceRegex.exec(text)) !== null) {
+                        const part = (match[1] || match[2] || '').trim();
+                        if (part.length > 0) {
+                            lines.push(part);
+                        }
+                    }
+                    if (lines.length === 0) {
+                        lines = [text];
+                    }
+                }
+
+                return lines.map(line => {
+                    let text = line.replace(/^[\s•]*([-*]\s+|\d+[\.\)]\s+|•\s*)/, '').trim();
+                    // Strip any leading bold key or category label prefix (e.g., "**Key:** Content" -> "Content")
+                    text = text.replace(/^\*\*[^*]+:\*\*\s*/, '');
+                    text = text.replace(/^[A-Za-z0-9\s&/()_-]{3,35}:\s+(?=[A-Z0-9])/, '');
+
+                    let escaped = this.escapeHtml(text);
+                    escaped = escaped.replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-slate-800">$1</strong>');
+                    return `
+                        <li class="flex items-start gap-2.5 text-left group/item py-1 px-2.5 rounded-lg hover:bg-slate-100/70 transition-colors">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 ring-4 ring-blue-100 mt-1.5 shrink-0 group-hover/item:bg-blue-600 transition-all"></span>
+                            <div class="text-[13px] text-slate-700 font-normal leading-relaxed flex-1">${escaped}</div>
+                        </li>
+                    `;
+                }).join('');
+            },
+
+            getFileIcon(fileName) {
+                const ext = (fileName.split('.').pop() || '').toLowerCase();
+                const map = {
+                    pdf: 'fa-file-pdf',
+                    doc: 'fa-file-word', docx: 'fa-file-word',
+                    xls: 'fa-file-excel', xlsx: 'fa-file-excel', xlsm: 'fa-file-excel', csv: 'fa-file-csv', ods: 'fa-file-excel',
+                    jpg: 'fa-file-image', jpeg: 'fa-file-image', png: 'fa-file-image', webp: 'fa-file-image', bmp: 'fa-file-image', tif: 'fa-file-image', tiff: 'fa-file-image',
+                };
+                return map[ext] || 'fa-file-lines';
+            },
+
+            viewSummaryEvidence(filePath) {
+                const extraction = this.evidenceExtractions[filePath];
+                if (!extraction) return;
+
+                const fileName = this.escapeHtml(filePath.split('/').pop());
+                const fileIcon = this.getFileIcon(fileName);
+
+                if (extraction.status === 'ok') {
+                    const rawSummary = extraction.summary || '{{ addslashes(__('No summary available.')) }}';
+                    const summaryHtml = this.formatSummaryPoints(rawSummary);
+                    let relevanceText = extraction.relevance ? this.escapeHtml(extraction.relevance) : '';
+                    if (relevanceText) {
+                        relevanceText = relevanceText.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-slate-900">$1</strong>');
+                    }
+                    const extractedAt = extraction.extracted_at ? this.escapeHtml(extraction.extracted_at) : '';
+
+                    // Relevance status: explicit relevance_status ('RELEVANT' vs 'NOT_RELEVANT'),
+                    // falling back to is_relevant flag, or comprehensive text pattern matching
+                    const negativePattern = /\b(tidak (tampak |secara langsung |memiliki )?(relevan|berhubungan|berkaitan|mencakup|memenuhi|sesuai|kaitan)|bukan (merupakan )?bukti|kurang relevan|not (directly |clearly )?relevant|does not (appear |seem )?(to be )?relat(e|ed)|is not related|unrelated|irrelevant|not related|has no relevance|does not satisfy|does not demonstrate|does not align)\b/i;
+                    const isRelevant = (extraction.relevance_status !== undefined && extraction.relevance_status !== null && extraction.relevance_status !== '')
+                        ? extraction.relevance_status === 'RELEVANT'
+                        : (extraction.is_relevant !== undefined && extraction.is_relevant !== null
+                            ? Boolean(extraction.is_relevant)
+                            : !negativePattern.test(relevanceText));
+
+                    const relevanceBoxClass = isRelevant
+                        ? 'border-l-4 border-l-emerald-500 bg-emerald-50/40 border border-emerald-200/80'
+                        : 'border-l-4 border-l-amber-500 bg-amber-50/40 border border-amber-200/80';
+                    const relevanceHeaderColor = isRelevant ? 'text-emerald-800' : 'text-amber-800';
+                    const relevanceHeaderIcon = isRelevant ? 'fa-solid fa-circle-check text-emerald-600' : 'fa-solid fa-triangle-exclamation text-amber-600';
+                    const relevanceBadgeClass = isRelevant
+                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                        : 'bg-amber-100 text-amber-800 border-amber-300';
+                    const relevanceBadgeIcon = isRelevant ? 'fa-solid fa-check text-[8px]' : 'fa-solid fa-exclamation text-[8px]';
+                    const relevanceBadgeLabel = isRelevant ? '{{ addslashes(__('Relevant')) }}' : '{{ addslashes(__('Not Relevant')) }}';
+
+                    Swal.fire({
+                        title: '{{ addslashes(__('Evidence Summary')) }}',
+                        html: `
+                            <div class='flex items-center justify-between gap-3 mb-3 pb-3 border-b border-slate-100 text-left'>
+                                <div class='flex items-center gap-3 min-w-0'>
+                                    <div class='w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 shadow-2xs'>
+                                        <i class='fa-solid ${fileIcon} text-blue-500 text-sm'></i>
+                                    </div>
+                                    <div class='min-w-0'>
+                                        <p class='text-[9px] font-black text-blue-600 uppercase tracking-widest leading-none mb-1'>{{ addslashes(__('AI Document Analysis')) }}</p>
+                                        <p class='text-xs font-bold text-slate-800 truncate' title='${fileName}'>${fileName}</p>
+                                    </div>
+                                </div>
+                                ${extractedAt ? `
+                                <div class='shrink-0 text-right'>
+                                    <span class='text-[10px] text-slate-400 font-medium flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg'>
+                                        <i class='fa-regular fa-clock text-slate-400 text-[10px]'></i>${extractedAt}
+                                    </span>
+                                </div>` : ''}
+                            </div>
+                            <div class='flex items-center justify-between mb-1.5 px-0.5 text-left'>
+                                <span class='text-[10px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5'>
+                                    <i class='fa-solid fa-circle-info text-blue-500'></i>{{ addslashes(__('Document Summary')) }}
+                                </span>
+                                <span class='text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full'>
+                                    {{ addslashes(__('AI Summary')) }}
+                                </span>
+                            </div>
+                            <div class='bg-slate-50/75 border border-slate-200/80 rounded-xl p-2 sm:p-2.5 text-left max-h-[58vh] overflow-y-auto custom-scrollbar shadow-inner'>
+                                <ul class='space-y-0.5'>
+                                    ${summaryHtml}
+                                </ul>
+                            </div>
+                            ${relevanceText ? `
+                            <div class='mt-2.5 rounded-xl px-3.5 py-2.5 text-left shadow-2xs ${relevanceBoxClass}'>
+                                <div class='flex items-center justify-between gap-2 mb-1.5'>
+                                    <p class='text-[9px] font-black uppercase tracking-widest leading-none flex items-center gap-1.5 ${relevanceHeaderColor}'>
+                                        <i class='${relevanceHeaderIcon}'></i>{{ addslashes(__('Relevance to Control')) }}
+                                    </p>
+                                    <span class='text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md border flex items-center gap-1 shadow-2xs ${relevanceBadgeClass}'>
+                                        <i class='${relevanceBadgeIcon}'></i>${relevanceBadgeLabel}
+                                    </span>
+                                </div>
+                                <p class='text-[12px] text-slate-800 font-medium leading-relaxed whitespace-pre-line'>${relevanceText}</p>
+                            </div>
+                            ` : ''}
+                        `,
+                        confirmButtonText: '{{ addslashes(__('Close')) }}',
+                        confirmButtonColor: '#2563eb',
+                        width: '60rem',
+                        customClass: {
+                            popup: 'rounded-2xl shadow-2xl border border-slate-100 max-w-[95vw]',
+                            title: 'text-base font-black text-slate-900 pt-4 pb-0',
+                            htmlContainer: 'px-4 sm:px-6 pb-2 text-left',
+                            confirmButton: 'text-[11px] font-bold uppercase tracking-wider px-6 py-2 rounded-xl shadow-xs'
+                        }
+                    });
+                } else {
+                    const errorText = this.escapeHtml(extraction.error_reason || '{{ addslashes(__('Unknown error.')) }}');
+
+                    Swal.fire({
+                        title: '{{ addslashes(__('Extraction Failed')) }}',
+                        html: `
+                            <div class='flex items-start gap-3 mb-4 pb-4 border-b border-slate-100 text-left'>
+                                <div class='w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0'>
+                                    <i class='fa-solid ${fileIcon} text-rose-400 text-base'></i>
+                                </div>
+                                <div class='min-w-0 pt-0.5'>
+                                    <p class='text-[9px] font-black text-rose-500 uppercase tracking-widest leading-none mb-1.5'>{{ addslashes(__('Document Could Not Be Read')) }}</p>
+                                    <p class='text-xs font-bold text-slate-800 break-words leading-snug'>${fileName}</p>
+                                </div>
+                            </div>
+                            <div class='bg-rose-50/60 border border-rose-100 rounded-xl p-4 text-left'>
+                                <p class='text-[13px] text-rose-700 font-medium leading-relaxed'>${errorText}</p>
+                            </div>
+                        `,
+                        showCancelButton: !sessionLocked,
+                        confirmButtonText: sessionLocked ? '{{ addslashes(__('Close')) }}' : '<i class="fa-solid fa-rotate-right mr-1"></i> {{ addslashes(__('Retry Extraction')) }}',
+                        confirmButtonColor: '#2563eb',
+                        cancelButtonText: '{{ addslashes(__('Close')) }}',
+                        cancelButtonColor: '#64748b',
+                        width: '30rem',
+                        customClass: {
+                            popup: 'rounded-2xl',
+                            title: 'text-base font-black text-slate-900',
+                            htmlContainer: 'px-1',
+                            confirmButton: 'text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-lg',
+                            cancelButton: 'text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-lg'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed && !sessionLocked) {
+                            this.extractEvidence(filePath, true);
+                        }
+                    });
+                }
+            },
+
+            async generateAi() {
+                if (sessionLocked) {
+                    window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('This assessment session is completed and read-only.') }}', type: 'info' } }));
+                    return;
+                }
+                this.aiLoading = true;
+                this.aiRec = '';
+                this.aiPlan = '';
+                this.aiInsight = '';
+                this.aiPriority = '';
+                this.aiValidation = '';
+                this.aiImpact = '';
+                const self = this;
+
+                // Helper to start polling
+                const startPolling = () => {
+                    let pollCount = 0;
+                    let pollInterval = setInterval(async () => {
+                        pollCount++;
+                        try {
+                            let statusRes = await fetch(AI_STATUS_URL_TMPL.replace(':id', resultId));
+                            let statusData = await statusRes.json();
+                            let aiResult = statusData.data || statusData.result || statusData;
+
+                            if (aiResult.has_ai) {
+                                clearInterval(pollInterval);
+                                self.aiRec        = aiResult.ai_recommendation;
+                                self.aiPlan       = (typeof aiResult.corrective_action_plan === 'object' && aiResult.corrective_action_plan !== null)
+                                                     ? (aiResult.corrective_action_plan.action || (Array.isArray(aiResult.corrective_action_plan) ? aiResult.corrective_action_plan.join('\n') : JSON.stringify(aiResult.corrective_action_plan)))
+                                                     : (aiResult.corrective_action_plan || '');
+                                self.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null)
+                                                     ? (aiResult.control_insight.gap || (Array.isArray(aiResult.control_insight) ? aiResult.control_insight.join('\n') : JSON.stringify(aiResult.control_insight)))
+                                                     : (aiResult.control_insight || '');
+                                self.aiPriority   = aiResult.risk_priority || '';
+                                self.aiValidation = '';
+                                self.aiImpact     = aiResult.impact_interpretation || '';
+                                self.aiLoading    = false;
+                                window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('AI analysis received successfully!') }}', type: 'success' } }));
+                            } else if (pollCount > 24) { // Timeout after ~60 seconds (24 * 2.5s)
+                                clearInterval(pollInterval);
+                                self.aiLoading = false;
+                                window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Timeout waiting for AI response.') }}', type: 'error' } }));
+                            }
+                        } catch(e) {
+                            console.error('Polling error', e);
+                            clearInterval(pollInterval);
+                            self.aiLoading = false;
+                            window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Error retrieving AI status.') }}', type: 'error' } }));
+                        }
+                    }, 2500);
+                };
+
+                try {
+                    const form = this.$refs.form;
+                    const formData = new FormData(form);
+                    formData.append('trigger_ai', '1');
+
+                    const res = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    });
+                    const data = await res.json();
+
+                    // Guard: already processing
+                    if (res.status === 429 || (data && data.is_processing)) {
+                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('AI is currently analyzing this control.') }}', type: 'info' } }));
+                        startPolling();
+                        return;
+                    }
+
+                    // Guard: no data change since last AI generation
+                    if (res.status === 409 && data.no_change) {
+                        self.aiLoading = false;
+                        // Restore existing AI data since we aborted
+                        const statusRes = await fetch(AI_STATUS_URL_TMPL.replace(':id', resultId));
+                        const statusData = await statusRes.json();
+                        const aiResult = statusData.data || statusData.result || statusData;
+                        if (aiResult.has_ai) {
+                            self.aiRec        = aiResult.ai_recommendation || '';
+                            self.aiPlan       = (typeof aiResult.corrective_action_plan === 'object' && aiResult.corrective_action_plan !== null)
+                                                 ? (aiResult.corrective_action_plan.action || (Array.isArray(aiResult.corrective_action_plan) ? aiResult.corrective_action_plan.join('\n') : JSON.stringify(aiResult.corrective_action_plan)))
+                                                 : (aiResult.corrective_action_plan || '');
+                            self.aiInsight    = (typeof aiResult.control_insight === 'object' && aiResult.control_insight !== null)
+                                                 ? (aiResult.control_insight.gap || (Array.isArray(aiResult.control_insight) ? aiResult.control_insight.join('\n') : JSON.stringify(aiResult.control_insight)))
+                                                 : (aiResult.control_insight || '');
+                            self.aiPriority   = aiResult.risk_priority || '';
+                            self.aiValidation = '';
+                            self.aiImpact     = aiResult.impact_interpretation || '';
+                        }
+                        Swal.fire({
+                            icon: 'warning',
+                            title: '{{ __('Warning: No Data Changes Detected') }}',
+                            html: '<p class=\'text-sm text-slate-600 font-medium leading-relaxed\'>{{ addslashes(__('Re-generation of AI recommendation is disabled because no maturity scores, notes, or applicability data have changed since the last AI generation.')) }}</p>' +
+                                  '<p class=\'text-xs text-amber-700 bg-amber-50 p-2.5 rounded-lg border border-amber-200 mt-3 font-semibold flex items-center gap-2\'><i class=\'fa-solid fa-triangle-exclamation text-amber-600\'></i> {{ addslashes(__('Please update the maturity score or remarks before attempting to re-generate AI recommendations.')) }}</p>',
+                            confirmButtonText: '{{ __('Understood') }}',
+                            confirmButtonColor: '#f59e0b',
+                            width: '27rem',
+                            customClass: {
+                                title: 'text-base font-bold text-slate-800',
+                                htmlContainer: 'text-left px-2',
+                                confirmButton: 'text-xs font-bold uppercase tracking-widest px-5 py-2.5 rounded-lg'
+                            }
+                        });
+                        return;
+                    }
+
+                    if (data.success) {
+                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Connecting to n8n... Waiting for AI analysis.') }}', type: 'success' } }));
+                        startPolling();
+                    } else {
+                        self.aiLoading = false;
+                        window.dispatchEvent(new CustomEvent('notify', { detail: { message: data.message || '{{ __('Failed to trigger AI generation.') }}', type: 'error' } }));
+                    }
+                } catch(e) {
+                    console.error(e);
+                    self.aiLoading = false;
+                    window.dispatchEvent(new CustomEvent('notify', { detail: { message: '{{ __('Failed to trigger AI generation.') }}', type: 'error' } }));
+                }
+            }
+        }));
+    };
+
+    if (window.Alpine) {
+        registerResultCard();
+    } else {
+        document.addEventListener('alpine:init', registerResultCard);
+    }
+})();
+</script>
 

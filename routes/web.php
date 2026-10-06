@@ -74,6 +74,7 @@ Route::controller(SocialAuthController::class)->prefix('auth')->name('auth.')->g
 Route::prefix('webhook')->middleware('webhook.auth')->group(function () {
     Route::post('/n8n', [WebhookController::class, 'handleN8nResponse'])->name('webhook.n8n');
     Route::post('/n8n-summary', [WebhookController::class, 'handleSessionSummary'])->name('webhook.n8n.summary');
+    Route::post('/n8n-evidence-extraction', [WebhookController::class, 'handleEvidenceExtraction'])->name('webhook.n8n.evidence-extraction');
 });
 
 /*
@@ -126,8 +127,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/update/{id}', 'update')->name('update');
         Route::post('/{id}/generate-ai', 'generateAiInsight')->name('generate-ai');
         Route::get('/{id}/ai-status', 'checkAiStatus')->name('ai-status');
+        Route::get('/{id}/row-detail', 'rowDetail')->name('row-detail');
+        Route::get('/{id}/card-body', 'cardBody')->name('card-body');
         Route::get('/{id}/evidence', 'viewEvidence')->name('evidence');
         Route::delete('/{id}/evidence', 'deleteEvidence')->name('evidence.delete');
+        Route::post('/{id}/extract-evidence', 'extractEvidence')->name('extract-evidence');
+        Route::get('/{id}/extraction-status', 'checkExtractionStatus')->name('extraction-status');
     });
 
     // Intelligence Domain - Analytics

@@ -28,7 +28,7 @@ class AuditSessionAssignedNotification extends Notification
         $deadlineFormatted = $this->session->deadline ? $this->session->deadline->format('d M Y') : '-';
 
         return (new MailMessage)
-            ->subject('[AuditGuard] New Audit Session Assignment: ' . $this->session->name)
+            ->subject('[Audira] New Audit Session Assignment: ' . $this->session->name)
             ->view('emails.audit-session-assigned', [
                 'user' => $notifiable,
                 'session' => $this->session,

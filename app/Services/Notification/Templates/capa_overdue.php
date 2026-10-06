@@ -21,7 +21,7 @@ Status: Terlambat {days_overdue} hari!
 Sesi Audit: {session_name}
 
 Tindakan yang Diperlukan:
-Mohon segera unggah dokumen bukti perbaikan (evidence) ke dalam sistem AuditGuard.
+Mohon segera unggah dokumen bukti perbaikan (evidence) ke dalam sistem Audira.
 
 Email ini dikirimkan secara otomatis oleh Sistem Audit ISO/IEC 27001:2022.
 TEXT,

@@ -1,0 +1,12 @@
+{
+  "name": "n8n-pdf-rasterize",
+  "private": true,
+  "type": "module",
+  "description": "Standalone helper called by the n8n evidence-extraction workflow to rasterize scanned PDF pages to PNG (via mupdf, WASM — no Poppler/Ghostscript needed).",
+  "scripts": {
+    "start": "node rasterize-server.mjs"
+  },
+  "dependencies": {
+    "mupdf": "^1.28.0"
+  }
+}

@@ -134,27 +134,21 @@
 </head>
 <body>
     @php
-        $logoPath = public_path('images/logo.jpg');
+        $logoPath = public_path('images/logo-audira.png');
         $logoBase64 = '';
         if (file_exists($logoPath)) {
-            $logoBase64 = 'data:image/jpeg;base64,' . base64_encode(file_get_contents($logoPath));
+            $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
         }
     @endphp
     <div style="margin-bottom: 20px; border-bottom: 2px solid #008B9B; padding-bottom: 12px;">
         <table style="width: 100%; border: none; margin-bottom: 0;">
             <tr>
-                <td style="width: 50px; border: none; padding: 0; vertical-align: middle;">
+                <td style="width: 95px; border: none; padding: 0; vertical-align: middle;">
                     @if($logoBase64)
-                        <img src="{{ $logoBase64 }}" style="height: 45px; width: 45px; border-radius: 8px;">
+                        <img src="{{ $logoBase64 }}" style="height: 45px; width: 95px;">
                     @endif
                 </td>
                 <td style="border: none; padding: 0 0 0 10px; vertical-align: middle; text-align: left;">
-                    <div style="font-size: 20px; font-weight: bold; line-height: 1.1;">
-                        <span style="color: #0B2545;">Audit</span><span style="color: #0284c7;">Guard</span>
-                    </div>
-                    <div style="font-size: 7px; font-weight: 900; color: #64748b; letter-spacing: 2px; margin-top: 2px; text-transform: uppercase;">
-                        ASSESS &bull; ANALYZE &bull; ASSURE
-                    </div>
                 </td>
                 <td style="border: none; padding: 0; text-align: right; vertical-align: middle; color: #475569;">
                     <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: #2563eb;">ISO 27001:2022 Knowledge Base</div>
@@ -189,6 +183,6 @@
         @endif
     </div>
 
-    <div class="footer">AuditGuard &copy; {{ date('Y') }} | ISO 27001:2022 Knowledge Base Resource</div>
+    <div class="footer">Audira &copy; {{ date('Y') }} | ISO 27001:2022 Knowledge Base Resource</div>
 </body>
 </html>

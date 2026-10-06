@@ -78,7 +78,7 @@
             {{-- Header --}}
             <div class="text-center mb-6 relative z-10">
                 <a href="{{ route('landing') }}" class="inline-block mb-4">
-                    <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-14 h-14 rounded-2xl object-contain bg-white p-0.5 shadow-md shadow-blue-600/20 mx-auto hover:scale-105 transition-all">
+                    <img src="{{ asset('images/logo-audira.png') }}" alt="Audira" class="h-14 w-auto mx-auto object-contain bg-white rounded-2xl p-1 shadow-md shadow-blue-600/20 hover:scale-105 transition-all">
                 </a>
                 <h1 class="text-2xl font-bold gradient-text">{{ __('Set New Password') }}</h1>
                 <p class="text-sm text-gray-500 mt-2">{{ __('Enter your new password below.') }}</p>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin Panel') | AuditGuard — ISO 27001:2022 Compliance</title>
+    <title>@yield('title', 'Admin Panel') | Audira — ISO 27001:2022 Compliance</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -153,11 +153,12 @@
         </div>
 
         {{-- Mobile Toggle Button --}}
-        <button 
+        <button
+            x-show="!sidebarOpen"
             @click="toggleSidebar()"
             class="lg:hidden fixed top-4 left-4 z-[60] w-10 h-10 bg-white rounded-xl shadow-2xl flex items-center justify-center text-slate-600 border border-slate-100 transition-all active:scale-90"
         >
-            <i class="fa-solid transition-transform duration-300" :class="sidebarOpen ? 'fa-xmark scale-110' : 'fa-bars-staggered'"></i>
+            <i class="fa-solid fa-bars-staggered"></i>
         </button>
 
         {{-- Global Toast Container --}}
@@ -196,20 +197,23 @@
             class="bg-gradient-to-b from-blue-900 to-blue-950 flex flex-col transition-all duration-500 z-50 fixed lg:sticky top-0 left-0 h-screen shadow-2xl shrink-0 overflow-hidden"
             :class="{
                 'w-60 translate-x-0': sidebarOpen,
-                'w-24 translate-x-0': !sidebarOpen && window.innerWidth >= 1024,
+                'w-28 translate-x-0': !sidebarOpen && window.innerWidth >= 1024,
                 '-translate-x-full': !sidebarOpen && window.innerWidth < 1024
             }">
-            
-            <div class="h-20 flex items-center px-4 gap-3 shrink-0 border-b border-blue-800/50">
-                <img src="{{ asset('images/logo.jpg') }}" alt="AuditGuard" class="w-10 h-10 rounded-xl shrink-0 shadow-lg object-contain bg-white p-0.5">
+
+            <div class="h-20 flex flex-row items-center shrink-0 border-b border-blue-800/50 transition-all duration-300"
+                 :class="sidebarOpen ? 'px-4 gap-3 justify-start' : 'px-2 gap-2 justify-center'">
+                <img src="{{ asset('images/logo-audira.png') }}" alt="Audira"
+                     class="max-h-10 rounded-lg shadow-lg object-contain bg-white p-1 shrink-0 transition-all duration-300"
+                     :class="sidebarOpen ? 'h-10 w-auto' : 'w-12 h-auto'">
                 <div x-show="sidebarOpen" x-transition.opacity.duration.500ms class="overflow-hidden flex-1">
-                    <p class="font-black text-base leading-none tracking-tight">
-                        <span style="color: #f8fafc;">Audit</span><span style="color: #38BDF8;">Guard</span>
-                    </p>
                     <p class="text-[8px] text-blue-300 font-bold mt-1 uppercase tracking-widest whitespace-nowrap">Admin Dashboard</p>
                 </div>
-                <button @click="toggleSidebar()" class="hidden lg:flex w-8 h-8 rounded-lg items-center justify-center text-blue-300 hover:bg-white/10 hover:text-white transition-all outline-none">
+                <button @click="toggleSidebar()" class="hidden lg:flex w-8 h-8 rounded-lg items-center justify-center text-blue-300 hover:bg-white/10 hover:text-white transition-all outline-none shrink-0">
                     <i class="fa-solid" :class="sidebarOpen ? 'fa-angle-left' : 'fa-angle-right'"></i>
+                </button>
+                <button @click="toggleSidebar()" class="lg:hidden flex w-8 h-8 rounded-lg items-center justify-center text-blue-300 hover:bg-white/10 hover:text-white transition-all outline-none shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 

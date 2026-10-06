@@ -115,7 +115,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
     }
 
     /**
-     * Send password reset notification using custom AuditGuard email template
+     * Send password reset notification using custom Audira email template
      */
     public function sendPasswordResetNotification($token)
     {

@@ -1,0 +1,201 @@
+{
+  "name": "ai-recom clausa/control-fix",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an AI ISO/IEC 27001:2022 Assessment Analyst and Information Security Governance Consultant.\n\nControl:\n{{ $json.body.control.code }} - {{ $json.body.control.title }}\n\nControl Description:\n{{ $json.body.control.description }}\n\nAssessment Result:\n\n* Maturity Rating: {{ $json.body.assessment.maturity_rating }} out of 5\n* Compliance Status: {{ $json.body.assessment.compliance_status }}\n* Assessment Notes: \"{{ $json.body.assessment.notes }}\"\n* Evidence: \"{{ $json.body.assessment.evidence }}\"\n\nPerform a professional analysis of the ISO/IEC 27001:2022 control assessment based solely on the information provided.\n\nThe provided Maturity Rating and Compliance Status are authoritative assessment outcomes.\n\nThe AI shall NOT modify, recalculate, dispute, reinterpret, or reassess these assessment results.\n\nThe primary basis for all analyses is the provided Maturity Rating and Compliance Status.\n\nThe purpose of this analysis is to help the organization understand its current implementation status, identify practical improvement priorities, and support continual improvement of its Information Security Management System (ISMS). The AI acts only as an assessment interpretation and advisory component and must not perform compliance auditing or reassessment.\n\nAssessment Notes and Evidence are supporting information that should only be used, when available, to strengthen or validate the interpretation of the assessment results.\n\nDo not infer, assume, or fabricate implementation details that are not supported by the available assessment information.\n\nEvery recommendation and interpretation must be traceable to one or more of the following:\n\n- Maturity Rating\n- Compliance Status\n- Assessment Notes\n- Evidence\n\nIf supporting information is unavailable, explicitly state that the interpretation is primarily derived from the reported assessment outcome.\n\nFocus the analysis on the following five aspects.\n\n--------------------------------------------------\n1. Strategic Recommendation\n--------------------------------------------------\n\nProvide strategic recommendations that are fully aligned with the provided Maturity Rating and Compliance Status.\n\nThe recommendations should:\n\n- align with the current implementation status;\n- support the objective of the control;\n- identify realistic improvement priorities;\n- support continual improvement of the ISMS.\n\n--------------------------------------------------\n2. Prioritization Level\n--------------------------------------------------\n\nDetermine the implementation priority based on the provided assessment outcome.\n\nThe priority shall NOT be derived by reassessing the control, but by interpreting the reported Maturity Rating and Compliance Status.\n\nReturn only one of the following values:\n\n- High\n- Medium\n- Low\n\nProvide a brief justification explaining why this priority level is appropriate.\n\n--------------------------------------------------\n3. Impact Interpretation\n--------------------------------------------------\n\nExplain the potential organizational impact if the control remains at its current implementation level.\n\nThe analysis should focus on practical consequences that may affect:\n\n- information security governance;\n- operational effectiveness;\n- risk exposure;\n- business continuity;\n- regulatory or compliance readiness.\n\nDo not exaggerate risks or speculate beyond the available assessment information.\n\n--------------------------------------------------\n4. Action Plan\n--------------------------------------------------\n\nProvide a practical and sequential improvement plan.\n\nUse numbered steps (1, 2, 3, ...).\n\nThe action plan should:\n\n- reflect the organization's current implementation level;\n- prioritize the most important activities first;\n- support gradual maturity improvement;\n- be practical and achievable.\n\n--------------------------------------------------\n5. Control Insight\n--------------------------------------------------\n\nEvaluate the assessment confidence based on the available supporting information.\n\nThe purpose of this evaluation is NOT to reassess the control but to determine whether the available Assessment Notes and Evidence sufficiently support the reported assessment outcome.\n\nApply the following rules.\n\n- If both Assessment Notes and Evidence are available, evaluate whether they collectively support the reported Maturity Rating and Compliance Status.\n\n- If only Assessment Notes are available, evaluate whether the notes sufficiently describe the implementation while stating that independent validation remains limited due to the absence of supporting evidence.\n\n- If only Evidence is available, evaluate whether the evidence demonstrates implementation while explaining that the absence of Assessment Notes limits contextual understanding.\n\n- If neither Assessment Notes nor Evidence is available, explicitly state that the analysis is based solely on the reported Maturity Rating and Compliance Status and that independent validation cannot be performed.\n\n- If the supporting information is incomplete, insufficient, inconsistent, overly brief, or weak, explain its limitations and specify what additional information or evidence would improve confidence in the assessment outcome.\n\nWrite every text value below in BOTH languages at once: professional, formal English (\"en\") and formal Bahasa Indonesia (\"id\"), each consistent with Information Security Governance, Risk, and Compliance (GRC) practices. Do not translate word-for-word between the two versions — write each so it reads naturally and professionally in its own language, while conveying the exact same analysis and conclusions.\n\nThe analysis should be interpretative, evidence-aware, and provide additional value rather than merely repeating the assessment result.\n\nDo not repeat the control description.\n\nDo not explain ISO/IEC 27001:2022.\n\nReturn ONLY valid JSON without markdown using the following structure. The \"level\" value must always be exactly \"High\", \"Medium\", or \"Low\" in English — never translate it.\n\n{\n  \"strategic_recommendation\": { \"en\": \"...\", \"id\": \"...\" },\n  \"prioritization_level\": {\n    \"level\": \"High | Medium | Low\",\n    \"justification\": { \"en\": \"...\", \"id\": \"...\" }\n  },\n  \"impact_interpretation\": { \"en\": \"...\", \"id\": \"...\" },\n  \"action_plan\": { \"en\": \"1. ...\\n2. ...\\n3. ...\", \"id\": \"1. ...\\n2. ...\\n3. ...\" },\n  \"control_insight\": { \"en\": \"...\", \"id\": \"...\" }\n}",
+        "options": {
+          "systemMessage": "Kamu harus mengembalikan murni JSON object saja. Jangan ada formatting backticks."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        784,
+        -48
+      ],
+      "id": "9a2d6a25-8b5a-44c8-838d-8b9fb286d6e7",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Ambil output AI\nlet rawOutput = $input.item.json.output || \"\";\n\n// Hapus tag think & code fences\nlet cleanText = rawOutput\n  .replace(/<think>[\\s\\S]*?<\\/think>/gi, '')\n  .replace(/```json/gi, '')\n  .replace(/```/g, '')\n  .trim();\n\nfunction extractJson(s) {\n  const start = s.indexOf('{');\n  const end = s.lastIndexOf('}');\n  if (start === -1 || end === -1 || end <= start) return null;\n  try { return JSON.parse(s.slice(start, end + 1)); } catch (e) { return null; }\n}\n\nconst aiData = extractJson(cleanText) || {};\n\n// Ambil result_id dari webhook\nlet resultId = null;\ntry {\n  resultId = $('Webhook1').first().json.body.result_id;\n} catch (e) {\n  resultId = null;\n}\n\n// Setiap field diminta bilingual: { en: \"...\", id: \"...\" }.\n// Fallback ke string polos kalau model mengabaikan skema bilingual.\nfunction pick(field, lang) {\n  if (!field) return '';\n  if (typeof field === 'string') return field;\n  return field[lang] || field.en || field.id || '';\n}\n\nconst priorityLevel = (aiData.prioritization_level && aiData.prioritization_level.level) || '';\n\nreturn {\n  result_id: resultId,\n  prioritization_level: priorityLevel,\n  ai_recommendation_en: pick(aiData.strategic_recommendation, 'en'),\n  ai_recommendation_id: pick(aiData.strategic_recommendation, 'id'),\n  action_plan_en: pick(aiData.action_plan, 'en'),\n  action_plan_id: pick(aiData.action_plan, 'id'),\n  control_insight_en: pick(aiData.control_insight, 'en'),\n  control_insight_id: pick(aiData.control_insight, 'id'),\n  impact_interpretation_en: pick(aiData.impact_interpretation, 'en'),\n  impact_interpretation_id: pick(aiData.impact_interpretation, 'id')\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        -48
+      ],
+      "id": "3a2aba6b-46eb-479e-adcd-8484c8e185f3",
+      "name": "parser1"
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        784,
+        128
+      ],
+      "id": "88c444ca-5711-4032-b23e-3ad1960814b3",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "AnBe5aCTzEKywU6z",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://skripsi-iso-27001-2022.test/api/webhook/n8n/ai-response",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Webhook-Secret",
+              "value": "zaskljdhnbKLN8532LBvjhbkj"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "result_id",
+              "value": "={{ $('Webhook1').item.json.body.result_id }}"
+            },
+            {
+              "name": "prioritization_level",
+              "value": "={{ $json.prioritization_level }}"
+            },
+            {
+              "name": "ai_recommendation_en",
+              "value": "={{ $json.ai_recommendation_en }}"
+            },
+            {
+              "name": "ai_recommendation_id",
+              "value": "={{ $json.ai_recommendation_id }}"
+            },
+            {
+              "name": "action_plan_en",
+              "value": "={{ $json.action_plan_en }}"
+            },
+            {
+              "name": "action_plan_id",
+              "value": "={{ $json.action_plan_id }}"
+            },
+            {
+              "name": "control_insight_en",
+              "value": "={{ $json.control_insight_en }}"
+            },
+            {
+              "name": "control_insight_id",
+              "value": "={{ $json.control_insight_id }}"
+            },
+            {
+              "name": "impact_interpretation_en",
+              "value": "={{ $json.impact_interpretation_en }}"
+            },
+            {
+              "name": "impact_interpretation_id",
+              "value": "={{ $json.impact_interpretation_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1312,
+        -48
+      ],
+      "id": "54446792-9cfc-4302-97c0-b927bb5e8512",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "audit-recommendation",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        512,
+        -48
+      ],
+      "id": "7dcfb603-45fc-40e9-b038-b07b31729d02",
+      "name": "Webhook1",
+      "webhookId": "ca1e8329-e6d0-4177-9cc9-c5209661226b"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "parser1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "parser1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "6dab3c85-e45c-473a-985c-9cbe12a8fdfe",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "99bfdc33f90478a9ccccfaad5977aeabf94b9479ca0be3c4558b22b12cc325a4"
+  },
+  "id": "xgmgSpzLYLSehHsD",
+  "tags": []
+}
